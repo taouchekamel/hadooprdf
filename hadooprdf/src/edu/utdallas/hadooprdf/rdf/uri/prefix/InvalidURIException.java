@@ -3,7 +3,7 @@ package edu.utdallas.hadooprdf.rdf.uri.prefix;
 /**
  * This is an exception class to indicate that a string is not a valid URI
  * 
- * @author hadoop
+ * @author Mohammad Farhan Husain
  * @version 1.0
  * @since 1.0
  */

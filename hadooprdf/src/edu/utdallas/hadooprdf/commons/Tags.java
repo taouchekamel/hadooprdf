@@ -17,4 +17,8 @@ public class Tags {
 	 * Input base URI
 	 */
 	public static String INPUT_BASE_URI = "InputBaseURI";
+	/**
+	 * Path to prefix file
+	 */
+	public static String PATH_TO_PREFIX_FILE = "PathToPrefixFile";
 }

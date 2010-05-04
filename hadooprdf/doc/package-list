@@ -2,7 +2,13 @@ edu.utdallas.hadooprdf.commons
 edu.utdallas.hadooprdf.conf
 edu.utdallas.hadooprdf.lib.mapred.io.output
 edu.utdallas.hadooprdf.lib.mapred.serialization.conversion
+edu.utdallas.hadooprdf.lib.util
 edu.utdallas.hadooprdf.main
+edu.utdallas.hadooprdf.metadata
+edu.utdallas.hadooprdf.preprocessing.lib
+edu.utdallas.hadooprdf.preprocessing.namespacing
+edu.utdallas.hadooprdf.preprocessing.namespacing.mapred
+edu.utdallas.hadooprdf.preprocessing.namespacing.test
 edu.utdallas.hadooprdf.preprocessing.serialization
 edu.utdallas.hadooprdf.preprocessing.serialization.test
 edu.utdallas.hadooprdf.rdf.uri.prefix

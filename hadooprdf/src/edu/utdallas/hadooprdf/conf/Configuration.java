@@ -8,14 +8,14 @@ package edu.utdallas.hadooprdf.conf;
 public class Configuration {
 	private static Configuration m_Instance = null;	// The singleton instance
 	private int m_iTaskTrackersInCluster;	// Number of reducers in the cluster
-	private org.apache.hadoop.conf.Configuration m_HadoopConfiguration;	// The cluster configuration
+	private final org.apache.hadoop.conf.Configuration m_HadoopConfiguration;	// The cluster configuration
 	
 	/**
 	 * The class constructor
 	 * @param hadoopConfiguration the m_HadoopConfiguration to set
 	 */
 	private Configuration(org.apache.hadoop.conf.Configuration hadoopConfiguration) {
-		setHadoopConfiguration(hadoopConfiguration);
+		m_HadoopConfiguration = hadoopConfiguration;
 		setNumberOfTaskTrackersInCluster(-1);
 	}
 	
@@ -54,12 +54,5 @@ public class Configuration {
 	 */
 	public org.apache.hadoop.conf.Configuration getHadoopConfiguration() {
 		return m_HadoopConfiguration;
-	}
-
-	/**
-	 * @param hadoopConfiguration the m_HadoopConfiguration to set
-	 */
-	public void setHadoopConfiguration(org.apache.hadoop.conf.Configuration hadoopConfiguration) {
-		m_HadoopConfiguration = hadoopConfiguration;
 	}
 }

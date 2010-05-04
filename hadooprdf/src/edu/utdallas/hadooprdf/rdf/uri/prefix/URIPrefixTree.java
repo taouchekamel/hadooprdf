@@ -1,7 +1,6 @@
 package edu.utdallas.hadooprdf.rdf.uri.prefix;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Serializable;
 
 /**
  * This class is a prefix tree for URIs ({@link http://tools.ietf.org/html/rfc3305})
@@ -10,68 +9,40 @@ import java.util.Map;
  * @version 1.0
  * @since 1.0
  */
-public class URIPrefixTree {
-	/**
-	 * The prefix of prefixes
-	 */
-	private String m_sPrefixPrefix;
-	/**
-	 * The root of the forest
-	 */
-	private Map<Character, PrefixTreeNode> m_TreeRoots;
-	/**
-	 * The prefix map
-	 */
-	private Map<String, String> m_LongestCommonPrefixes;
-	/**
-	 * A boolean to keep track whether new URI is inserted after prefixes are generated
-	 */
-	private boolean m_bPrefixesValid;
-	
+public class URIPrefixTree extends PrefixTree implements Serializable {
+	private static final long serialVersionUID = 6357529393225766799L;
 	/**
 	 * The default class constructor
 	 */
 	public URIPrefixTree(String sPrefixPrefix) {
-		m_sPrefixPrefix = sPrefixPrefix;
-		m_TreeRoots = new HashMap<Character, PrefixTreeNode> ();
-		m_LongestCommonPrefixes = new HashMap<String, String> ();
-		m_bPrefixesValid = false;
+		super(sPrefixPrefix);
 	}
-	
 	/**
-	 * Get longest common prefixes in the forest and their replacement prefixes
-	 * @return a Map where the replacement prefix is the key and the prefix to be replaced is the value
+	 * @see edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixTree#generateLongestCommonPrefixes(edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixNode, java.lang.StringBuffer) 
 	 */
-	public Map<String, String> getLongestCommonPrefixes() {
-		if (!m_bPrefixesValid)
-			generateLongestCommonPrefixes();
-		return m_LongestCommonPrefixes;
-	}
-	
-	/**
-	 * Generates the replacement prefixes for longest common prefixes
-	 */
-	private void generateLongestCommonPrefixes() {
-		m_LongestCommonPrefixes.clear();
-		int iPrefixCount = 0;
-		for (PrefixTreeNode node : m_TreeRoots.values()) {
-			String sReplacementPrefix = m_sPrefixPrefix + iPrefixCount;
-			StringBuffer sbPrefix = new StringBuffer();
-			while (null != node) {
-				sbPrefix.append(node.getCharacter());
-				node = (node.isEndOfWord()) ? null : node.getSingleChild();
-			}
-			if (sReplacementPrefix.length() < sbPrefix.length()) {
-				m_LongestCommonPrefixes.put(sReplacementPrefix, sbPrefix.toString());
-				iPrefixCount++;
+	@Override
+	protected void generateLongestCommonPrefixes(PrefixNode node, StringBuffer sbPrefix) {
+		sbPrefix.append(node.getCharacter());
+		String sReplacementPrefix = m_sPrefixPrefix + m_iPrefixCount;
+		if (((PrefixTreeNode) node).isEndOfWord() && sReplacementPrefix.length() < sbPrefix.length()) {
+			m_LongestCommonPrefixes.put(sReplacementPrefix, sbPrefix.toString());
+			m_iPrefixCount++;
+		}
+		else if (1 == node.getNumberOfChildren())
+			generateLongestCommonPrefixes(node.getSingleChild(), sbPrefix);
+		else if (sbPrefix.toString().endsWith("://") || sbPrefix.toString().equalsIgnoreCase(("http://www."))) {
+			for(PrefixNode child : node.getChildren().values()) {
+				generateLongestCommonPrefixes(child, new StringBuffer(sbPrefix));
 			}
 		}
-		m_bPrefixesValid = true;
+		else if (sReplacementPrefix.length() < sbPrefix.length()) {
+			m_LongestCommonPrefixes.put(sReplacementPrefix, sbPrefix.toString());
+			m_iPrefixCount++;
+		}
 	}
-
 	/**
 	 * This static method checks whether a string is a URI of non-zero length {@link http://tools.ietf.org/html/rfc3305}
-	 * 
+	 * The method is incomplete.
 	 * @param s the string to be checked.
 	 * @return	true if s is a URI, otherwise returns false.
 	 */
@@ -88,7 +59,7 @@ public class URIPrefixTree {
 	 */
 	public void addURI(String s) throws InvalidURIException {
 		if (!isURI(s)) throw new InvalidURIException(s);
-		PrefixTreeNode node = m_TreeRoots.get(s.charAt(0));
+		PrefixTreeNode node = (PrefixTreeNode) m_TreeRoots.get(s.charAt(0));
 		if (null == node) {
 			node = new PrefixTreeNode(s.charAt(0));
 			m_TreeRoots.put(s.charAt(0), node);
@@ -108,10 +79,14 @@ public class URIPrefixTree {
 	}
 	
 	/**
-	 * Prints the entire tree
+	 * Gets the String representation of the tree
+	 * @param chWhiteSpace the whitespace character to be used for indentation
+	 * @return the String representation of the tree
 	 */
-	public void printTree(char chWhiteSpace) {
-		for (PrefixTreeNode root : m_TreeRoots.values())
-			root.printTree("", chWhiteSpace);
+	public String toString(char chWhiteSpace) {
+		StringBuffer sb = new StringBuffer();
+		for (PrefixNode root : m_TreeRoots.values())
+			sb.append(((PrefixTreeNode) root).toString("", chWhiteSpace));
+		return sb.toString();
 	}
 }

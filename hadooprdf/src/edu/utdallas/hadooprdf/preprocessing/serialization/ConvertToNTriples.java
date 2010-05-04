@@ -5,8 +5,8 @@ import java.io.IOException;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -16,6 +16,9 @@ import edu.utdallas.hadooprdf.commons.Tags;
 import edu.utdallas.hadooprdf.commons.Constants.SerializationFormat;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
+import edu.utdallas.hadooprdf.metadata.DataFileExtensionNotSetException;
+import edu.utdallas.hadooprdf.metadata.DataSet;
+import edu.utdallas.hadooprdf.preprocessing.lib.PreprocessorJobRunner;
 
 /**
  * A class to convert RDF data from any format other than NTriples to NTriples
@@ -23,24 +26,11 @@ import edu.utdallas.hadooprdf.lib.mapred.io.output.FilenameByKeyMultipleTextOutp
  * 
  * @author Mohammad Farhan Husain
  */
-public class ConvertToNTriples {
+public class ConvertToNTriples extends PreprocessorJobRunner {
 	/**
 	 * The serialization format the RDF data is in
 	 */
 	private SerializationFormat m_InputFormat;
-	/**
-	 * The input directory path, all the files of this directory will be read.
-	 */
-	private Path m_InputDirectoryPath;
-	/**
-	 * The output directory path
-	 */
-	private Path m_OutputDirectoryPath;
-	/**
-	 * The number of reducers to be used for the job
-	 */
-	private int m_iNumberOfReducers;
-
 	/**
 	 * The class constructor
 	 * 
@@ -53,14 +43,13 @@ public class ConvertToNTriples {
 	 *            traversal is non-recursive
 	 * @param outputDirectoryPath
 	 *            the output directory
+	 * @throws DataFileExtensionNotSetException 
 	 */
-	public ConvertToNTriples(SerializationFormat inputFormat,
-			Path inputDirectoryPath,
-			Path outputDirectoryPath) {
+	public ConvertToNTriples(SerializationFormat inputFormat, DataSet dataSet) throws DataFileExtensionNotSetException {
+		super(dataSet);
 		m_InputFormat = inputFormat;
-		m_InputDirectoryPath = inputDirectoryPath;
-		m_OutputDirectoryPath = outputDirectoryPath;
-		setNumberOfReducers(-1);
+		m_InputDirectoryPath = m_DataSet.getPathToOriginalData();
+		m_OutputDirectoryPath = m_DataSet.getPathToNTriplesData();
 	}
 
 	/**
@@ -83,9 +72,6 @@ public class ConvertToNTriples {
 			fs = FileSystem.get(hadoopConfiguration);
 			// Delete output directory
 			fs.delete(m_OutputDirectoryPath, true);
-			//if (!fs.delete(m_OutputDirectoryPath, true))
-				//throw new ConversionToNTriplesException("Could not delete output directory " + m_OutputDirectoryPath.getName());
-			FileStatus [] fstatus = fs.listStatus(m_InputDirectoryPath);
 			String sInputFormat = SerializationFormat.getSerializationFormatName(m_InputFormat);
 			// Must set all the job parameters before creating the job
 			hadoopConfiguration.set(Tags.INPUT_SERIALIZATION_FORMAT, sInputFormat);
@@ -96,6 +82,13 @@ public class ConvertToNTriples {
 			// Specify input parameters
 			job.setInputFormatClass(TextInputFormat.class);
 			boolean bInputPathEmpty = true;
+			// Get input file names
+			FileStatus [] fstatus = fs.listStatus(m_InputDirectoryPath, new PathFilter() {
+				@Override
+				public boolean accept(Path path) {
+					return path.getName().toLowerCase().endsWith(m_sInputFilesExtension);
+				}
+			});
 			for (int i = 0; i < fstatus.length; i++) {
 				if (!fstatus[i].isDir()) {
 					FileInputFormat.addInputPath(job, fstatus[i].getPath());
@@ -120,8 +113,7 @@ public class ConvertToNTriples {
 			else if (-1 != config.getNumberOfTaskTrackersInCluster())	// Use one reducer per TastTracker, if the number of TaskTrackers is available
 				job.setNumReduceTasks(config.getNumberOfTaskTrackersInCluster());
 			// Set the jar file
-			// job.setJarByClass(this.getClass());//("/home/hadoop/HadoopPreprocessor.jar");
-			((JobConf) job.getConfiguration()).setJar("/home/hadoop/HadoopRDFFramework.jar");
+			job.setJarByClass(this.getClass());
 			// Run the job
 			job.waitForCompletion(true);
 		} catch (IOException e) {
@@ -133,17 +125,4 @@ public class ConvertToNTriples {
 		}
 	}
 
-	/**
-	 * @return the m_iNumberOfReducers
-	 */
-	public int getNumberOfReducers() {
-		return m_iNumberOfReducers;
-	}
-
-	/**
-	 * @param iNumberOfReducers the m_iNumberOfReducers to set
-	 */
-	public void setNumberOfReducers(int iNumberOfReducers) {
-		m_iNumberOfReducers = iNumberOfReducers;
-	}
 }

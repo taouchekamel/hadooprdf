@@ -1,22 +1,14 @@
 package edu.utdallas.hadooprdf.rdf.uri.prefix;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.Serializable;
 
 /**
  * The class represents a node in the prefix tree
- * @author hadoop
+ * @author Mohammad Farhan Husain
  *
  */
-public class PrefixTreeNode {
-	/**
-	 * The character of this node
-	 */
-	private char m_Character;
-	/**
-	 * The children nodes
-	 */
-	private Map<Character, PrefixTreeNode> m_Children;
+public class PrefixTreeNode extends PrefixNode implements Serializable {
+	private static final long serialVersionUID = -8093684209453463612L;
 	/**
 	 * Count of the words which end at this node
 	 */
@@ -27,11 +19,9 @@ public class PrefixTreeNode {
 	 * @param ch the character of the node
 	 */
 	public PrefixTreeNode(char ch) {
-		m_Character = ch;
-		m_Children = new HashMap<Character, PrefixTreeNode> ();
+		super(ch);
 		m_iWordEndsHere = 0;
 	}
-	
 	/**
 	 * Adds a child node, if not present, and calls the same method of that node to add next child
 	 * @param charArray
@@ -44,22 +34,13 @@ public class PrefixTreeNode {
 			return;
 		}
 		char ch = s.charAt(index);
-		PrefixTreeNode node = m_Children.get(ch);
+		PrefixTreeNode node = (PrefixTreeNode) m_Children.get(ch);
 		if (null == node) {
 			node = new PrefixTreeNode(ch);
 			m_Children.put(ch, node);
 		}
 		node.addChild(s, index + 1);
 	}
-	
-	/**
-	 * Get the character of the node
-	 * @return the character of the node
-	 */
-	public char getCharacter() {
-		return m_Character;
-	}
-	
 	/**
 	 * Is end of a word?
 	 * @return true if end of a word
@@ -67,7 +48,6 @@ public class PrefixTreeNode {
 	public boolean isEndOfWord() {
 		return 0 != m_iWordEndsHere;
 	}
-	
 	/**
 	 * Get the number of words which end at this node
 	 * @return the number of words which end at this node
@@ -75,32 +55,20 @@ public class PrefixTreeNode {
 	public int getNumberOfWordsEndingHere() {
 		return m_iWordEndsHere;
 	}
-	
 	/**
-	 * Get number of children
-	 * @return number of children
+	 * Gets the String representation of the tree rooted at this node
+	 * @param sPrecedingWhiteSpaces the preceding whitespace string  
+	 * @param chWhiteSpace the whitespace character to be used for indentation
+	 * @return the String representation of the tree rooted at this node
 	 */
-	public int getNumberOfChildren() {
-		return m_Children.size();
-	}
-	
-	/**
-	 * Gets the single child
-	 * @return the single child, if the number of children is not 1, return null
-	 */
-	public PrefixTreeNode getSingleChild() {
-		return (1 == m_Children.size()) ? m_Children.values().iterator().next() : null;
-	}
-	
-	/**
-	 * Prints the node and the subtree rooted at it
-	 */
-	public void printTree(String sPrecedingWhiteSpaces, char chWhiteSpace) {
+	public String toString(String sPrecedingWhiteSpaces, char chWhiteSpace) {
 		if (null == sPrecedingWhiteSpaces) sPrecedingWhiteSpaces = "";
-		System.out.println(sPrecedingWhiteSpaces + m_Character);
+		StringBuffer sb = new StringBuffer();
+		sb.append(sPrecedingWhiteSpaces + m_Character + '\n');
 		String sPrecedingWhiteSpacesForChildren = sPrecedingWhiteSpaces + chWhiteSpace;
-		for (PrefixTreeNode child : m_Children.values()) {
-			child.printTree(sPrecedingWhiteSpacesForChildren, chWhiteSpace);
+		for (PrefixNode child : m_Children.values()) {
+			sb.append(((PrefixTreeNode) child).toString(sPrecedingWhiteSpacesForChildren, chWhiteSpace));
 		}
+		return sb.toString();
 	}
 }
