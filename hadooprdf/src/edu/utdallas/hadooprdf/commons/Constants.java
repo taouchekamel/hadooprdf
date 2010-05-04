@@ -32,4 +32,12 @@ public class Constants {
 			}
 		}
 	}
+	/**
+	 * Filename extension for predicate split
+	 */
+	public static final String PS_EXTENSION = "ps";
+	/**
+	 * Filename extension for predicate object split
+	 */
+	public static final String POS_EXTENSION = "pos";
 }

@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.preprocessing.namespacing.mapred;
+package edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.mapred;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -10,7 +10,7 @@ import org.apache.hadoop.mapreduce.Reducer;
  * @author Mohammad Farhan Husain
  *
  */
-public class PrefixReplacerReducer extends
+public class PrefixReplacerPredicateSplitterReducer extends
 		Reducer<Text, Text, Text, Text> {
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.mapreduce.Reducer#reduce(java.lang.Object, java.lang.Iterable, org.apache.hadoop.mapreduce.Reducer.Context)

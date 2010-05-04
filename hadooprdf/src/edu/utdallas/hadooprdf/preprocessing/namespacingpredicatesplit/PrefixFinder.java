@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.preprocessing.namespacing;
+package edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit;
 
 import java.io.IOException;
 
@@ -18,8 +18,9 @@ import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 import edu.utdallas.hadooprdf.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.metadata.DataSet;
 import edu.utdallas.hadooprdf.preprocessing.lib.PreprocessorJobRunner;
-import edu.utdallas.hadooprdf.preprocessing.namespacing.mapred.PrefixFinderMapper;
-import edu.utdallas.hadooprdf.preprocessing.namespacing.mapred.PrefixFinderReducer;
+import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.PrefixFinderException;
+import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.mapred.PrefixFinderMapper;
+import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.mapred.PrefixFinderReducer;
 
 /**
  * This class finds the prefixes using one or more reducers

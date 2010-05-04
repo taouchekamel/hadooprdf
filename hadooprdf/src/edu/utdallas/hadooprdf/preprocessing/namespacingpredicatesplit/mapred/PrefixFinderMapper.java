@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.preprocessing.namespacing.mapred;
+package edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.mapred;
 
 import java.io.IOException;
 
@@ -7,7 +7,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
-import edu.utdallas.hadooprdf.preprocessing.namespacing.PrefixFinder;
+import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.PrefixFinder;
 import edu.utdallas.hadooprdf.rdf.uri.prefix.InvalidURIException;
 import edu.utdallas.hadooprdf.rdf.uri.prefix.URIPrefixTree;
 

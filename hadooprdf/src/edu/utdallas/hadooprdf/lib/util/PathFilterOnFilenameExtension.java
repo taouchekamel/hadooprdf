@@ -18,7 +18,7 @@ public class PathFilterOnFilenameExtension implements PathFilter {
 	 * @param sFileExtension the extension to filter on
 	 */
 	public PathFilterOnFilenameExtension(String sFileExtension) {
-		m_sFileExtension = sFileExtension;
+		m_sFileExtension = "." + sFileExtension;
 	}
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.fs.PathFilter#accept(org.apache.hadoop.fs.Path)

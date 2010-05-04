@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.preprocessing.namespacing;
+package edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit;
 
 import java.io.IOException;
 
@@ -11,6 +11,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+import edu.utdallas.hadooprdf.commons.Constants;
 import edu.utdallas.hadooprdf.commons.Tags;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
@@ -18,18 +19,19 @@ import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 import edu.utdallas.hadooprdf.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.metadata.DataSet;
 import edu.utdallas.hadooprdf.preprocessing.lib.PreprocessorJobRunner;
+import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.PrefixReplacerPredicateSplitterException;
 
 /**
  * A class to replace prefixes by namespaces found by PrefixFinder
  * @author Mohammad Farhan Husain
  */
-public class PrefixReplacer extends PreprocessorJobRunner {
+public class PrefixReplacerPredicateSplitter extends PreprocessorJobRunner {
 	/**
 	 * The class constructor
 	 * @param dataSet the data set to find the prefix for
 	 * @throws DataFileExtensionNotSetException 
 	 */
-	public PrefixReplacer(DataSet dataSet) throws DataFileExtensionNotSetException {
+	public PrefixReplacerPredicateSplitter(DataSet dataSet) throws DataFileExtensionNotSetException {
 		super(dataSet);
 		m_InputDirectoryPath = dataSet.getPathToNTriplesData();
 		m_OutputDirectoryPath = new Path(m_DataSet.getPathToTemp(), "replaced");
@@ -37,9 +39,9 @@ public class PrefixReplacer extends PreprocessorJobRunner {
 	/**
 	 * The method which runs the job for replacing prefixes with namespaces
 	 * @throws ConfigurationNotInitializedException
-	 * @throws PrefixReplacerException
+	 * @throws PrefixReplacerPredicateSplitterException
 	 */
-	public boolean replacePrefixes() throws ConfigurationNotInitializedException, PrefixReplacerException {
+	public boolean replacePrefixes() throws ConfigurationNotInitializedException, PrefixReplacerPredicateSplitterException {
 		try {
 			edu.utdallas.hadooprdf.conf.Configuration config =
 				edu.utdallas.hadooprdf.conf.Configuration.getInstance();
@@ -68,7 +70,7 @@ public class PrefixReplacer extends PreprocessorJobRunner {
 				}
 			}
 			if (bInputPathEmpty)
-				throw new PrefixReplacerException("No file to replace prefix for!");
+				throw new PrefixReplacerPredicateSplitterException("No file to replace prefix for!");
 			// Specify output parameters
 			job.setOutputFormatClass(FilenameByKeyMultipleTextOutputFormat.class);
 			job.setOutputKeyClass(Text.class);
@@ -77,8 +79,8 @@ public class PrefixReplacer extends PreprocessorJobRunner {
 			job.setMapOutputValueClass(Text.class);
 			FileOutputFormat.setOutputPath(job, m_OutputDirectoryPath);
 			// Set the mapper and reducer classes
-			job.setMapperClass(edu.utdallas.hadooprdf.preprocessing.namespacing.mapred.PrefixReplacerMapper.class);
-			job.setReducerClass(edu.utdallas.hadooprdf.preprocessing.namespacing.mapred.PrefixReplacerReducer.class);
+			job.setMapperClass(edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.mapred.PrefixReplacerPredicateSplitterMapper.class);
+			job.setReducerClass(edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.mapred.PrefixReplacerPredicateSplitterReducer.class);
 			// Set the number of reducers
 			if (-1 != getNumberOfReducers())	// Use the number set by the client, if any
 				job.setNumReduceTasks(getNumberOfReducers());
@@ -89,20 +91,21 @@ public class PrefixReplacer extends PreprocessorJobRunner {
 			// Run the job
 			if (job.waitForCompletion(true)) {
 				fs.delete(m_InputDirectoryPath, true);
-				fs.mkdirs(m_InputDirectoryPath);
-				fstatus = fs.listStatus(m_InputDirectoryPath, new PathFilterOnFilenameExtension(m_sInputFilesExtension));
+				fs.delete(m_DataSet.getPathToPSData(), true);
+				fs.mkdirs(m_DataSet.getPathToPSData());
+				fstatus = fs.listStatus(m_OutputDirectoryPath, new PathFilterOnFilenameExtension(Constants.PS_EXTENSION));
 				for (int i = 0; i < fstatus.length; i++)
-					fs.rename(fstatus[i].getPath(), new Path(m_InputDirectoryPath, fstatus[i].getPath().getName()));
+					fs.rename(fstatus[i].getPath(), new Path(m_DataSet.getPathToPSData(), fstatus[i].getPath().getName()));
 				fs.delete(m_OutputDirectoryPath, true);
 				return true;
 			}
 			return false;
 		} catch (IOException e) {
-			throw new PrefixReplacerException("IOException occurred:\n" + e.getMessage());
+			throw new PrefixReplacerPredicateSplitterException("IOException occurred:\n" + e.getMessage());
 		} catch (InterruptedException e) {
-			throw new PrefixReplacerException("InterruptedException occurred:\n" + e.getMessage());
+			throw new PrefixReplacerPredicateSplitterException("InterruptedException occurred:\n" + e.getMessage());
 		} catch (ClassNotFoundException e) {
-			throw new PrefixReplacerException("ClassNotFoundException occurred:\n" + e.getMessage());
+			throw new PrefixReplacerPredicateSplitterException("ClassNotFoundException occurred:\n" + e.getMessage());
 		}
 	}
 }

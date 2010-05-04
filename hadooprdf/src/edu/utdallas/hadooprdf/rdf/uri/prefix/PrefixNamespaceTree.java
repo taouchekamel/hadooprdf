@@ -15,10 +15,15 @@ public class PrefixNamespaceTree {
 	 */
 	protected Map<Character, PrefixNode> m_TreeRoots;
 	/**
+	 * The separator character
+	 */
+	private char m_chSeparator;
+	/**
 	 * The class constructor
 	 * @param prefixNamespaces the namespace prefix pairs
 	 */
 	public PrefixNamespaceTree(NamespacePrefix [] prefixNamespaces) {
+		m_chSeparator = '#';
 		m_TreeRoots = new HashMap<Character, PrefixNode> ();
 		for (int i = 0; i < prefixNamespaces.length; i++)
 			addPrefixAndReplacementString(prefixNamespaces[i].getPrefix(), prefixNamespaces[i].getNamespace());
@@ -71,7 +76,19 @@ public class PrefixNamespaceTree {
 		StringBuffer returnNamespace = new StringBuffer();
 		int index = matchPrefix(s, returnNamespace);
 		if (-1 != index)
-			return returnNamespace.toString() + ':'	+ s.substring(index);
+			return returnNamespace.toString() + m_chSeparator	+ s.substring(index);
 		return null;
+	}
+	/**
+	 * @return the m_chSeparator
+	 */
+	public char getSeparator() {
+		return m_chSeparator;
+	}
+	/**
+	 * @param mChSeparator the m_chSeparator to set
+	 */
+	public void setSeparator(char mChSeparator) {
+		m_chSeparator = mChSeparator;
 	}
 }

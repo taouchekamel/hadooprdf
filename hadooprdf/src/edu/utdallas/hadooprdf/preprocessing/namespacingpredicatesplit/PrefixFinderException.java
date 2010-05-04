@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.preprocessing.namespacing;
+package edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit;
 
 /**
  * An exception class for errors in PrefixHandler
