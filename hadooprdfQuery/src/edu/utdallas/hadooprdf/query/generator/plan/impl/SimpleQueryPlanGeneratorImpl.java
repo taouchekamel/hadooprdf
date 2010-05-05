@@ -60,9 +60,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			//Create a single job plan
 			JobPlan jp = JobPlanFactory.createSimpleJobPlan();
 			
-			//A list of all triple patterns for this special case
-			List<TriplePattern> tps = new ArrayList<TriplePattern>();
-			
 			//Find the position of the joining variable in each triple pattern
 			Iterator<HadoopElement> elemIter = elements.iterator();
 			while( elemIter.hasNext() )
@@ -90,19 +87,16 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 						tp.setJoiningVariable( "s" );
 					else
 						tp.setJoiningVariable( "o" );
-					
-					//Set the total number of variables
-					tp.setTotalVariables( totalVars );
-					
-					//Add the triple pattern to the list of triple patterns
-					tps.add( tp );
-				}				
+										
+					//Add the triple pattern to the job plan
+					jp.addPredicateBasedTriplePattern( triple.getPredicate().toString(), tp );
+				}
+				
+				//Set the total number of variables expected in the result
+				jp.setTotalVariables( totalVars );
 			}
 			
-			//Add the joining variable and the list of triple patterns to the job plan
-			jp.addJoiningVariable( commonVariable, tps );
-			
-			//TODO: Add the input files, output files and file prefixes to the job plan
+			//TODO: Add the input files, output files and file prefixes to the job plan. Also the hadoop specific parameters
 			
 			//Add the job plan to the list of job plans
 			jps.add( jp );

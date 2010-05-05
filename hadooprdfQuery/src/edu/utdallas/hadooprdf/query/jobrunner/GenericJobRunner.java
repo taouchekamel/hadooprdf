@@ -10,6 +10,9 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
+import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
+
 /**
  * A class that implements a generic map-reduce job runner given a query plan
  * @author vaibhav
@@ -18,20 +21,11 @@ import org.apache.hadoop.mapreduce.Reducer;
 public class GenericJobRunner 
 {
 	//TODO: How to get these parameters ?? Query plan ??
-	/** The joining variable: subject or object **/
-	private String joinVariable = "subject";
-	
-	/** The number of variables in every triple pattern **/
-	private int numOfVariables = 0;
-	
 	/** The input filename **/
 	private String filename = "";
 	
 	/** A boolean that denotes if there are more jobs to follow **/
 	private boolean hasMoreJobs = false;
-	
-	/** An integer for the total number of variables in the result **/
-	private int totalVariables = 0;
 	
 	/** The map for prefixes added from the first job **/
 	private static final Map<String,String> hm;
@@ -42,6 +36,18 @@ public class GenericJobRunner
 		//This comes from the triple pattern that contains the joining variable for the next job
 		hm.put( "M#", "" );
 		hm.put( "S#", "" );
+	}
+	
+	/** The job plan for this job **/
+	private JobPlan jp = null;
+	
+	/**
+	 * 
+	 * @param jp - the job plan for the current job
+	 */
+	public GenericJobRunner( JobPlan jp )
+	{
+		this.jp = jp;
 	}
 	
 	/**
@@ -93,13 +99,14 @@ public class GenericJobRunner
 				}
 				else
 				{
+					TriplePattern tp = jp.getPredicateBasedTriplePattern( sPredicate );
 					//TODO: How to generate a unique prefix ??
 					//TODO: How to get the join variable and the number of variables in a triple pattern ??
 					//TODO: How to get the literal subjects or objects from a query ??
 					//If join is on subject and the number of variables in the triple pattern is 2 output ( subject, object )
-					if( joinVariable.equalsIgnoreCase( "subject" ) )
+					if( tp.getJoiningVariable().equalsIgnoreCase( "s" ) )
 					{
-						if( numOfVariables == 2 )
+						if( tp.getNumOfVariables() == 2 )
 							context.write( new Text( sSubject ), new Text( sPredicate.substring( 0, 2 ) + "#" + st.nextToken() ) );
 						else
 						{
@@ -110,9 +117,9 @@ public class GenericJobRunner
 						}
 					}
 					else
-						if( joinVariable.equalsIgnoreCase( "object" ) )
+						if( tp.getJoiningVariable().equalsIgnoreCase( "o" ) )
 						{
-							if( numOfVariables == 2 )
+							if( tp.getNumOfVariables() == 2 )
 								context.write( new Text( st.nextToken() ), new Text( sPredicate.substring( 0, 2 ) + "#" + sSubject ) );
 							else
 							{
@@ -184,7 +191,7 @@ public class GenericJobRunner
             //Write the result
             if( !hasMoreJobs )
             {
-            	if( count == totalVariables ) context.write( key, new Text( sValue ) );
+            	if( count == jp.getTotalVariables() ) context.write( key, new Text( sValue ) );
             }
             else
             	context.write( key, new Text( sValue ) );		

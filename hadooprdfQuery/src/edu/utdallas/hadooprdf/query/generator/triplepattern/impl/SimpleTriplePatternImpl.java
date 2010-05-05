@@ -18,9 +18,6 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	/** The joining variable in this triple pattern **/
 	private String tpJoiningVar = null;
 	
-	/** The total number of variables expected in the result of the query **/
-	private int totalVars = 0;
-	
 	/** Constructor **/
 	public SimpleTriplePatternImpl() { }
 	
@@ -70,21 +67,5 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	public String getJoiningVariable()
 	{
 		return tpJoiningVar;
-	}
-
-	/**
-	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setTotalVariables(int)}
-	 */
-	public void setTotalVariables( int totalVars )
-	{
-		this.totalVars = totalVars;
-	}
-	
-	/**
-	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getTotalVariables()}
-	 */
-	public int getTotalVariables()
-	{
-		return totalVars;
 	}
 }
