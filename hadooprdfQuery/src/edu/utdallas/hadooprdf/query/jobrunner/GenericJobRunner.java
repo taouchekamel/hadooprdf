@@ -18,9 +18,6 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
  */
 public class GenericJobRunner 
 {
-	/** A boolean that denotes if there are more jobs to follow **/
-	private boolean hasMoreJobs = false;
-	
 	/** The job plan for this job **/
 	private JobPlan jp = null;
 	
@@ -91,7 +88,7 @@ public class GenericJobRunner
 						{
 							String sObject = st.nextToken();
 							
-							if( sObject.equalsIgnoreCase( "queries object" ) )
+							if( sObject.equalsIgnoreCase( tp.getLiteralValue() ) )
 								context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
 						}
 					}
@@ -104,7 +101,7 @@ public class GenericJobRunner
 							{
 								String sObject = st.nextToken();
 								
-								if( sSubject.equalsIgnoreCase( "queries subject" ) )
+								if( sSubject.equalsIgnoreCase( tp.getLiteralValue() ) )
 									context.write( new Text( sObject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sObject ) );
 							}
 						}
@@ -159,16 +156,15 @@ public class GenericJobRunner
             Iterator<Text> iter = value.iterator();
             while ( iter.hasNext() ) 
             {
-            	if( !hasMoreJobs )
+            	if( !jp.getHasMoreJobs() )
             		count++;
                 sValue += iter.next().toString() + '\t';
             }
             
             //TODO: How to find the order of results with the given query, may need rearranging of value here
             //TODO: Sometimes only the key is the result, sometimes the key and part of the value is the result, how to find this out ??
-            //TODO: How to get if there are more jobs remaining and the total number of variables in the SELECT clause
             //Write the result
-            if( !hasMoreJobs )
+            if( !jp.getHasMoreJobs() )
             {
             	if( count == jp.getTotalVariables() ) context.write( key, new Text( sValue ) );
             }

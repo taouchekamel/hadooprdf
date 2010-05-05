@@ -2,6 +2,8 @@ package edu.utdallas.hadooprdf.query.generator.plan.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -42,6 +44,8 @@ import edu.utdallas.hadooprdf.query.util.JobParameters;
 @SuppressWarnings("deprecation")
 public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 {
+	private Map<Integer,String> elimVarCountMap = new HashMap<Integer,String>();
+	
 	/** A map of triple pattern id's and the corresponding triple pattern that is used in every job **/
 	private Map<Integer,TriplePattern> tpMap = new HashMap<Integer,TriplePattern>();
 	
@@ -61,6 +65,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	public QueryPlan generateQueryPlan( List<HadoopElement> elements ) 
 	throws UnhandledElementException, NotBasicElementException, IOException
 	{
+		
 		//Create a simple query plan
 		QueryPlan qp = QueryPlanFactory.createSimpleQueryPlan();
 		
@@ -94,6 +99,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				HadoopElement element = elemIter.next();
 				
 				//Get the total number of variables
+				//TODO: Get the total variables from the query parser
 				int totalVars = element.getElement().varsMentioned().size();
 
 				//A counter
@@ -138,6 +144,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			//Add the Hadoop Job to the JobPlan
 			jp.setHadoopJob( currJob );
 			
+			//Set a flag to denote that there are no more jobs
+			jp.setHasMoreJobs( false );
+			
 			//TODO: Add the input files, output files and file prefixes to the job plan. Also the hadoop specific parameters
 			
 			//Add the job plan to the list of job plans
@@ -146,8 +155,100 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			//Add the list of job plans to the query plan
 			qp.addJobPlans( jps );
 		}
+		else
+		{
+			constructElimCountMap( elements );
+		}
 		
 		return qp;
+	}
+	
+	private void constructElimCountMap( List<HadoopElement> elements ) throws UnhandledElementException, NotBasicElementException
+	{
+		/** A map of variables and their associated elimination counts **/
+		Map<String,Integer> varElimCountMap = new HashMap<String,Integer>();
+
+		//Check if all elements share a common variable
+		Iterator<HadoopElement> elemIter = elements.iterator();
+		while( elemIter.hasNext() )
+		{
+			//Get each hadoop element
+			HadoopElement element = elemIter.next();
+			
+			//Get triple patterns associated with a hadoop element
+			Iterator<Triple> tripleIter = element.getTriple().iterator();
+			while( tripleIter.hasNext() )
+			{
+				//Get each triple pattern
+				Triple triple = tripleIter.next();
+				
+				//Get the subject and object for that triple pattern
+				Node sub = triple.getSubject(), obj = triple.getObject();
+				String strSub = sub.toString(), strObj = obj.toString();
+				
+				//Check if both subject and object are variables
+				if( sub.isVariable() && obj.isVariable() )
+				{
+					//If the hashmap is empty put both subject and object in the hashmap
+					if( varElimCountMap.isEmpty() ) { varElimCountMap.put( strSub, new Integer( 1 ) ); varElimCountMap.put( strObj, new Integer( 1 ) ); }
+					else
+					{
+						//If the subject is a variable
+						if( sub.isVariable() ) 
+						{
+							//Get the current elimination count for the current variable
+							Integer i = varElimCountMap.get( strSub );
+							
+							//If the hashmap contains the current variable update its elimination count
+							//Else add a new entry in the hashmap
+							if( i != null ) varElimCountMap.put( strSub, new Integer( i + 1 ) );
+							else varElimCountMap.put( strSub, new Integer( 1 ) );
+						}
+						if( obj.isVariable() ) 
+						{
+							//Get the current elimination count for the current variable
+							Integer i = varElimCountMap.get( strObj );
+
+							//If the hashmap contains the current variable update its elimination count
+							//Else add a new entry in the hashmap
+							if( i != null ) varElimCountMap.put( strObj, new Integer( i + 1 ) );
+							else varElimCountMap.put( strObj, new Integer( 1 ) );
+						}
+					}
+				}
+			}
+			
+			//Sort the values in the hashmap
+			Collection<Integer> values = varElimCountMap.values();
+			
+			//Get the associated array
+			Object[] inArr = values.toArray();
+			
+			//Sort the values
+			Arrays.sort( inArr );
+			
+			//Iterate over the sorted array
+			for( int i = 0; i < inArr.length; i++ )
+			{
+				String keys = "";
+				
+				//Check each entry in the variable based hashmap for the value from the sorted array. Combine the keys that have that value.
+				Iterator<String> iterKeys =  varElimCountMap.keySet().iterator();
+				while( iterKeys.hasNext() )
+				{
+					String key = iterKeys.next();
+					Integer value = varElimCountMap.get( key );
+					if( value == inArr[i] ) keys += key + "~";
+				}
+				
+				//If the variable count hashmap is empty add a new entry based on the current value in the sorted array and the keys that have that value
+				//Else get the old value from the hashmap and update it
+				if( elimVarCountMap.isEmpty() )
+					elimVarCountMap.put( ( Integer )inArr[i], keys );
+				else
+					elimVarCountMap.put( ( Integer )inArr[i], elimVarCountMap.get( ( Integer )inArr[i] ) + keys );
+			}
+		}
 	}
 	
 	/**
@@ -251,7 +352,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				
 				//Check if both subject and object are variables
 				if( sub.isVariable() && obj.isVariable() )
-				{
+				{					
 					//Set the number of variables in the triple pattern to two
 					tp.setNumOfVariables( 2 );
 					
@@ -273,13 +374,27 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Similarly for object
 					if( sub.isVariable() )	
 					{
+						//Add the object as a literal for the current triple pattern
+						tp.setLiteralValue( strObj );
+						
 						if( !hm.isEmpty() && hm.get( strSub ) == null ) { isAborted = true; break; }
-						else hm.put( strSub, new Integer( hm.get( strSub ).intValue() + 1 ) );
+						else 
+						{
+							if( hm.isEmpty() ) hm.put( strSub, new Integer( 1 ) );
+							else hm.put( strSub, new Integer( hm.get( strSub ).intValue() + 1 ) );
+						}
 					}
 					else
 					{
+						//Add the subject as a literal value for the current triple pattern
+						tp.setLiteralValue( strSub );
+						
 						if( !hm.isEmpty() && hm.get( strObj ) == null ) { isAborted = true; break; }
-						else hm.put( strObj, new Integer( hm.get( strObj ).intValue() + 1 ) );						
+						else 
+						{
+							if( hm.isEmpty() ) hm.put( strObj, new Integer( 1 ) );
+							else hm.put( strObj, new Integer( hm.get( strObj ).intValue() + 1 ) );						
+						}
 					}
 				}
 				

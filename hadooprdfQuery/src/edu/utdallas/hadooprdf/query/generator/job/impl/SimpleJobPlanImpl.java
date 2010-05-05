@@ -24,6 +24,9 @@ public class SimpleJobPlanImpl implements JobPlan
 	/** The Hadoop Job object used by the current plan **/
 	private Job currJob = null;
 	
+	/** A boolean that denotes if there are more jobs to follow the current one **/
+	private boolean hasMoreJobs = false;
+	
 	/** Constructor **/
 	public SimpleJobPlanImpl() { }
 
@@ -72,5 +75,21 @@ public class SimpleJobPlanImpl implements JobPlan
 	public Job getHadoopJob()
 	{
 		return currJob;
+	}
+
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setHasMoreJobs(boolean)}
+	 */
+	public void setHasMoreJobs( boolean hasMoreJobs )
+	{
+		this.hasMoreJobs = hasMoreJobs;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getHasMoreJobs()}
+	 */
+	public boolean getHasMoreJobs()
+	{
+		return hasMoreJobs;
 	}
 }

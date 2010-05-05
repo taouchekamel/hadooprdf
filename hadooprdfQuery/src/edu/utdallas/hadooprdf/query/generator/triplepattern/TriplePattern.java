@@ -63,4 +63,16 @@ public interface TriplePattern
 	 * @return true iff the prefix exists, false otherwise
 	 */
 	public boolean checkIfPrefixExists( String prefix ) ;
+	
+	/**
+	 * A method that sets for every triple pattern, if it has one a literal value
+	 * @param literal - the literal value if present in a triple pattern
+	 */
+	public void setLiteralValue( String literal ) ;
+	
+	/**
+	 * A method that returns the literal value associated with the current triple pattern
+	 * @return - the literal value associated with this triple pattern
+	 */
+	public String getLiteralValue() ;
 }

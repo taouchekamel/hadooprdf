@@ -17,13 +17,18 @@ public class QueryTester
 	public static void main( String[] args ) throws UnhandledElementException, NotBasicElementException, IOException 
 	{
 		String queryString = 
-			" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
-			" SELECT ?url " +
-			" WHERE" +
-			" { " +
-			"	?contributor foaf:name ?y . " +
-			"   ?y foaf:weblog ?url . " +
-			" } ";
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X ?Y ?Z " +
+		" WHERE " +
+		" { " +
+		"		?X rdf:type ub:GraduateStudent . " +
+		" 		?Y rdf:type ub:University . " +
+		" 		?Z rdf:type ub:Department . " +
+		"		?X ub:memberOf ?Z . " +
+		"		?Z ub:subOrganizationOf ?Y . " +
+		"		?X ub:undergraduateDegreeFrom ?Y " +
+		" } " ; 
 
 		ArrayList <HadoopElement> eList = QueryParser.parseQuery(queryString);
 

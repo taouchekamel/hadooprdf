@@ -24,6 +24,9 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	/** A map between filenames and their prefixes to be used in a job **/
 	private Map<String,String> filenamePrefixMap = new HashMap<String,String>();
 
+	/** A literal value, if present, in this triple pattern **/
+	private String literal = null;
+	
 	/** Constructor **/
 	public SimpleTriplePatternImpl() { }
 	
@@ -97,5 +100,21 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	public boolean checkIfPrefixExists( String prefix )
 	{
 		return filenamePrefixMap.containsValue( prefix );
+	}
+
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setLiteralValue(String)}
+	 */
+	public void setLiteralValue( String value )
+	{
+		this.literal = value;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getLiteralValue()}
+	 */
+	public String getLiteralValue()
+	{
+		return literal;
 	}
 }

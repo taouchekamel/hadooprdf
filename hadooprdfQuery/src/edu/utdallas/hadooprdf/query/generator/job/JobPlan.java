@@ -48,4 +48,16 @@ public interface JobPlan
 	 * @return - the Hadoop Job used by the current job plan
 	 */
 	public Job getHadoopJob() ;
+	
+	/**
+	 * A method that sets whether there are any more jobs to follow after the current one
+	 * @param hasMoreJobs - true iff there are more Hadoop jobs to follow, false otherwise
+	 */
+	public void setHasMoreJobs( boolean hasMoreJobs ) ;
+	
+	/**
+	 * A method that returns true if there are more jobs to follow, false otherwise
+	 * @return true iff there are more Hadoop jobs to follow, false otherwise
+	 */
+	public boolean getHasMoreJobs() ;
 }
