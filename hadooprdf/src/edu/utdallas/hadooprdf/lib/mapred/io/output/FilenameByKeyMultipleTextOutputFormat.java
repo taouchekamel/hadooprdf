@@ -106,7 +106,12 @@ public class FilenameByKeyMultipleTextOutputFormat<K, V> extends
 				Path file = new Path(job.getConfiguration().get(
 						"mapred.output.dir"), sOutputFile);
 				FileSystem fs = file.getFileSystem(job.getConfiguration());
-				FSDataOutputStream fileOut = fs.create(file, false);
+				FSDataOutputStream fileOut = null;
+				try {
+					fileOut = fs.create(file, false);
+				} catch (IOException e) {
+					fileOut = fs.append(file);
+				}
 				outMap.put(sOutputFile, fileOut);
 				out = fileOut;
 			}

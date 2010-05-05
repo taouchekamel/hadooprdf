@@ -40,4 +40,8 @@ public class Constants {
 	 * Filename extension for predicate object split
 	 */
 	public static final String POS_EXTENSION = "pos";
+	/**
+	 * RDF Type URI
+	 */
+	public static final String RDF_TYPE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 }

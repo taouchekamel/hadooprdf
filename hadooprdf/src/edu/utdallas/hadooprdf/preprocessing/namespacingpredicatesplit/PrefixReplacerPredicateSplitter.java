@@ -19,7 +19,6 @@ import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 import edu.utdallas.hadooprdf.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.metadata.DataSet;
 import edu.utdallas.hadooprdf.preprocessing.lib.PreprocessorJobRunner;
-import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.PrefixReplacerPredicateSplitterException;
 
 /**
  * A class to replace prefixes by namespaces found by PrefixFinder
@@ -33,27 +32,26 @@ public class PrefixReplacerPredicateSplitter extends PreprocessorJobRunner {
 	 */
 	public PrefixReplacerPredicateSplitter(DataSet dataSet) throws DataFileExtensionNotSetException {
 		super(dataSet);
-		m_InputDirectoryPath = dataSet.getPathToNTriplesData();
-		m_OutputDirectoryPath = new Path(m_DataSet.getPathToTemp(), "replaced");
+		m_InputDirectoryPath = m_DataSet.getPathToNTriplesData();
+		m_OutputDirectoryPath = new Path(m_DataSet.getPathToTemp(), Constants.PS_EXTENSION);
 	}
 	/**
 	 * The method which runs the job for replacing prefixes with namespaces
 	 * @throws ConfigurationNotInitializedException
 	 * @throws PrefixReplacerPredicateSplitterException
 	 */
-	public boolean replacePrefixes() throws ConfigurationNotInitializedException, PrefixReplacerPredicateSplitterException {
+	public void replacePrefixesAndSplitByPredicate() throws ConfigurationNotInitializedException, PrefixReplacerPredicateSplitterException {
 		try {
 			edu.utdallas.hadooprdf.conf.Configuration config =
 				edu.utdallas.hadooprdf.conf.Configuration.getInstance();
 			org.apache.hadoop.conf.Configuration hadoopConfiguration =
 				new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
 			// that the original one does not get cluttered with job specific key-value pairs
-			FileSystem fs;
-			fs = FileSystem.get(hadoopConfiguration);
+			FileSystem fs = FileSystem.get(hadoopConfiguration);
 			// Delete output directory
 			fs.delete(m_OutputDirectoryPath, true);
 			// Must set all the job parameters before creating the job
-			String sPathToPrefixFile = m_DataSet.getPathToPrefixFile().getParent().toString() + '/' + m_DataSet.getPathToPrefixFile().getName();
+			String sPathToPrefixFile = m_DataSet.getPathToPrefixFile().toString();
 			hadoopConfiguration.set(Tags.PATH_TO_PREFIX_FILE, sPathToPrefixFile);
 			// Create the job
 			String sJobName = "Prefix Replacer for " + m_InputDirectoryPath.getParent() + '/' + m_InputDirectoryPath.getName();
@@ -97,9 +95,9 @@ public class PrefixReplacerPredicateSplitter extends PreprocessorJobRunner {
 				for (int i = 0; i < fstatus.length; i++)
 					fs.rename(fstatus[i].getPath(), new Path(m_DataSet.getPathToPSData(), fstatus[i].getPath().getName()));
 				fs.delete(m_OutputDirectoryPath, true);
-				return true;
 			}
-			return false;
+			else
+				throw new PrefixReplacerPredicateSplitterException("Prefix replacer job failed!");
 		} catch (IOException e) {
 			throw new PrefixReplacerPredicateSplitterException("IOException occurred:\n" + e.getMessage());
 		} catch (InterruptedException e) {

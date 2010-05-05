@@ -1,5 +1,6 @@
 edu.utdallas.hadooprdf.commons
 edu.utdallas.hadooprdf.conf
+edu.utdallas.hadooprdf.lib.mapred
 edu.utdallas.hadooprdf.lib.mapred.io.output
 edu.utdallas.hadooprdf.lib.mapred.serialization.conversion
 edu.utdallas.hadooprdf.lib.util
@@ -9,6 +10,9 @@ edu.utdallas.hadooprdf.preprocessing.lib
 edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit
 edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.mapred
 edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.test
+edu.utdallas.hadooprdf.preprocessing.predicateobjectsplit
+edu.utdallas.hadooprdf.preprocessing.predicateobjectsplit.mapred
+edu.utdallas.hadooprdf.preprocessing.predicateobjectsplit.test
 edu.utdallas.hadooprdf.preprocessing.serialization
 edu.utdallas.hadooprdf.preprocessing.serialization.test
 edu.utdallas.hadooprdf.rdf.uri.prefix

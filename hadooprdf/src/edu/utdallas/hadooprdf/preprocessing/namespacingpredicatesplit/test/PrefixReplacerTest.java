@@ -37,7 +37,7 @@ public class PrefixReplacerTest {
 			DataSet ds = new DataSet("/user/farhan/hadooprdf/LUBM1");
 			ds.setOriginalDataFilesExtension("owl");
 			PrefixReplacerPredicateSplitter pr = new PrefixReplacerPredicateSplitter(ds);
-			pr.replacePrefixes();
+			pr.replacePrefixesAndSplitByPredicate();
 		} catch (IOException e) {
 			System.err.println("IOException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
 			e.printStackTrace();

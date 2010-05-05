@@ -3,7 +3,7 @@ package edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.metadata.DataSet;
-import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.NamespaceProcessorException;
+import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.NamespaceProcessorPredicateSplitterException;
 import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.PrefixFinder;
 import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.PrefixFinderException;
 import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.PrefixReplacerPredicateSplitter;
@@ -14,7 +14,7 @@ import edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.PrefixRepl
  * generating namespaces and replacing prefixes with namespaces
  * @author Mohammad Farhan Husain
  */
-public class NamespaceProcessor {
+public class NamespaceProcessorPredicateSplitter {
 	/**
 	 * The data set to work on
 	 */
@@ -24,24 +24,27 @@ public class NamespaceProcessor {
 	 * The class constructor
 	 * @param dataSet the data set to work on
 	 */
-	public NamespaceProcessor(DataSet dataSet) {
+	public NamespaceProcessorPredicateSplitter(DataSet dataSet) {
 		m_DataSet = dataSet;
 	}
 	
-	public void processDataForNamespace() throws ConfigurationNotInitializedException, NamespaceProcessorException {
+	/**
+	 * The method which finds and replaces prefixes with namespaces and also splits data according to predicates
+	 * @throws ConfigurationNotInitializedException
+	 * @throws NamespaceProcessorPredicateSplitterException
+	 */
+	public void processDataForNamespace() throws ConfigurationNotInitializedException, NamespaceProcessorPredicateSplitterException {
 		try {
 			PrefixFinder pf = new PrefixFinder(m_DataSet);
-			if (!pf.findPrefixes())
-				throw new NamespaceProcessorException("Namespace could not be processed because PrefixFinder failed");
+			pf.findPrefixes();
 			PrefixReplacerPredicateSplitter pr = new PrefixReplacerPredicateSplitter(m_DataSet);
-			if (!pr.replacePrefixes())
-				throw new NamespaceProcessorException("Namespace could not be processed because PrefixReplacer failed");
+			pr.replacePrefixesAndSplitByPredicate();
 		} catch (DataFileExtensionNotSetException e) {
-			throw new NamespaceProcessorException("Namespace could not be processed because of the data file extension\n" + e.getMessage());
+			throw new NamespaceProcessorPredicateSplitterException("Namespace could not be processed because of the data file extension\n" + e.getMessage());
 		} catch (PrefixFinderException e) {
-			throw new NamespaceProcessorException("Namespace could not be processed\n" + e.getMessage());
+			throw new NamespaceProcessorPredicateSplitterException("Namespace could not be processed\n" + e.getMessage());
 		} catch (PrefixReplacerPredicateSplitterException e) {
-			throw new NamespaceProcessorException("Namespace could not be processed\n" + e.getMessage());
+			throw new NamespaceProcessorPredicateSplitterException("Namespace could not be processed\n" + e.getMessage());
 		}
 	}
 }

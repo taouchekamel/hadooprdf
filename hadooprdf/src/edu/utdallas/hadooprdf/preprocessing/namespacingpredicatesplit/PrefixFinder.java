@@ -42,7 +42,7 @@ public class PrefixFinder extends PreprocessorJobRunner {
 	 * @throws ConfigurationNotInitializedException
 	 * @throws IOException
 	 */
-	public boolean findPrefixes() throws ConfigurationNotInitializedException, PrefixFinderException {
+	public void findPrefixes() throws ConfigurationNotInitializedException, PrefixFinderException {
 		edu.utdallas.hadooprdf.conf.Configuration config =
 			edu.utdallas.hadooprdf.conf.Configuration.getInstance();
 		org.apache.hadoop.conf.Configuration hadoopConfiguration =
@@ -86,9 +86,9 @@ public class PrefixFinder extends PreprocessorJobRunner {
 				fs.delete(m_DataSet.getPathToPrefixFile(), false);
 				fs.rename(new Path(m_OutputDirectoryPath, "part-r-00000"), m_DataSet.getPathToPrefixFile());
 				fs.delete(m_OutputDirectoryPath, true);
-				return true;
 			}
-			return false;
+			else
+				throw new PrefixFinderException("Prefix finding job failed");
 		} catch (IOException e) {
 			throw new PrefixFinderException("Prefix finding failed because\n" + e.getMessage());
 		} catch (InterruptedException e) {

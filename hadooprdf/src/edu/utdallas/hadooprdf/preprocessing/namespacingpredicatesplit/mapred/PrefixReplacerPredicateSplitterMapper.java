@@ -1,11 +1,7 @@
 package edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit.mapred;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -14,7 +10,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import edu.utdallas.hadooprdf.commons.Constants;
 import edu.utdallas.hadooprdf.commons.Tags;
 import edu.utdallas.hadooprdf.lib.util.Utility;
-import edu.utdallas.hadooprdf.preprocessing.lib.NamespacePrefixParser;
 import edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixNamespaceTree;
 
 /**
@@ -76,11 +71,8 @@ public class PrefixReplacerPredicateSplitterMapper extends
 	@Override
 	protected void setup(org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, Text>.Context context)
 			throws IOException, InterruptedException {
-		FileSystem fs = FileSystem.get(context.getConfiguration());
-		FSDataInputStream fsdis = fs.open(new Path(context.getConfiguration().get(Tags.PATH_TO_PREFIX_FILE)));
-		BufferedReader br = new BufferedReader(new InputStreamReader(fsdis));
-		NamespacePrefixParser npp = new NamespacePrefixParser(br.readLine());
-		m_PrefixNamespaceTree = new PrefixNamespaceTree(npp.getNamespacePrefixes());
+		m_PrefixNamespaceTree = Utility.getPrefixNamespaceTreeForDataSet(context.getConfiguration(),
+				new Path(context.getConfiguration().get(Tags.PATH_TO_PREFIX_FILE)));
 	}
 
 }

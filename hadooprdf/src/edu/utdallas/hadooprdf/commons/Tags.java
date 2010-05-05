@@ -8,17 +8,21 @@ public class Tags {
 	/**
 	 * Input serialization format
 	 */
-	public static String INPUT_SERIALIZATION_FORMAT = "InputSerializationFormat";
+	public static final String INPUT_SERIALIZATION_FORMAT = "InputSerializationFormat";
 	/**
 	 * Output serialization format
 	 */
-	public static String OUTPUT_SERIALIZATION_FORMAT = "OutputSerializationFormat";
+	public static final String OUTPUT_SERIALIZATION_FORMAT = "OutputSerializationFormat";
 	/**
 	 * Input base URI
 	 */
-	public static String INPUT_BASE_URI = "InputBaseURI";
+	public static final String INPUT_BASE_URI = "InputBaseURI";
 	/**
 	 * Path to prefix file
 	 */
-	public static String PATH_TO_PREFIX_FILE = "PathToPrefixFile";
+	public static final String PATH_TO_PREFIX_FILE = "PathToPrefixFile";
+	/**
+	 * rdf:type filename
+	 */
+	public static final String RDF_TYPE_FILENAME = "RDFTypeFilename";
 }

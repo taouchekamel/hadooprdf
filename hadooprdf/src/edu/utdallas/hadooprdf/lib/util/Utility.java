@@ -1,6 +1,16 @@
 package edu.utdallas.hadooprdf.lib.util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+
 import edu.utdallas.hadooprdf.commons.Constants;
+import edu.utdallas.hadooprdf.preprocessing.lib.NamespacePrefixParser;
+import edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixNamespaceTree;
 
 /**
  * A utility class having miscellaneous methods
@@ -32,5 +42,15 @@ public class Utility {
 		sbReturn.append('.');
 		sbReturn.append(sExtension);
 		return sbReturn.toString();
+	}
+	public static PrefixNamespaceTree getPrefixNamespaceTreeForDataSet(org.apache.hadoop.conf.Configuration hadoopConfiguration,
+			Path pathToPrefixFile) throws IOException {
+		FileSystem fs = FileSystem.get(hadoopConfiguration);
+		FSDataInputStream fsdis = fs.open(pathToPrefixFile);
+		BufferedReader br = new BufferedReader(new InputStreamReader(fsdis));
+		NamespacePrefixParser npp = new NamespacePrefixParser(br.readLine());
+		br.close();
+		fsdis.close();
+		return new PrefixNamespaceTree(npp.getNamespacePrefixes());
 	}
 }

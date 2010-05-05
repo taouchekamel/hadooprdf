@@ -1,18 +1,18 @@
 package edu.utdallas.hadooprdf.preprocessing.namespacingpredicatesplit;
 
 /**
- * A exception class for NamespaceProcessor
+ * A exception class for NamespaceProcessorPredicateSplitter
  * @author Mohammad Farhan Husain
  *
  */
-public class NamespaceProcessorException extends Exception {
+public class NamespaceProcessorPredicateSplitterException extends Exception {
 	private static final long serialVersionUID = -4906847547594172541L;
 
 	/**
 	 * The class constructor
 	 * @param sMessage the error message
 	 */
-	public NamespaceProcessorException(String sMessage) {
+	public NamespaceProcessorPredicateSplitterException(String sMessage) {
 		super(sMessage);
 	}
 }
