@@ -1,5 +1,6 @@
 package edu.utdallas.hadooprdf.query.generator.plan;
 
+import java.io.IOException;
 import java.util.List;
 
 import edu.utdallas.hadooprdf.query.parser.HadoopElement;
@@ -18,5 +19,5 @@ public interface QueryPlanGenerator
 	 * @param elements - the list of hadoop elements formed from parsing the query
 	 * @return a QueryPlan object
 	 */
-	public abstract QueryPlan generateQueryPlan( List<HadoopElement> elements ) throws UnhandledElementException, NotBasicElementException;
+	public abstract QueryPlan generateQueryPlan( List<HadoopElement> elements ) throws UnhandledElementException, NotBasicElementException, IOException;
 }

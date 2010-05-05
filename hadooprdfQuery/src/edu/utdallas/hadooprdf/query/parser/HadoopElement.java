@@ -2,8 +2,6 @@ package edu.utdallas.hadooprdf.query.parser;
 
 import java.util.ArrayList;
 
-import javax.swing.text.DefaultStyledDocument.ElementBuffer;
-
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.sparql.core.BasicPattern;
 import com.hp.hpl.jena.sparql.syntax.Element;

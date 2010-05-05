@@ -1,9 +1,7 @@
 package edu.utdallas.hadooprdf.query.jobrunner;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.io.Text;
@@ -20,35 +18,17 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
  */
 public class GenericJobRunner 
 {
-	//TODO: How to get these parameters ?? Query plan ??
-	/** The input filename **/
-	private String filename = "";
-	
 	/** A boolean that denotes if there are more jobs to follow **/
 	private boolean hasMoreJobs = false;
-	
-	/** The map for prefixes added from the first job **/
-	private static final Map<String,String> hm;
-	static
-	{
-		hm = new HashMap<String,String>();
-		
-		//This comes from the triple pattern that contains the joining variable for the next job
-		hm.put( "M#", "" );
-		hm.put( "S#", "" );
-	}
 	
 	/** The job plan for this job **/
 	private JobPlan jp = null;
 	
 	/**
-	 * 
+	 * Constructor
 	 * @param jp - the job plan for the current job
 	 */
-	public GenericJobRunner( JobPlan jp )
-	{
-		this.jp = jp;
-	}
+	public GenericJobRunner( JobPlan jp ) { this.jp = jp; }
 	
 	/**
 	 * The generic mapper class for a SPARQL query
@@ -83,9 +63,11 @@ public class GenericJobRunner
 			//First check if the key is an input filename, if it is then do file processing based map
 			//Else this maybe a second job, do a prefix based map
 			String sPredicate = key.toString();
-			
-			//TODO: Need to check if the key matches any input filename
-			if( sPredicate.equalsIgnoreCase( filename ) )
+
+			//Get the triple pattern associated with a predicate
+			TriplePattern tp = jp.getPredicateBasedTriplePattern( sPredicate );
+
+			if( tp.getFilenameBasedPrefix( sPredicate ) != null )
 			{
 				//Get the subject
 				String sSubject = st.nextToken();
@@ -94,39 +76,36 @@ public class GenericJobRunner
 				//Else depending on the number of variables in the triple pattern we output subject-subject, subject-object, object-subject or object-object 
 				if( sPredicate.contains( "type" ) )
 				{
-					//TODO: Don't know if there is a use to append the subject after the prefix created
-					context.write( new Text( sSubject ), new Text( sPredicate.substring( 5, 6 ) + "#" + sSubject ) );
+					context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
 				}
 				else
 				{
-					TriplePattern tp = jp.getPredicateBasedTriplePattern( sPredicate );
 					//TODO: How to generate a unique prefix ??
-					//TODO: How to get the join variable and the number of variables in a triple pattern ??
 					//TODO: How to get the literal subjects or objects from a query ??
 					//If join is on subject and the number of variables in the triple pattern is 2 output ( subject, object )
 					if( tp.getJoiningVariable().equalsIgnoreCase( "s" ) )
 					{
 						if( tp.getNumOfVariables() == 2 )
-							context.write( new Text( sSubject ), new Text( sPredicate.substring( 0, 2 ) + "#" + st.nextToken() ) );
+							context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + st.nextToken() ) );
 						else
 						{
 							String sObject = st.nextToken();
 							
 							if( sObject.equalsIgnoreCase( "queries object" ) )
-								context.write( new Text( sSubject ), new Text( sPredicate.substring( 0, 2 ) + "#" + sSubject ) );
+								context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
 						}
 					}
 					else
 						if( tp.getJoiningVariable().equalsIgnoreCase( "o" ) )
 						{
 							if( tp.getNumOfVariables() == 2 )
-								context.write( new Text( st.nextToken() ), new Text( sPredicate.substring( 0, 2 ) + "#" + sSubject ) );
+								context.write( new Text( st.nextToken() ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
 							else
 							{
 								String sObject = st.nextToken();
 								
 								if( sSubject.equalsIgnoreCase( "queries subject" ) )
-									context.write( new Text( sObject ), new Text( sPredicate.substring( 0, 2 ) + "#" + sObject ) );
+									context.write( new Text( sObject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sObject ) );
 							}
 						}
 				}
@@ -137,7 +116,7 @@ public class GenericJobRunner
 				while( st.hasMoreTokens() )
 				{
 					String token = st.nextToken();
-					if( hm.containsKey( token.substring( 0, 2 ) ) )
+					if( tp.checkIfPrefixExists( token.substring( 0, 2 ) ) )
 					{
 						context.write( new Text( token.substring( 2 ) ), key );
 					}

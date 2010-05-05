@@ -3,16 +3,26 @@ package edu.utdallas.hadooprdf.query.generator.job.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hadoop.mapreduce.Job;
+
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 
+/**
+ * A simple implementation of the job plan interface
+ * @author sharath, vaibhav
+ *
+ */
 public class SimpleJobPlanImpl implements JobPlan
-{
+{	
 	/** A map of joining variables **/
-	private Map<String,TriplePattern> predMap = new HashMap<String,TriplePattern>();
+	private Map<String,TriplePattern> predTrPatternMap = new HashMap<String,TriplePattern>();
 	
 	/** The total number of variables expected in the result of the query **/
 	private int totalVars = 0;
+	
+	/** The Hadoop Job object used by the current plan **/
+	private Job currJob = null;
 	
 	/** Constructor **/
 	public SimpleJobPlanImpl() { }
@@ -20,9 +30,9 @@ public class SimpleJobPlanImpl implements JobPlan
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#addPredicateBasedTriplePattern(String, TriplePattern)}
 	 */	
-	public void addPredicateBasedTriplePattern( String pred, TriplePattern tp )
+	public void setPredicateBasedTriplePattern( String pred, TriplePattern tp )
 	{
-		predMap.put( pred, tp );
+		predTrPatternMap.put( pred, tp );
 	}
 	
 	/**
@@ -30,7 +40,7 @@ public class SimpleJobPlanImpl implements JobPlan
 	 */	
 	public TriplePattern getPredicateBasedTriplePattern( String pred )
 	{
-		return predMap.get( pred );
+		return predTrPatternMap.get( pred );
 	}
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setTotalVariables(int)}
@@ -46,5 +56,21 @@ public class SimpleJobPlanImpl implements JobPlan
 	public int getTotalVariables()
 	{
 		return totalVars;
+	}
+
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setHadoopJob(Job)}
+	 */
+	public void setHadoopJob( Job currJob )
+	{
+		this.currJob = currJob;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getHadoopJob()}
+	 */
+	public Job getHadoopJob()
+	{
+		return currJob;
 	}
 }

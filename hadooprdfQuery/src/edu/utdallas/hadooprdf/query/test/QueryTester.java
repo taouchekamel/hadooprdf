@@ -1,5 +1,6 @@
 package edu.utdallas.hadooprdf.query.test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import com.hp.hpl.jena.graph.Triple;
@@ -13,7 +14,7 @@ import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
 
 public class QueryTester 
 {
-	public static void main( String[] args ) throws UnhandledElementException, NotBasicElementException 
+	public static void main( String[] args ) throws UnhandledElementException, NotBasicElementException, IOException 
 	{
 		String queryString = 
 			" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +

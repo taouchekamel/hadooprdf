@@ -1,10 +1,21 @@
 package edu.utdallas.hadooprdf.query.generator.plan.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
@@ -16,15 +27,19 @@ import edu.utdallas.hadooprdf.query.generator.plan.QueryPlanFactory;
 import edu.utdallas.hadooprdf.query.generator.plan.QueryPlanGenerator;
 import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePatternFactory;
+import edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericMapper;
+import edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericReducer;
 import edu.utdallas.hadooprdf.query.parser.HadoopElement;
 import edu.utdallas.hadooprdf.query.parser.NotBasicElementException;
 import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
+import edu.utdallas.hadooprdf.query.util.JobParameters;
 
 /**
  * A specific implementation of the query plan generator based on the "elimination count" algorithm
  * @author sharath, vaibhav
  *
  */
+@SuppressWarnings("deprecation")
 public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 {
 	/** A map of triple pattern id's and the corresponding triple pattern that is used in every job **/
@@ -41,14 +56,19 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	 * @return a QueryPlan object
 	 * @throws NotBasicElementException 
 	 * @throws UnhandledElementException 
+	 * @throws IOException 
 	 */
-	public QueryPlan generateQueryPlan( List<HadoopElement> elements ) throws UnhandledElementException, NotBasicElementException
+	public QueryPlan generateQueryPlan( List<HadoopElement> elements ) 
+	throws UnhandledElementException, NotBasicElementException, IOException
 	{
 		//Create a simple query plan
 		QueryPlan qp = QueryPlanFactory.createSimpleQueryPlan();
 		
 		//Create a list of job plans
 		List<JobPlan> jps = new ArrayList<JobPlan>();
+		
+		//Create the Hadoop configuration based on the path where the various site files are
+		Configuration config = getConfiguration( JobParameters.configFileDir );
 		
 		//Run the heuristic to find out if there is a common variable
 		String commonVariable = runHeuristic( elements );
@@ -59,6 +79,12 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		{
 			//Create a single job plan
 			JobPlan jp = JobPlanFactory.createSimpleJobPlan();
+		
+			//Use the configuration to define a Hadoop Job
+			Job currJob = new Job( config, "HeuristicBasedJob" );
+			
+			//Set the parameters for the job that are fixed in this version
+			setJobParameters( currJob );
 			
 			//Find the position of the joining variable in each triple pattern
 			Iterator<HadoopElement> elemIter = elements.iterator();
@@ -87,14 +113,30 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 						tp.setJoiningVariable( "s" );
 					else
 						tp.setJoiningVariable( "o" );
-										
+					
+					//Get the predicate, i.e. filename
+					String pred = triple.getPredicate().toString();
+					
+					//Add the filename to the Job object
+					FileInputFormat.addInputPath(currJob, new Path( JobParameters.inputHDFSDir + pred ) );
+					
+					//Add the filenames and their associated prefixes to the triple pattern
+					//TODO: get this from the query parser
+					tp.setFilenameBasedPrefix( pred, "" );
+
 					//Add the triple pattern to the job plan
-					jp.addPredicateBasedTriplePattern( triple.getPredicate().toString(), tp );
+					jp.setPredicateBasedTriplePattern( pred, tp );					
 				}
 				
 				//Set the total number of variables expected in the result
 				jp.setTotalVariables( totalVars );
 			}
+			
+			//Add the output file to the Job object
+			FileOutputFormat.setOutputPath(currJob, new Path( JobParameters.outputHDFSDir + "test" ) );
+			
+			//Add the Hadoop Job to the JobPlan
+			jp.setHadoopJob( currJob );
 			
 			//TODO: Add the input files, output files and file prefixes to the job plan. Also the hadoop specific parameters
 			
@@ -106,6 +148,60 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		}
 		
 		return qp;
+	}
+	
+	/**
+	 * A method that sets the parameters that are fixed for the current Hadoop Job
+	 * @param currJob - the current Hadoop Job
+	 */
+	@SuppressWarnings("unchecked")
+	private void setJobParameters( Job currJob )
+	{
+		//Set the output key and value class
+		currJob.setOutputKeyClass( Text.class );
+		currJob.setOutputValueClass( Text.class );
+		
+		//Set the mapper output key and value class
+		currJob.setMapOutputKeyClass( Text.class );
+		currJob.setMapOutputValueClass( Text.class );
+		
+		//Set the input and output format classes
+		currJob.setInputFormatClass( TextInputFormat.class );
+		currJob.setOutputFormatClass( TextOutputFormat.class );
+		
+		//Set the jar file to be used
+		( (JobConf) currJob.getConfiguration() ).setJar( JobParameters.jarFile );
+		
+		//Set the mapper and reducer classes to be used
+		Class<GenericMapper> genericMapper = null;
+		Class<GenericReducer> genericReducer = null;
+		try
+		{
+			genericMapper = ( Class<GenericMapper> ) Class.forName( JobParameters.mapperClass );
+			genericReducer = ( Class<GenericReducer> ) Class.forName( JobParameters.reducerClass );
+		}
+		catch( Exception e ) { e.printStackTrace(); }
+		currJob.setMapperClass( genericMapper );
+		currJob.setReducerClass( genericReducer );
+		
+		//Set the number of reducers
+		currJob.setNumReduceTasks( JobParameters.numOfReducers );
+	}
+	
+	/**
+	 * A method that returns a Hadoop Configuration object based on the configuration files
+	 * @param path - the directory that contains the configuration files
+	 * @return a Hadoop Configuration object
+	 */
+	private Configuration getConfiguration( String path )
+	{
+		Configuration config = new Configuration();
+		
+		config.addResource( path + "core-site.xml" );
+		config.addResource( path + "mapred-site.xml" );
+		config.addResource( path + "hdfs-site.xml" );
+		
+		return config;
 	}
 	
 	/**

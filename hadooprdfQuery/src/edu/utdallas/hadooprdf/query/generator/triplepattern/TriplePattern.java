@@ -41,5 +41,26 @@ public interface TriplePattern
 	 * A method that returns the number of variables in the current triple pattern
 	 * @return the number of variables in the current triple pattern
 	 */
-	public int getNumOfVariables() ;	
+	public int getNumOfVariables() ;
+	
+	/**
+	 * A method that sets the mapping between a filename and its associated prefix
+	 * @param filename - the filename, i.e. the predicate in every triple pattern
+	 * @param prefix - the prefix associated with that filename
+	 */
+	public void setFilenameBasedPrefix( String filename, String prefix ) ;
+	
+	/**
+	 * A method that returns the prefix associated with the input filename
+	 * @param filename - the filename whose prefix is required
+	 * @return the associated prefix
+	 */
+	public String getFilenameBasedPrefix( String filename ) ;
+	
+	/**
+	 * A method that checks if a prefix exists
+	 * @param prefix - the prefix to be checked
+	 * @return true iff the prefix exists, false otherwise
+	 */
+	public boolean checkIfPrefixExists( String prefix ) ;
 }

@@ -1,5 +1,8 @@
 package edu.utdallas.hadooprdf.query.generator.triplepattern.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 
 /**
@@ -18,6 +21,9 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	/** The joining variable in this triple pattern **/
 	private String tpJoiningVar = null;
 	
+	/** A map between filenames and their prefixes to be used in a job **/
+	private Map<String,String> filenamePrefixMap = new HashMap<String,String>();
+
 	/** Constructor **/
 	public SimpleTriplePatternImpl() { }
 	
@@ -67,5 +73,29 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	public String getJoiningVariable()
 	{
 		return tpJoiningVar;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setFilenameBasedPrefix(String, String)}
+	 */
+	public void setFilenameBasedPrefix( String filename, String prefix )
+	{
+		filenamePrefixMap.put( filename, prefix );
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getFilenameBasedPrefix(String)}
+	 */
+	public String getFilenameBasedPrefix( String filename )
+	{
+		return filenamePrefixMap.get( filename );
+	}
+
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#checkIfPrefixExists(String)}
+	 */
+	public boolean checkIfPrefixExists( String prefix )
+	{
+		return filenamePrefixMap.containsValue( prefix );
 	}
 }
