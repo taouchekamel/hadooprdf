@@ -1,6 +1,7 @@
 package edu.utdallas.hadooprdf.main;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.text.DefaultStyledDocument.ElementBuffer;
 
@@ -23,6 +24,7 @@ public class HadoopElement {
 
 	private Element element = null;
 	
+	
 	public static enum HElementType {
 		FILTER, BASIC, OPTIONAL, UNION
 	};
@@ -33,6 +35,19 @@ public class HadoopElement {
 	private  boolean isUnionElement = false;
 	private  HElementType elementType = HElementType.BASIC;	
 	
+	
+	public HadoopElement (List<Triple> triplesList) {
+		//tripleList.addAll(triplesList);
+		elementType = HElementType.BASIC;
+		isBasicElement = true;			
+		
+		ElementTriplesBlock bElement = new ElementTriplesBlock();
+
+		for (int i = 0; i < triplesList.size(); i++) {
+			bElement.addTriple(triplesList.get(i));
+		}
+		this.element = bElement;		
+	}
 		
 	public HadoopElement (Element element) throws UnhandledElementException {
 		this.element = element;
@@ -66,13 +81,12 @@ public class HadoopElement {
 	}
 	
 	public ArrayList <Triple> getTriple () throws UnhandledElementException, NotBasicElementException {
-		
-		ArrayList <Triple> tripleList = new ArrayList<Triple>();
+		ArrayList <Triple> tripleList =  new ArrayList<Triple>();
 		switch (elementType) {
 		case BASIC:
 			ElementTriplesBlock tBlock = (ElementTriplesBlock)this.element;
 			BasicPattern pattern = tBlock.getPattern();
-			
+
 			for (int i = 0; i < pattern.size(); i++) {
 				Triple triple = pattern.get(i);
 				tripleList.add(triple);

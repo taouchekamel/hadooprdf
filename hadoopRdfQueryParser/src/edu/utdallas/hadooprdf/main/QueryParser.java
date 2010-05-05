@@ -12,6 +12,26 @@ import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
 
 public class QueryParser {
 
+	private static int noOfVaraiables = -1;
+	private static List <String> resVars = null;
+	
+	public static int getNumOfVarsInQuery () throws Exception { 
+		
+		if (noOfVaraiables == -1) {
+			throw new Exception ("Query is not parsed yet"); 
+		}
+		
+		return noOfVaraiables;
+	}
+	
+	public static List<String> getVars () throws Exception {
+		if (noOfVaraiables == -1) {
+			throw new Exception ("Query is not parsed yet"); 
+		}
+		return resVars;
+	}
+	
+	
 	private static ArrayList <HadoopElement> processElement (Element e) throws UnhandledElementException {
 		
 		ArrayList <HadoopElement> eList = new ArrayList<HadoopElement>();
@@ -22,7 +42,13 @@ public class QueryParser {
 			eList.add(hElement);
 			
 		} else {
-			throw new UnhandledElementException("Currently this type of element is not handled");			
+			
+			if (e instanceof ElementGroup) {
+				//e.
+				
+			} else {				
+				throw new UnhandledElementException("Currently this type of element is not handled");
+			}
 		}
 		
 		return eList;
@@ -51,9 +77,11 @@ public class QueryParser {
 		
 		return hdpElementList;
 	}
-	public static ArrayList <HadoopElement> parseQuery (String queryString) throws UnhandledElementException {
+	public static List <HadoopElement> parseQuery (String queryString) throws UnhandledElementException {
 		
 		Query query = QueryFactory.create(queryString);
+		noOfVaraiables = query.getResultVars().size();
+		resVars = query.getResultVars();
 		
 		ElementGroup elementGrp = (ElementGroup)query.getQueryPattern();
 			
@@ -79,7 +107,7 @@ public class QueryParser {
 			"      ?y foaf:weblog ?url . " +
 			"      }";
 		
-		ArrayList <HadoopElement> eList = QueryParser.parseQuery(queryString);
+		ArrayList <HadoopElement> eList = (ArrayList <HadoopElement>)QueryParser.parseQuery(queryString);
 		
 		for (int i = 0; i < eList.size(); i++) {
 			HadoopElement element = eList.get(i);
