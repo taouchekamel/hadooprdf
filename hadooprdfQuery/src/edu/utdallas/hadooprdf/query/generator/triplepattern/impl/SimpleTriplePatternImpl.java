@@ -3,6 +3,8 @@ package edu.utdallas.hadooprdf.query.generator.triplepattern.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.hp.hpl.jena.graph.Node;
+
 import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 
 /**
@@ -26,6 +28,9 @@ public class SimpleTriplePatternImpl implements TriplePattern
 
 	/** A literal value, if present, in this triple pattern **/
 	private String literal = null;
+	
+	/** The predicate in this triple pattern **/
+	private Node subject = null, predicate = null, object = null;
 	
 	/** Constructor **/
 	public SimpleTriplePatternImpl() { }
@@ -116,5 +121,53 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	public String getLiteralValue()
 	{
 		return literal;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setSubjectValue(Node)}
+	 */
+	public void setSubjectValue( Node sub )
+	{
+		this.subject = sub;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getSubjectValue()}
+	 */
+	public Node getSubjectValue()
+	{
+		return subject;
+	}
+
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setPredicateValue(Node)}
+	 */
+	public void setPredicateValue( Node pred )
+	{
+		this.predicate = pred;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getPredicateValue()}
+	 */
+	public Node getPredicateValue()
+	{
+		return predicate;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setPredicateValue(String)}
+	 */
+	public void setObjectValue( Node obj )
+	{
+		this.object = obj;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getPredicateValue()}
+	 */
+	public Node getObjectValue()
+	{
+		return object;
 	}
 }

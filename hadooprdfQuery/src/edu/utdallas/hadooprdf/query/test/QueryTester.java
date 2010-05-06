@@ -2,6 +2,7 @@ package edu.utdallas.hadooprdf.query.test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.hp.hpl.jena.graph.Triple;
 
@@ -14,7 +15,7 @@ import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
 
 public class QueryTester 
 {
-	public static void main( String[] args ) throws UnhandledElementException, NotBasicElementException, IOException 
+	public static void main( String[] args ) throws UnhandledElementException, NotBasicElementException, IOException, Exception 
 	{
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -30,7 +31,7 @@ public class QueryTester
 		"		?X ub:undergraduateDegreeFrom ?Y " +
 		" } " ; 
 
-		ArrayList <HadoopElement> eList = QueryParser.parseQuery(queryString);
+		List <HadoopElement> eList = QueryParser.parseQuery(queryString);
 
 		for (int i = 0; i < eList.size(); i++) 
 		{

@@ -19,5 +19,5 @@ public interface QueryPlanGenerator
 	 * @param elements - the list of hadoop elements formed from parsing the query
 	 * @return a QueryPlan object
 	 */
-	public abstract QueryPlan generateQueryPlan( List<HadoopElement> elements ) throws UnhandledElementException, NotBasicElementException, IOException;
+	public abstract QueryPlan generateQueryPlan( List<HadoopElement> elements ) throws UnhandledElementException, NotBasicElementException, IOException, Exception;
 }

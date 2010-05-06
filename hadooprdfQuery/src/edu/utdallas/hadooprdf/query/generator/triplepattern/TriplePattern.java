@@ -1,5 +1,7 @@
 package edu.utdallas.hadooprdf.query.generator.triplepattern;
 
+import com.hp.hpl.jena.graph.Node;
+
 /**
  * An interface for different triple patterns that are used in a job plan
  * @author sharath, vaibhav
@@ -75,4 +77,42 @@ public interface TriplePattern
 	 * @return - the literal value associated with this triple pattern
 	 */
 	public String getLiteralValue() ;
+
+	/**
+	 * A method that sets the value of the subject for this triple pattern
+	 * @param pred - the subject for this triple pattern
+	 */
+	public void setSubjectValue( Node sub ) ;
+	
+	/**
+	 * A method that returns the subject in the current triple pattern
+	 * @return the subject for the current triple pattern
+	 */
+	public Node getSubjectValue() ;
+	
+	
+	/**
+	 * A method that sets the value of the predicate for this triple pattern
+	 * @param pred - the predicate for this triple pattern
+	 */
+	public void setPredicateValue( Node pred ) ;
+	
+	/**
+	 * A method that returns the predicate in the current triple pattern
+	 * @return the predicate for the current triple pattern
+	 */
+	public Node getPredicateValue() ;
+	
+	/**
+	 * A method that sets the value of the object for this triple pattern
+	 * @param pred - the object for this triple pattern
+	 */
+	public void setObjectValue( Node obj ) ;
+	
+	/**
+	 * A method that returns the object in the current triple pattern
+	 * @return the object for the current triple pattern
+	 */
+	public Node getObjectValue() ;
+
 }
