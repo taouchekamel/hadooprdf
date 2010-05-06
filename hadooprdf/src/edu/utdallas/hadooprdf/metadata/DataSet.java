@@ -6,6 +6,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
+import edu.utdallas.hadooprdf.lib.util.Utility;
+import edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixNamespaceTree;
 
 /**
  * This class contains metadata about a dataset
@@ -49,6 +51,10 @@ public class DataSet {
 	 * Path to prefix file
 	 */
 	private Path m_PathToPrefixFile;
+	/**
+	 * PrefixNamespaceTree for the data set
+	 */
+	private PrefixNamespaceTree m_PrefixNamespaceTree;
 	
 	/**
 	 * Class constructor
@@ -78,6 +84,21 @@ public class DataSet {
 		createMetaDataDirectory();
 		m_PathToPrefixFile = new Path(m_PathToMetaData, "prefixes");
 		m_PathToTemp = new Path(m_DataSetRoot, "tmp");
+		m_PrefixNamespaceTree = null;
+	}
+	/**
+	 * Returns the prefix namespace tree for the data set
+	 * @return the prefix namespace tree for the data set
+	 * @throws IOException
+	 * @throws ConfigurationNotInitializedException
+	 */
+	public PrefixNamespaceTree getPrefixNamespaceTree() throws IOException, ConfigurationNotInitializedException {
+		if (null == m_PrefixNamespaceTree) {
+			m_PrefixNamespaceTree = Utility.getPrefixNamespaceTreeForDataSet(
+					edu.utdallas.hadooprdf.conf.Configuration.getInstance().getHadoopConfiguration(),
+					m_PathToPrefixFile);
+		}
+		return m_PrefixNamespaceTree;
 	}
 	
 	/**
