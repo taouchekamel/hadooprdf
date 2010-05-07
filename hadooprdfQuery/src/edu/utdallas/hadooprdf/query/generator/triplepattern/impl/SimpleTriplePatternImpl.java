@@ -32,6 +32,9 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	/** The predicate in this triple pattern **/
 	private Node subject = null, predicate = null, object = null;
 	
+	/** The value of the joining variable in the current triple pattern **/
+	private String joiningVarValue = null;
+	
 	/** Constructor **/
 	public SimpleTriplePatternImpl() { }
 	
@@ -169,5 +172,21 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	public Node getObjectValue()
 	{
 		return object;
+	}
+
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setJoiningVariableValue(String)}
+	 */
+	public void setJoiningVariableValue( String value )
+	{
+		this.joiningVarValue = value;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getJoiningVariableValue()}
+	 */
+	public String getJoiningVariableValue()
+	{
+		return joiningVarValue;
 	}
 }

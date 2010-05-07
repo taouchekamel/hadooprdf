@@ -26,9 +26,9 @@ public class QueryTester
 		"		?X rdf:type ub:GraduateStudent . " +
 		" 		?Y rdf:type ub:University . " +
 		" 		?Z rdf:type ub:Department . " +
-		"		?X ub:memberOf ?Z . " +
-		"		?Z ub:subOrganizationOf ?Y . " +
-		"		?X ub:undergraduateDegreeFrom ?Y " +
+		"		?X ub:memberOf ?Y . " +
+		"		?Y ub:subOrganizationOf ?Z . " +
+		"		?X ub:undergraduateDegreeFrom ?Z " +
 		" } " ; 
 
 		List <HadoopElement> eList = QueryParser.parseQuery(queryString);

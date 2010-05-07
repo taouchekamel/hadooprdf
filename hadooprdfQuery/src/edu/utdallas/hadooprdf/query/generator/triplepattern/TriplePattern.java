@@ -114,5 +114,16 @@ public interface TriplePattern
 	 * @return the object for the current triple pattern
 	 */
 	public Node getObjectValue() ;
-
+	
+	/**
+	 * A method that sets the value of the joining variable in the current triple pattern
+	 * @param val - the value of the joining variable in this triple pattern
+	 */
+	public void setJoiningVariableValue( String val ) ;
+	
+	/**
+	 * A method that returns the value of the joining variable in the current triple pattern
+	 * @return the value of the joining variable in this triple pattern
+	 */
+	public String getJoiningVariableValue() ;
 }

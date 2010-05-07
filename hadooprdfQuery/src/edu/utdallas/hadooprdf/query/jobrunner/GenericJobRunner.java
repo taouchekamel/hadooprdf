@@ -78,7 +78,6 @@ public class GenericJobRunner
 				else
 				{
 					//TODO: How to generate a unique prefix ??
-					//TODO: How to get the literal subjects or objects from a query ??
 					//If join is on subject and the number of variables in the triple pattern is 2 output ( subject, object )
 					if( tp.getJoiningVariable().equalsIgnoreCase( "s" ) )
 					{
