@@ -54,6 +54,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 
 	/** A map of triple pattern id's and the corresponding triple pattern that is used in every job **/
 	private Map<Integer,TriplePattern> tpMap = new HashMap<Integer,TriplePattern>();
+	
+	/** A list of variables that are eliminated **/
+	private List<String> eliminatedVars = new ArrayList<String>();
 
 	/**
 	 * Constructor
@@ -78,15 +81,15 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		QueryPlan qp = QueryPlanFactory.createSimpleQueryPlan();
 
 		//Create a list of job plans
-		List<JobPlan> jps = new ArrayList<JobPlan>();
+		List<JobPlan> jpList = new ArrayList<JobPlan>();
 
 		//Create the Hadoop configuration based on the path where the various site files are
-		Configuration config = getConfiguration( JobParameters.configFileDir );
+		Configuration hadoopConfig = getConfiguration( JobParameters.configFileDir );
 
-		//Get the total number of variables
-		int totalVars = QueryParser.getNumOfVarsInQuery();
+		//Get the total number of variables in the SELECT clause
+		int totalVarsSelectClause = QueryParser.getNumOfVarsInQuery();
 
-		//The job identifiers
+		//The job identifier
 		int jobId = 1;
 		
 		//Get the total number of triple patterns
@@ -95,17 +98,15 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//Construct the input maps that will be used
 		constructInputMaps( elements );
 		
-		//A list of variables to run the heuristic
+		//A list of variables to run the elimination count algorithm and the heuristic
 		List<String> oldInputVarList = new ArrayList<String>();
 		List<String> newInputVarList = new ArrayList<String>();
 		
 		while( totalTrPatterns > 0 )
 		{	
+			//Based on the current job identifier use the appropriate input list
 			if( jobId == 1 ) { oldInputVarList = newInputVarList = constructVarList(); }
-			else
-			{
-				newInputVarList = updateVariableList( oldInputVarList );
-			}
+			else newInputVarList = updateVariableList( oldInputVarList );
 						
 			//Run the heuristic to find out if there is a common variable
 			String commonVariable = runHeuristic( newInputVarList );
@@ -114,30 +115,30 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			JobPlan jp = JobPlanFactory.createSimpleJobPlan();
 
 			//Set the total number of variables expected in the result
-			jp.setTotalVariables( totalVars );
+			jp.setTotalVariables( totalVarsSelectClause );
 
 			//The case where there is a common variable involves only a single job
 			//Else run the "elimination count" algorithm
 			if( commonVariable != null )
 			{
 				//Use the configuration to define a Hadoop Job
-				Job currJob = new Job( config, "HeuristicBasedJob" );
+				Job currJob = new Job( hadoopConfig, "HeuristicBasedJob" );
 
 				//Set the parameters for the job that are fixed in this version
-				//setJobParameters( currJob );
+				setJobParameters( currJob );
 
 				//Find the position of the joining variable in each triple pattern
 				Iterator<Integer> iterTpMap = tpMap.keySet().iterator();
 				while( iterTpMap.hasNext() )
 				{
 					//Get each triple pattern identifier
-					Integer key = iterTpMap.next();
+					Integer tpId = iterTpMap.next();
 
 					//Get the corresponding triple pattern
-					TriplePattern tp = tpMap.get( key );
+					TriplePattern tp = tpMap.get( tpId );
 					
 					//Remove that triple pattern from the 
-					tpMap.remove( key );
+					tpMap.remove( tpId );
 					
 					//Reduce the number of total triple patterns by one
 					totalTrPatterns--;
@@ -165,8 +166,15 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					jp.setPredicateBasedTriplePattern( pred, tp );					
 				}
 
+				//If this is not the first job do the following
+				if( jobId > 1 )
+				{
+					//Add the filename to the Job object as an input file, this input file is the output file from the previous job 
+					FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + "test" + ( jobId - 1 ) ) );
+				}
+				
 				//Add the output file to the Job object
-				FileOutputFormat.setOutputPath(currJob, new Path( JobParameters.outputHDFSDir + "test" ) );
+				FileOutputFormat.setOutputPath(currJob, new Path( JobParameters.outputHDFSDir + "test" + jobId ) );
 
 				//Add the Hadoop Job to the JobPlan
 				jp.setHadoopJob( currJob );
@@ -177,32 +185,33 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			else
 			{			
 				//Use the configuration to define a Hadoop Job
-				Job currJob = new Job( config, "Job" + jobId );
+				Job currJob = new Job( hadoopConfig, "Job" + jobId );
 
 				//Set the parameters for the job that are fixed in this version
-				//setJobParameters( currJob );
+				setJobParameters( currJob );
 								
 				//Get the elimination count based treemap
-				Map<Integer,String> elimVarCountMap = constructElimCountMap( newInputVarList );
+				Map<Integer,String> elimCountVarMap = constructElimCountMap( newInputVarList );
 
 				//Iterate over each key
-				Iterator<Integer> iterElimCount = elimVarCountMap.keySet().iterator();
+				Iterator<Integer> iterElimCount = elimCountVarMap.keySet().iterator();
 				while( iterElimCount.hasNext() )
 				{
+					//If there is only a single triple pattern left it can be used in any join, hence break
 					if( tpMap.size() < 2 ) break;
 
 					//Get each key
-					Integer key = iterElimCount.next();
+					Integer elimCount = iterElimCount.next();
 
 					//Get the corresponding value
-					String[] values = elimVarCountMap.get( key ).split( "~" );
+					String[] vars = elimCountVarMap.get( elimCount ).split( "~" );
 
 					//Iterate over all values
-					for( int i = 0; i < values.length; i++ )
+					for( int i = 0; i < vars.length; i++ )
 					{
 						if( tpMap.size() < 2 ) break;
 						
-						String[] trPatterns = varOrigTpBasedMap.get( values[i] ).split( "~" );
+						String[] trPatterns = varOrigTpBasedMap.get( vars[i] ).split( "~" );
 						for( int j = 0; j < trPatterns.length; j++ )
 						{
 							//Get the triple pattern associated with the current value
@@ -218,15 +227,15 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							totalTrPatterns--;
 
 							//Set the value of the joining variable
-							tp.setJoiningVariableValue( values[i] );
+							tp.setJoiningVariableValue( vars[i] );
 							
-							if( varUsedTpBasedMap.isEmpty() || varUsedTpBasedMap.get( values[i] ) == null )
-								varUsedTpBasedMap.put( values[i], trPatterns[j] + "~" );
+							if( varUsedTpBasedMap.isEmpty() || varUsedTpBasedMap.get( vars[i] ) == null )
+								varUsedTpBasedMap.put( vars[i], trPatterns[j] + "~" );
 							else
-								varUsedTpBasedMap.put( values[i], varUsedTpBasedMap.get( values[i] ) + trPatterns[j] + "~" );
+								varUsedTpBasedMap.put( vars[i], varUsedTpBasedMap.get( vars[i] ) + trPatterns[j] + "~" );
 							
 							//Set the value of the joining variable for the current triple pattern
-							if( tp.getSubjectValue().toString().equalsIgnoreCase( values[i] ) )
+							if( tp.getSubjectValue().toString().equalsIgnoreCase( vars[i] ) )
 								tp.setJoiningVariable( "s" );
 							else
 								tp.setJoiningVariable( "o" );
@@ -246,6 +255,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					}
 				}
 				
+				//If this is not the first job do the following
+				if( jobId > 1 )
+				{
+					//Add the filename to the Job object
+					FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + "test" + ( jobId - 1 ) ) );
+				}
+				
 				//Add the output file to the Job object
 				FileOutputFormat.setOutputPath(currJob, new Path( JobParameters.outputHDFSDir + "test" ) );
 
@@ -257,136 +273,214 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			}
 			
 			//Add the job plan to the list of job plans
-			jps.add( jp );
+			jpList.add( jp );
 
 			//Increment the job identifiers
 			jobId++;
 		}
 
 		//Add the list of job plans to the query plan
-		qp.addJobPlans( jps );
+		qp.addJobPlans( jpList );
 
+		//Return the query plan
 		return qp;
 	}
 
+	/**
+	 * A method that returns an updated variable list based on actual triple patterns for a variable and the triple patterns
+	 * that are used for a variable in a job
+	 * @param oldInputVarList - the old input variable list based on triple patterns
+	 * @return an updated variable list based on original triple patterns for a variable and the triple patterns used in a job 
+	 */
 	private List<String> updateVariableList( List<String> oldInputVarList )
 	{
+		//The new list that will be returned
 		List<String> newInputVarList = new ArrayList<String>();
-		List<String> eliminatedVars = new ArrayList<String>();
-		
-		Iterator<String> keys = varOrigTpBasedMap.keySet().iterator();
-		while( keys.hasNext() )
+				
+		//Iterate over all variables
+		Iterator<String> iterVariables = varOrigTpBasedMap.keySet().iterator();
+		while( iterVariables.hasNext() )
 		{
-			String key = keys.next();
-			String valueOrigMap = varOrigTpBasedMap.get( key );
-			String valueUsedMap = varUsedTpBasedMap.get( key );
+			//Get each variable
+			String variable = iterVariables.next();
 			
+			//Get the original triple patterns and the triple patterns used in a job for the current variable
+			String valueOrigMap = varOrigTpBasedMap.get( variable );
+			String valueUsedMap = varUsedTpBasedMap.get( variable );
+			
+			//If no triple pattern for the variable was used in the job simply continue
 			if( valueUsedMap == null ) continue;
 			
+			//This is the case where all triple patterns for a variable were used in a job
 			if( valueOrigMap.equalsIgnoreCase( valueUsedMap ) ) 
 			{ 
-				eliminatedVars.add( key ); 
+				//Add the variable to the list of eliminated variables
+				eliminatedVars.add( variable ); 
 				
+				//A string to denote the remaining variables from the triple patterns that contain the eliminated variable
 				String remainingVars = "";
-				Iterator<String> iter = oldInputVarList.iterator();
-				while( iter.hasNext() )
+				
+				//Iterate over the old variables list to compute the remaining variables
+				Iterator<String> iterOldIpVarList = oldInputVarList.iterator();
+				while( iterOldIpVarList.hasNext() )
 				{
-					String value = iter.next();
-					if( !value.contains( key ) ) continue;
-					String[] val = value.split( "~" );
-					for( int i = 0; i < val.length; i++ )
+					//Get the variables for each triple pattern from this list
+					String varsInEachTp = iterOldIpVarList.next();
+					
+					//If the variables list does not contain the current variable simply continue
+					if( !varsInEachTp.contains( variable ) ) continue;
+					
+					//Split the variables list and iterate over it
+					String[] vars = varsInEachTp.split( "~" );
+					for( int i = 0; i < vars.length; i++ )
 					{
-						if( val[i].equalsIgnoreCase( key ) ) continue;
-						else remainingVars += val[i] + "~";
+						//If the variable == to the current variable simply continue
+						//Else add the variable to the remaining variables
+						if( vars[i].equalsIgnoreCase( variable ) ) continue;
+						else remainingVars += vars[i] + "~";
 					}
 				}
+				
+				//Add the remaining variables for the current variable to the new list of variables and then continue to 
+				//process the next variable
 				newInputVarList.add( remainingVars );
 				continue; 
 			}
 			
+			//This is the case where some triple patterns for the variable are used in a job while some remain
+			//Get the actual triple patterns and the triple patterns used for the current variable 
 			String[] splitValueOrigMap = valueOrigMap.split( "~" );
 			String[] splitValueUsedMap = valueUsedMap.split( "~" );
 			
+			//The string of triple patterns and variables that remain
 			String remainingTps = "", remainingVars = "";
+			
+			//Iterate over all triple patterns that are actually used in a job for the current variable
 			for( int i = 0; i < splitValueUsedMap.length; i++ )
 			{
-				String usedValue = splitValueUsedMap[i];				
+				//Get each used triple pattern
+				String usedTp = splitValueUsedMap[i];				
 				
+				//Iterate over all actual triple patterns for the current variable
 				for( int j = 0; j < splitValueOrigMap.length; j++ )
 				{
-					String origValue = splitValueOrigMap[j];
-					if( origValue.equalsIgnoreCase( usedValue ) || valueUsedMap.contains( origValue ) ) continue;
-					else if( !remainingTps.contains( origValue ) ) remainingTps += origValue; 
+					//Get each original triple pattern
+					String origTp = splitValueOrigMap[j];
+					
+					//If the original triple pattern matches the used triple pattern
+					//or the used triple patterns list contains the original triple pattern simply continue
+					//Else if the remaining triple patterns list does not contain this triple pattern, add it to that list
+					if( origTp.equalsIgnoreCase( usedTp ) || valueUsedMap.contains( origTp ) ) continue;
+					else if( !remainingTps.contains( origTp ) ) remainingTps += origTp; 
 				}
 				
-				String vars = oldInputVarList.get( new Integer( usedValue ).intValue() - 1 );
-				if( !vars.contains( key ) ) continue;
-				String[] var = vars.split( "~" );
-				for( int k = 0; k < var.length; k++ )
+				//Get the variables for the used triple pattern from the old variables list
+				String varsInEachTp = oldInputVarList.get( new Integer( usedTp ).intValue() - 1 );
+				
+				//If the variables list does not contain the current variable simply continue				
+				if( !varsInEachTp.contains( variable ) ) continue;
+				
+				//Split the variables list and iterate over it				
+				String[] vars = varsInEachTp.split( "~" );
+				for( int k = 0; k < vars.length; k++ )
 				{
-					if( var[k].equalsIgnoreCase( key ) ) continue;
-					else remainingVars += var[k] + "~";
+					//If the variable == to the current variable simply continue
+					//Else add the variable to the remaining variables
+					if( vars[k].equalsIgnoreCase( variable ) ) continue;
+					else remainingVars += vars[k] + "~";
 				}
 			}
 			
+			//Compute the variables from the triple patterns that were not used in a job for the current variable
+			//Iterate over the list of remaining triple patterns
 			String[] splitRemainingTps = remainingTps.split( "~" );
 			for( int x = 0; x < splitRemainingTps.length; x++ )
 			{
+				//Get the list of remaining variables for the triple pattern from the old input variable list and iterate over this list
 				String[] remainingVarsFromTps = oldInputVarList.get( new Integer( splitRemainingTps[x] ).intValue() - 1 ).split( "~" );
 				for( int y = 0; y < remainingVarsFromTps.length; y++ )
 				{
+					//If the list contains a variable that is already eliminated simply continue
+					//Else add the variable to the list of remaining variables
 					if( eliminatedVars.contains( remainingVarsFromTps[y] ) ) continue;
 					else remainingVars += remainingVarsFromTps[y] + "~";
 				}
 			}
+			
+			//Add the remaining variables to the new input variable list
 			newInputVarList.add( remainingVars );
 		}
 		
 		//Add the remaining triple patterns from the triple patterns map
 		newInputVarList.addAll( constructVarList() );
 		
+		//Return the new input variables list
 		return newInputVarList;
 	}
 	
+	/**
+	 * A method that constructs the initial list of input variables from the triple patterns that are part of the 
+	 * input SPARQL query
+	 * @return the initial list of input variables based on the triple patterns that are part of the SPARQL query
+	 */
 	private List<String> constructVarList()
 	{
-		List<String> strInputList = new ArrayList<String>();
+		//The list of variables
+		List<String> strInputVarsList = new ArrayList<String>();
 		
+		//Iterate over the triple patterns from the input SPARQL query
 		Iterator<Integer> iterTpMap = tpMap.keySet().iterator();
 		while( iterTpMap.hasNext() )
 		{
-			Integer key = iterTpMap.next();
-			TriplePattern value = tpMap.get( key );
+			//Get the triple pattern identifier
+			Integer tpId = iterTpMap.next();
+			
+			//Get the corresponding triple pattern
+			TriplePattern tp = tpMap.get( tpId );
+			
+			//The string of associated variables from the current triple pattern
 			String vars = "";
-			Node sub = value.getSubjectValue(), obj = value.getObjectValue();
+			
+			//Check if the subject and/or object of each triple pattern are variables.
+			//If they are simply add them to the variables
+			Node sub = tp.getSubjectValue(), obj = tp.getObjectValue();
 			if( sub.isVariable() ) vars += sub.toString() + "~";
 			if( obj.isVariable() ) vars += obj.toString() + "~";
-			strInputList.add( vars );
+			
+			//Add the variables string to the list of variables
+			strInputVarsList.add( vars );
 		}
 		
-		return strInputList;
+		//Return the list of variables
+		return strInputVarsList;
 	}
 	
+	/**
+	 * A method that constructs the triple pattern and variables map that are used by the algorithm
+	 * @param elements - a list of elements from the QueryParser
+	 * @throws UnhandledElementException
+	 * @throws NotBasicElementException
+	 */
 	private void constructInputMaps( List<HadoopElement> elements ) throws UnhandledElementException, NotBasicElementException
 	{
-		//A counter
+		//A counter for the triple pattern id
 		int count = 0;
 
-		//Check if all elements share a common variable
-		Iterator<HadoopElement> elemIter = elements.iterator();
-		while( elemIter.hasNext() )
+		//Iterate over all elements
+		Iterator<HadoopElement> iterElements = elements.iterator();
+		while( iterElements.hasNext() )
 		{
-			//Get each hadoop element
-			HadoopElement element = elemIter.next();
+			//Get each element
+			HadoopElement element = iterElements.next();
 
-			//Get triple patterns associated with a hadoop element
-			Iterator<Triple> tripleIter = element.getTriple().iterator();
-			while( tripleIter.hasNext() )
+			//Get triple patterns associated with an element
+			Iterator<Triple> iterTriplePatterns = element.getTriple().iterator();
+			while( iterTriplePatterns.hasNext() )
 			{
 				//Get each triple pattern
-				Triple triple = tripleIter.next();
+				Triple triple = iterTriplePatterns.next();
 
-				//Create a TriplePattern object that will be used in the construction of a JobPlan
+				//Create a TriplePattern object that will be used by a JobPlan
 				TriplePattern tp = TriplePatternFactory.createSimpleTriplePattern();
 
 				//Set the id of the triple pattern
@@ -423,6 +517,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//If only one of subject or object is a variable then do this
 					if( sub.isVariable() )	
 					{
+						//Add entries to the variable-triple pattern identifiers hashmap
 						if( varOrigTpBasedMap.isEmpty() || varOrigTpBasedMap.get( strSub ) == null ) varOrigTpBasedMap.put( strSub, "" + count + "~" );
 						else varOrigTpBasedMap.put( strSub, varOrigTpBasedMap.get( strSub ) + count + "~" );
 						
@@ -431,6 +526,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					}
 					else
 					{
+						//Add entries to the variable-triple pattern identifiers hashmap
 						if( varOrigTpBasedMap.isEmpty() || varOrigTpBasedMap.get( strSub ) == null ) varOrigTpBasedMap.put( strObj, "" + count + "~" );
 						else varOrigTpBasedMap.put( strObj, varOrigTpBasedMap.get( strObj ) + count + "~" );
 
@@ -439,29 +535,37 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					}
 				}
 
+				//Add the triple pattern to hashmap of all triple patterns indexed by the identifier
 				tpMap.put( new Integer( count ), tp );
 			}
 		}
 	}
 	
-	private Map<Integer,String> constructElimCountMap( List<String> elements )
+	/**
+	 * 
+	 * @param inputVarsList - the list of variables
+	 * @return a map sorted in increasing order of elimination counts with its associated variables 
+	 */
+	private Map<Integer,String> constructElimCountMap( List<String> inputVarsList )
 	{
 		//A map between elimination counts and their associated variables
-		Map<Integer,String> elimVarCountMap = new TreeMap<Integer,String>();
+		Map<Integer,String> elimCountVarMap = new TreeMap<Integer,String>();
 
 		//A map of variables and their associated elimination counts
 		Map<String,Integer> varElimCountMap = new HashMap<String,Integer>();
 
-		//Check if all elements share a common variable
-		Iterator<String> elemIter = elements.iterator();
-		while( elemIter.hasNext() )
+		//Iterate over all variable lists that are part of the input list
+		Iterator<String> iterVarsList = inputVarsList.iterator();
+		while( iterVarsList.hasNext() )
 		{
-			//Get each hadoop element
-			String[] vars = elemIter.next().split( "~" );
+			//Get each variable list
+			String[] vars = iterVarsList.next().split( "~" );
 
+			//If there is only one variable, simply continue
 			if( vars.length == 1 ) continue;
 			else
 			{
+				//Iterate over all variables in the variable list
 				for( int i = 0; i < vars.length; i++ )
 				{
 					//Get the current elimination count for the current variable
@@ -487,26 +591,30 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//Iterate over the sorted array
 		for( int i = 0; i < inArr.length; i++ )
 		{
-			String keys = "";
+			//The list of variables with the same elimination count
+			String varsWithSameElimCount = "";
 
-			//Check each entry in the variable based hashmap for the value from the sorted array. Combine the keys that have that value.
-			Iterator<String> iterKeys =  varElimCountMap.keySet().iterator();
-			while( iterKeys.hasNext() )
+			//Check each entry in the variable based hashmap for the elimination count from the sorted array. 
+			//Combine the variables that have that value.
+			Iterator<String> iterVars =  varElimCountMap.keySet().iterator();
+			while( iterVars.hasNext() )
 			{
-				String key = iterKeys.next();
-				Integer value = varElimCountMap.get( key );
-				if( value == inArr[i] ) keys += key + "~";
+				String var = iterVars.next();
+				Integer elimCount = varElimCountMap.get( var );
+				if( elimCount == inArr[i] ) varsWithSameElimCount += var + "~";
 			}
 
-			//If the variable count hashmap is empty add a new entry based on the current value in the sorted array and the keys that have that value
-			//Else get the old value from the hashmap and update it
-			if( elimVarCountMap.isEmpty() )
-				elimVarCountMap.put( ( Integer )inArr[i], keys );
+			//If the variable count hashmap is empty add a new entry based on the current elimination count in the sorted array 
+			//and the variables that have that value
+			//Else get the old variables list from the hashmap and update it
+			if( elimCountVarMap.isEmpty() )
+				elimCountVarMap.put( ( Integer )inArr[i], varsWithSameElimCount );
 			else
-				elimVarCountMap.put( ( Integer )inArr[i], elimVarCountMap.get( ( Integer )inArr[i] ) + keys );
+				elimCountVarMap.put( ( Integer )inArr[i], elimCountVarMap.get( ( Integer )inArr[i] ) + varsWithSameElimCount );
 		}
 
-		return elimVarCountMap;
+		//Return the map between elimination counts and variables
+		return elimCountVarMap;
 	}
 
 	/**
@@ -587,8 +695,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			//Get each set of variables
 			String[] vars = elemIter.next().split( "~" );
 
+			//If only one variable exists
+			//Else two variables exist
 			if( vars.length == 1 )
 			{
+				//If the hashmap is not empty and this variable does not exist in the hashmap there cannot be a common variable
+				//in which case simply abort further inspection and break
+				//Else put the variable in the hashmap if it does not exist, if it does simply update its count
 				if( !hm.isEmpty() && hm.get( vars[0] ) == null ) { isAborted = true; break; }
 				else 
 				{
@@ -598,8 +711,11 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			}
 			else
 			{
+				//Iterate over all variables
 				for( int i = 0; i < vars.length; i++ )
 				{
+					//If the hashmap is empty or this variable is not found add it in the hashmap
+					//Else simply update the count of the times the variable was found
 					if( hm.isEmpty() || hm.get( vars[i] ) == null ) hm.put( vars[i], new Integer( "1" ) );
 					else hm.put( vars[i], new Integer( hm.get( vars[i] ).intValue() + 1 ) );					
 				}
@@ -614,7 +730,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			while( keyIter.hasNext() )
 			{
 				String key = keyIter.next();
-				if( hm.get( key ).intValue() == elements.size() ) { commonVariable = key; }
+				if( hm.get( key ).intValue() == elements.size() ) { commonVariable = key; break; }
 			}
 		}
 		return commonVariable;
