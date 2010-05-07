@@ -165,7 +165,15 @@ public class GenericJobRunner
             //Write the result
             if( !jp.getHasMoreJobs() )
             {
-            	if( count == jp.getTotalVariables() ) context.write( key, new Text( sValue ) );
+            	if( jp.getTotalVariables() == 1 ) 
+            	{
+            		if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) ) 
+            			context.write( key, new Text( sValue ) );
+            	}
+            	else
+            	{
+            		
+            	}
             }
             else
             	context.write( key, new Text( sValue ) );		

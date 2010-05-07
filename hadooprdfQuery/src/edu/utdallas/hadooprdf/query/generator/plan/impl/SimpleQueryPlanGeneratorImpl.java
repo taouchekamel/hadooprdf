@@ -64,7 +64,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	public SimpleQueryPlanGeneratorImpl() { }
 
 	/**
-	 * Method that generates the query plan based on the "elimination count" algorithm
+	 * A method that generates the query plan based on the "elimination count" algorithm
 	 * @param elements - a list of elements from the QueryParser
 	 * @return a QueryPlan object
 	 * @throws NotBasicElementException 
@@ -116,7 +116,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 
 			//Set the total number of variables expected in the result
 			jp.setTotalVariables( totalVarsSelectClause );
-
+			
 			//The case where there is a common variable involves only a single job
 			//Else run the "elimination count" algorithm
 			if( commonVariable != null )
@@ -172,7 +172,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Add the filename to the Job object as an input file, this input file is the output file from the previous job 
 					FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + "test" + ( jobId - 1 ) ) );
 				}
+
+				//Add the joining variable to the job plan
+				jp.addVarToJoiningVariables( commonVariable );
 				
+				//Set the total triple patterns associated with this variable in the job plan
+				jp.setVarTrPatternCount( commonVariable, varOrigTpBasedMap.get( commonVariable ).split( "~" ).length );
+
 				//Add the output file to the Job object
 				FileOutputFormat.setOutputPath(currJob, new Path( JobParameters.outputHDFSDir + "test" + jobId ) );
 
@@ -229,6 +235,8 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							//Set the value of the joining variable
 							tp.setJoiningVariableValue( vars[i] );
 							
+							//Increment the count of
+							
 							if( varUsedTpBasedMap.isEmpty() || varUsedTpBasedMap.get( vars[i] ) == null )
 								varUsedTpBasedMap.put( vars[i], trPatterns[j] + "~" );
 							else
@@ -252,6 +260,12 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							//Add the triple pattern to the job plan
 							jp.setPredicateBasedTriplePattern( pred, tp );					
 						}
+	
+						//Add the joining variable to the job plan
+						jp.addVarToJoiningVariables( vars[i] );
+
+						//Set the total triple patterns associated with this variable in the job plan
+						jp.setVarTrPatternCount( vars[i], varOrigTpBasedMap.get( vars[i] ).split( "~" ).length );
 					}
 				}
 				
@@ -542,7 +556,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	}
 	
 	/**
-	 * 
+	 * A method that returns a sorted map of elimination counts and the associated variables
 	 * @param inputVarsList - the list of variables
 	 * @return a map sorted in increasing order of elimination counts with its associated variables 
 	 */

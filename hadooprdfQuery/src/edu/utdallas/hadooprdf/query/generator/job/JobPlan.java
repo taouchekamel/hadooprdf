@@ -1,5 +1,7 @@
 package edu.utdallas.hadooprdf.query.generator.job;
 
+import java.util.List;
+
 import org.apache.hadoop.mapreduce.Job;
 
 import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
@@ -60,4 +62,12 @@ public interface JobPlan
 	 * @return true iff there are more Hadoop jobs to follow, false otherwise
 	 */
 	public boolean getHasMoreJobs() ;
+	
+	public void setVarTrPatternCount( String var, Integer count ) ;
+	
+	public Integer getVarTrPatternCount( String var ) ;
+	
+	public void addVarToJoiningVariables( String var ) ;
+	
+	public List<String> getJoiningVariablesList() ;
 }

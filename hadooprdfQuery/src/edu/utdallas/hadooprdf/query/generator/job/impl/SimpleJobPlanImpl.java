@@ -1,6 +1,8 @@
 package edu.utdallas.hadooprdf.query.generator.job.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.mapreduce.Job;
@@ -15,7 +17,7 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
  */
 public class SimpleJobPlanImpl implements JobPlan
 {	
-	/** A map of joining variables **/
+	/** A map of predicates and the associated triple pattern **/
 	private Map<String,TriplePattern> predTrPatternMap = new HashMap<String,TriplePattern>();
 	
 	/** The total number of variables expected in the result of the query **/
@@ -26,6 +28,12 @@ public class SimpleJobPlanImpl implements JobPlan
 	
 	/** A boolean that denotes if there are more jobs to follow the current one **/
 	private boolean hasMoreJobs = false;
+	
+	/** A map between variables and the associated count of triple patterns that contain that variables **/
+	private Map<String,Integer> varTrPatternCount = new HashMap<String,Integer>();
+	
+	/** The list of joining variables **/
+	private List<String> joiningVars = new ArrayList<String>();
 	
 	/** Constructor **/
 	public SimpleJobPlanImpl() { }
@@ -91,5 +99,25 @@ public class SimpleJobPlanImpl implements JobPlan
 	public boolean getHasMoreJobs()
 	{
 		return hasMoreJobs;
+	}
+	
+	public void setVarTrPatternCount( String var, Integer count )
+	{
+		varTrPatternCount.put( var, count );
+	}
+	
+	public Integer getVarTrPatternCount( String var )
+	{
+		return varTrPatternCount.get( var );
+	}
+	
+	public void addVarToJoiningVariables( String var )
+	{
+		joiningVars.add( var );
+	}
+	
+	public List<String> getJoiningVariablesList()
+	{
+		return joiningVars;
 	}
 }
