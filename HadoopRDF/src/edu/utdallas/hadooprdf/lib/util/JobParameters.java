@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.query.util;
+package edu.utdallas.hadooprdf.lib.util;
 
 import edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericMapper;
 import edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericReducer;
