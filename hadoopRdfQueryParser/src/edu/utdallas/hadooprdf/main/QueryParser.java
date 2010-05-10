@@ -96,32 +96,4 @@ public class QueryParser {
 		
 		return eList;
 	}
-	
-	public static void main (String [] args) throws UnhandledElementException, NotBasicElementException {
-		
-		String queryString = 
-			"PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
-			"SELECT ?url " +
-			"WHERE {" +
-			"      ?contributor foaf:name ?y . " +
-			"      ?y foaf:weblog ?url . " +
-			"      }";
-		
-		ArrayList <HadoopElement> eList = (ArrayList <HadoopElement>)QueryParser.parseQuery(queryString);
-		
-		for (int i = 0; i < eList.size(); i++) {
-			HadoopElement element = eList.get(i);
-			ArrayList<Triple> tripleList = element.getTriple();
-			for (int j = 0; j < tripleList.size(); j++) {
-				Triple triple = tripleList.get(j);
-				System.out.println("-------------------------------------------------------");
-				System.out.println("Subject -- " + triple.getSubject().toString());
-				System.out.println("Predicate -- "  + triple.getPredicate().toString());
-				System.out.println("Object -- " + triple.getObject().toString());
-				System.out.println("-------------------------------------------------------");
-				
-			}
-		}
-	}
-	
 }
