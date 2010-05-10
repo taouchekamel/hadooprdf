@@ -14,11 +14,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.commons.Tags;
 import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
-import edu.utdallas.hadooprdf.data.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
-import edu.utdallas.hadooprdf.data.lib.util.PathFilterOnFilenameExtension;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
+import edu.utdallas.hadooprdf.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
+import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 
 /**
  * A class to replace prefixes by namespaces found by PrefixFinder

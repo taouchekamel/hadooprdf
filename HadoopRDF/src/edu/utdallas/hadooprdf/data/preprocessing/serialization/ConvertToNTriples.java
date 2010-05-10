@@ -15,10 +15,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import edu.utdallas.hadooprdf.data.commons.Tags;
 import edu.utdallas.hadooprdf.data.commons.Constants.SerializationFormat;
 import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
-import edu.utdallas.hadooprdf.data.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
+import edu.utdallas.hadooprdf.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
 
 /**
  * A class to convert RDF data from any format other than NTriples to NTriples
@@ -105,8 +105,8 @@ public class ConvertToNTriples extends PreprocessorJobRunner {
 			job.setMapOutputValueClass(Text.class);
 			FileOutputFormat.setOutputPath(job, m_OutputDirectoryPath);
 			// Set the mapper and reducer classes
-			job.setMapperClass(edu.utdallas.hadooprdf.data.lib.mapred.serialization.conversion.ConversionMapper.class);
-			job.setReducerClass(edu.utdallas.hadooprdf.data.lib.mapred.serialization.conversion.ConversionReducer.class);
+			job.setMapperClass(edu.utdallas.hadooprdf.lib.mapred.serialization.conversion.ConversionMapper.class);
+			job.setReducerClass(edu.utdallas.hadooprdf.lib.mapred.serialization.conversion.ConversionReducer.class);
 			// Set the number of reducers
 			if (-1 != getNumberOfReducers())	// Use the number set by the client, if any
 				job.setNumReduceTasks(getNumberOfReducers());

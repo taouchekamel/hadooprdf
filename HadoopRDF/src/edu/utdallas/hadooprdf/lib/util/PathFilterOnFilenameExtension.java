@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.data.lib.util;
+package edu.utdallas.hadooprdf.lib.util;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;

@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.data.lib.util;
+package edu.utdallas.hadooprdf.lib.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;

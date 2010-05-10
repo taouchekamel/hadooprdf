@@ -14,12 +14,12 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.commons.Tags;
 import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
-import edu.utdallas.hadooprdf.data.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
-import edu.utdallas.hadooprdf.data.lib.util.PathFilterOnFilenameExtension;
-import edu.utdallas.hadooprdf.data.lib.util.Utility;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
+import edu.utdallas.hadooprdf.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
+import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
+import edu.utdallas.hadooprdf.lib.util.Utility;
 
 /**
  * A class which runs a job to split PS files further according to the type of objects
@@ -164,7 +164,7 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 			FileOutputFormat.setOutputPath(job, m_Job2OutputDirectoryPath);
 			// Set the mapper and reducer classes
 			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.mapred.PredicateSplitterByObjectTypeJob2Mapper.class);
-			job.setReducerClass(edu.utdallas.hadooprdf.data.lib.mapred.IdentityReducer.class);
+			job.setReducerClass(edu.utdallas.hadooprdf.lib.mapred.IdentityReducer.class);
 			// Set the number of reducers
 			if (-1 != getNumberOfReducers())	// Use the number set by the client, if any
 				job.setNumReduceTasks(getNumberOfReducers());

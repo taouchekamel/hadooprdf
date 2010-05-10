@@ -6,8 +6,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
-import edu.utdallas.hadooprdf.data.lib.util.Utility;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
+import edu.utdallas.hadooprdf.lib.util.Utility;
 
 /**
  * This class contains metadata about a dataset

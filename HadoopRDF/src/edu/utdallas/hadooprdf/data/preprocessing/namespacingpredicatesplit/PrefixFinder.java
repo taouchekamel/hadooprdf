@@ -13,14 +13,14 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
-import edu.utdallas.hadooprdf.data.lib.mapred.io.output.NullKeyTextOutputFormat;
-import edu.utdallas.hadooprdf.data.lib.util.PathFilterOnFilenameExtension;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
 import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.PrefixFinderException;
 import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.mapred.PrefixFinderMapper;
 import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.mapred.PrefixFinderReducer;
+import edu.utdallas.hadooprdf.lib.mapred.io.output.NullKeyTextOutputFormat;
+import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 
 /**
  * This class finds the prefixes using one or more reducers

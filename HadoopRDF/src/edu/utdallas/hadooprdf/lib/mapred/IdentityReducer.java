@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.data.lib.mapred;
+package edu.utdallas.hadooprdf.lib.mapred;
 
 import java.io.IOException;
 import java.util.Iterator;

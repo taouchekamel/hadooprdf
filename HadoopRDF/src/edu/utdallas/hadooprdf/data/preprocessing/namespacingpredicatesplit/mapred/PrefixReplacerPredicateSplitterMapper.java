@@ -9,8 +9,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.commons.Tags;
-import edu.utdallas.hadooprdf.data.lib.util.Utility;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
+import edu.utdallas.hadooprdf.lib.util.Utility;
 
 /**
  * The mapper class for prefix replacer job

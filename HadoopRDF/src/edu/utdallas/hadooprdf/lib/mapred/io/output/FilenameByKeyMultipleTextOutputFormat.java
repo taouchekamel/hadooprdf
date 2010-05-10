@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.data.lib.mapred.io.output;
+package edu.utdallas.hadooprdf.lib.mapred.io.output;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
