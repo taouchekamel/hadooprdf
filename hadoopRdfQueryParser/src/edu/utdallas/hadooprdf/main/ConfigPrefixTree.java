@@ -11,7 +11,7 @@ import edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixNamespaceTree;
 
 public class ConfigPrefixTree {
 
-	public static PrefixNamespaceTree getPrefixTree (String confgDirPath, String hadoopDfsPath) throws  
+	public static PrefixNamespaceTree getPrefixTree (String confgDirPath, String hadoopDfsPath, int clusterId) throws  
 										IOException, ConfigurationNotInitializedException {
 		
 		PrefixNamespaceTree prefixTree = null;
@@ -24,7 +24,7 @@ public class ConfigPrefixTree {
         // Create application configuration
         edu.utdallas.hadooprdf.conf.Configuration config =
             edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration);
-        config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
+        config.setNumberOfTaskTrackersInCluster(clusterId); // 5 for semantic web lab, 10 for SAIAL lab
         try {
             DataSet ds = new DataSet(hadoopDfsPath);
             ds.setOriginalDataFilesExtension("owl");
