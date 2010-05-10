@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
+import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 import edu.utdallas.hadooprdf.lib.util.Utility;
 
@@ -95,7 +95,7 @@ public class DataSet {
 	public PrefixNamespaceTree getPrefixNamespaceTree() throws IOException, ConfigurationNotInitializedException {
 		if (null == m_PrefixNamespaceTree) {
 			m_PrefixNamespaceTree = Utility.getPrefixNamespaceTreeForDataSet(
-					edu.utdallas.hadooprdf.data.conf.Configuration.getInstance().getHadoopConfiguration(),
+					edu.utdallas.hadooprdf.conf.Configuration.getInstance().getHadoopConfiguration(),
 					m_PathToPrefixFile);
 		}
 		return m_PrefixNamespaceTree;
@@ -107,7 +107,7 @@ public class DataSet {
 	 * @throws ConfigurationNotInitializedException
 	 */
 	private void createMetaDataDirectory() throws IOException, ConfigurationNotInitializedException {
-		FileSystem.get(edu.utdallas.hadooprdf.data.conf.Configuration.getInstance().getHadoopConfiguration()).mkdirs(m_PathToMetaData);
+		FileSystem.get(edu.utdallas.hadooprdf.conf.Configuration.getInstance().getHadoopConfiguration()).mkdirs(m_PathToMetaData);
 	}
 	
 	/**

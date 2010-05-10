@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.data.conf;
+package edu.utdallas.hadooprdf.conf;
 
 /**
  * The singleton configuration class for the application

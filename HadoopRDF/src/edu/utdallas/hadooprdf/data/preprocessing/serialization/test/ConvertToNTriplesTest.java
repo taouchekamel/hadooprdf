@@ -8,8 +8,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
+import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.commons.Constants.SerializationFormat;
-import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.serialization.ConversionToNTriplesException;
@@ -27,8 +27,8 @@ public class ConvertToNTriplesTest {
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
 		// Create application configuration
-		edu.utdallas.hadooprdf.data.conf.Configuration config =
-			edu.utdallas.hadooprdf.data.conf.Configuration.createInstance(hadoopConfiguration);
+		edu.utdallas.hadooprdf.conf.Configuration config =
+			edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration);
 		config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
 		try {
 			DataSet ds = new DataSet("/user/farhan/hadooprdf/LUBM1");

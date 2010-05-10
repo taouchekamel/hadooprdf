@@ -9,14 +9,14 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Before;
 import org.junit.Test;
 
-import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
+import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.PrefixReplacerPredicateSplitter;
 import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.PrefixReplacerPredicateSplitterException;
 
 public class PrefixReplacerTest {
-	private edu.utdallas.hadooprdf.data.conf.Configuration config;
+	private edu.utdallas.hadooprdf.conf.Configuration config;
 	@Before
 	public void setUp() throws Exception {
 		// Create cluster configuration
@@ -27,7 +27,7 @@ public class PrefixReplacerTest {
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
 		// Create application configuration
-		config = edu.utdallas.hadooprdf.data.conf.Configuration.createInstance(hadoopConfiguration);
+		config = edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration);
 		config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
 	}
 

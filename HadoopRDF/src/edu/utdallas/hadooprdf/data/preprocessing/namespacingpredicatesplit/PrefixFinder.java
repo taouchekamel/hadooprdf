@@ -12,7 +12,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
+import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
@@ -43,8 +43,8 @@ public class PrefixFinder extends PreprocessorJobRunner {
 	 * @throws IOException
 	 */
 	public void findPrefixes() throws ConfigurationNotInitializedException, PrefixFinderException {
-		edu.utdallas.hadooprdf.data.conf.Configuration config =
-			edu.utdallas.hadooprdf.data.conf.Configuration.getInstance();
+		edu.utdallas.hadooprdf.conf.Configuration config =
+			edu.utdallas.hadooprdf.conf.Configuration.getInstance();
 		org.apache.hadoop.conf.Configuration hadoopConfiguration =
 			new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
 		// that the original one does not get cluttered with job specific key-value pairs

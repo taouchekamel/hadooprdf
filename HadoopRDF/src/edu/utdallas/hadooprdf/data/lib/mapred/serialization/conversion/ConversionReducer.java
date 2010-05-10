@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.lib.mapred.serialization.conversion;
+package edu.utdallas.hadooprdf.data.lib.mapred.serialization.conversion;
 
 import java.io.IOException;
 import java.io.StringReader;

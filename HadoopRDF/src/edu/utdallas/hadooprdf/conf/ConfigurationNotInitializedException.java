@@ -1,4 +1,4 @@
-package edu.utdallas.hadooprdf.data.conf;
+package edu.utdallas.hadooprdf.conf;
 
 /**
  * The exception class to be thrown if the singleton

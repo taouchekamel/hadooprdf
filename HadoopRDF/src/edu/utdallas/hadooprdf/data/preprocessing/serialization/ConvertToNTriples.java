@@ -12,9 +12,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.commons.Tags;
 import edu.utdallas.hadooprdf.data.commons.Constants.SerializationFormat;
-import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
@@ -63,8 +63,8 @@ public class ConvertToNTriples extends PreprocessorJobRunner {
 			throw new ConversionToNTriplesException("Input data is already in NTriples format");
 		}
 		try {
-			edu.utdallas.hadooprdf.data.conf.Configuration config =
-				edu.utdallas.hadooprdf.data.conf.Configuration.getInstance();
+			edu.utdallas.hadooprdf.conf.Configuration config =
+				edu.utdallas.hadooprdf.conf.Configuration.getInstance();
 			org.apache.hadoop.conf.Configuration hadoopConfiguration =
 				new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
 			// that the original one does not get cluttered with job specific key-value pairs
@@ -105,8 +105,8 @@ public class ConvertToNTriples extends PreprocessorJobRunner {
 			job.setMapOutputValueClass(Text.class);
 			FileOutputFormat.setOutputPath(job, m_OutputDirectoryPath);
 			// Set the mapper and reducer classes
-			job.setMapperClass(edu.utdallas.hadooprdf.lib.mapred.serialization.conversion.ConversionMapper.class);
-			job.setReducerClass(edu.utdallas.hadooprdf.lib.mapred.serialization.conversion.ConversionReducer.class);
+			job.setMapperClass(edu.utdallas.hadooprdf.data.lib.mapred.serialization.conversion.ConversionMapper.class);
+			job.setReducerClass(edu.utdallas.hadooprdf.data.lib.mapred.serialization.conversion.ConversionReducer.class);
 			// Set the number of reducers
 			if (-1 != getNumberOfReducers())	// Use the number set by the client, if any
 				job.setNumReduceTasks(getNumberOfReducers());

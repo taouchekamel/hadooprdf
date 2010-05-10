@@ -11,9 +11,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
+import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.commons.Tags;
-import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
@@ -49,8 +49,8 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 	 */
 	public void splitPredicateByObjectType() throws ConfigurationNotInitializedException, PredicateSplitterByObjectTypeException {
 		try {
-			edu.utdallas.hadooprdf.data.conf.Configuration config =
-				edu.utdallas.hadooprdf.data.conf.Configuration.getInstance();
+			edu.utdallas.hadooprdf.conf.Configuration config =
+				edu.utdallas.hadooprdf.conf.Configuration.getInstance();
 			org.apache.hadoop.conf.Configuration hadoopConfiguration =
 				new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
 			// that the original one does not get cluttered with job specific key-value pairs
@@ -69,7 +69,7 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 	 * @throws ConfigurationNotInitializedException
 	 * @throws PredicateSplitterByObjectTypeException
 	 */
-	private void runJob1(edu.utdallas.hadooprdf.data.conf.Configuration config,
+	private void runJob1(edu.utdallas.hadooprdf.conf.Configuration config,
 			org.apache.hadoop.conf.Configuration hadoopConfiguration,
 			FileSystem fs) throws ConfigurationNotInitializedException, PredicateSplitterByObjectTypeException {
 		try {
@@ -133,7 +133,7 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 	 * @throws ConfigurationNotInitializedException
 	 * @throws PredicateSplitterByObjectTypeException
 	 */
-	private void runJob2(edu.utdallas.hadooprdf.data.conf.Configuration config,
+	private void runJob2(edu.utdallas.hadooprdf.conf.Configuration config,
 			org.apache.hadoop.conf.Configuration hadoopConfiguration,
 			FileSystem fs) throws ConfigurationNotInitializedException, PredicateSplitterByObjectTypeException {
 		try {

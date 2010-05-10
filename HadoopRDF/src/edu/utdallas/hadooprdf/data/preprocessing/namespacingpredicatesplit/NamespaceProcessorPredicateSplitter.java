@@ -1,6 +1,6 @@
 package edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit;
 
-import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
+import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.NamespaceProcessorPredicateSplitterException;
