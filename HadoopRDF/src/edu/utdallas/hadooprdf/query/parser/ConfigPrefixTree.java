@@ -5,13 +5,14 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 
 public class ConfigPrefixTree {
 
-	public static PrefixNamespaceTree getPrefixTree (String confgDirPath, String hadoopDfsPath) throws  
-										IOException, edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException {
+	public static PrefixNamespaceTree getPrefixTree (String confgDirPath, String hadoopDfsPath, int clusterId) throws  
+										IOException, ConfigurationNotInitializedException {
 		
 		PrefixNamespaceTree prefixTree = null;
         // Create cluster configuration
@@ -23,7 +24,7 @@ public class ConfigPrefixTree {
         // Create application configuration
         edu.utdallas.hadooprdf.data.conf.Configuration config =
             edu.utdallas.hadooprdf.data.conf.Configuration.createInstance(hadoopConfiguration);
-        config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
+        config.setNumberOfTaskTrackersInCluster(clusterId); // 5 for semantic web lab, 10 for SAIAL lab
         try {
             DataSet ds = new DataSet(hadoopDfsPath);
             ds.setOriginalDataFilesExtension("owl");
@@ -31,7 +32,7 @@ public class ConfigPrefixTree {
         } catch (IOException e) {
             System.err.println("IOException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
             throw e; 
-        } catch (edu.utdallas.hadooprdf.data.conf.ConfigurationNotInitializedException e) {
+        } catch (ConfigurationNotInitializedException e) {
             System.err.println("ConfigurationNotInitializedException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
             throw e;
         }		

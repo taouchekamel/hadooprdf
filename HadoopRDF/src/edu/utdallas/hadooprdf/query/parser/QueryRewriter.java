@@ -9,6 +9,10 @@ import com.hp.hpl.jena.graph.Node_Literal;
 import com.hp.hpl.jena.graph.Node_URI;
 import com.hp.hpl.jena.vocabulary.RDF;
 
+import edu.utdallas.hadooprdf.query.parser.HadoopElement;
+import edu.utdallas.hadooprdf.query.parser.NotBasicElementException;
+import edu.utdallas.hadooprdf.query.parser.QueryRewriter;
+import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
 import edu.utdallas.hadooprdf.query.parser.HadoopElement.HadoopTriple;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 
@@ -188,7 +192,6 @@ public class QueryRewriter {
 		return hTriple;
 	}
 	
-	@SuppressWarnings("unused")
 	private static ArrayList <HadoopElement> convertPredicatesToPrefixes (ArrayList<HadoopElement> queryElementList, 
 		PrefixNamespaceTree prefixTree) throws Exception {
 		ArrayList <HadoopElement> elements = new ArrayList<HadoopElement>();
@@ -221,7 +224,6 @@ public class QueryRewriter {
 	}
 	
 
-	@SuppressWarnings("unused")
 	private static HadoopElement.HadoopTriple fetchAssociatedFilesForQuery (HadoopElement.HadoopTriple tripleToFindReqdFiles) {
 		HadoopElement.HadoopTriple triple = tripleToFindReqdFiles;		
 		return triple;

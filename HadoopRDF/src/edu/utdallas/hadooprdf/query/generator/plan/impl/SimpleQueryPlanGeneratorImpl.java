@@ -34,7 +34,7 @@ import edu.utdallas.hadooprdf.query.parser.NotBasicElementException;
 import edu.utdallas.hadooprdf.query.parser.QueryParser;
 import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
 import edu.utdallas.hadooprdf.query.parser.HadoopElement.HadoopTriple;
-import edu.utdallas.hadooprdf.query.util.JobParameters;
+import edu.utdallas.hadooprdf.lib.util.JobParameters;
 
 /**
  * A specific implementation of the query plan generator based on the "elimination count" algorithm
