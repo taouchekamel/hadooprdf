@@ -56,6 +56,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	/** A list of variables that are eliminated **/
 	private List<String> eliminatedVars = new ArrayList<String>();
 
+	/** The internal prefix used in a Hadoop job **/
 	private static int uniquePrefixGenerator = 0;
 	
 	/**
@@ -158,7 +159,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + pred ) );
 
 					//Add the filenames and their associated prefixes to the triple pattern
-					//TODO: get this from the query parser
 					tp.setFilenameBasedPrefix( pred, ++SimpleQueryPlanGeneratorImpl.uniquePrefixGenerator + "#" );
 
 					//Add the triple pattern to the job plan
@@ -234,8 +234,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							//Set the value of the joining variable
 							tp.setJoiningVariableValue( vars[i] );
 							
-							//Increment the count of
-							
+							//Increment the map of used triple patterns 
 							if( varUsedTpBasedMap.isEmpty() || varUsedTpBasedMap.get( vars[i] ) == null )
 								varUsedTpBasedMap.put( vars[i], trPatterns[j] + "~" );
 							else
@@ -247,13 +246,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							else
 								tp.setJoiningVariable( "o" );
 							
+							//Get the predicate, i.e. filename
 							String pred = tp.getPredicateValue().toString();
 							
 							//Add the filename to the Job object
 							FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + pred ) );
 
 							//Add the filenames and their associated prefixes to the triple pattern
-							//TODO: get this from the query parser
 							tp.setFilenameBasedPrefix( pred, "" );
 
 							//Add the triple pattern to the job plan
@@ -496,8 +495,10 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Get each triple pattern
 				HadoopTriple triple = iterTriplePatterns.next();
 
+				//Get the files associated with a triple pattern
 				Iterator<String> files = triple.getAssociatedFiles().iterator();
 				
+				//Iterate over the files, creating a TriplePattern for each of them
 				while( files.hasNext() )
 				{				
 					//Create a TriplePattern object that will be used by a JobPlan

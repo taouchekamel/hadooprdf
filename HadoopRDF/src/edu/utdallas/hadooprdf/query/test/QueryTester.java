@@ -34,31 +34,42 @@ public class QueryTester
 		"	?X ub:undergraduateDegreeFrom ?Y." +
 		" }";
 		
-		ArrayList <HadoopElement> eList = (ArrayList <HadoopElement>)QueryParser.parseQuery(queryString);		
-		PrefixNamespaceTree prefixTree = ConfigPrefixTree.getPrefixTree(ConfgPath, hdfsPath, 5); // 5 - Cluster Id		
-		ArrayList <HadoopElement> eList1 = (ArrayList<HadoopElement>)QueryRewriter.rewriteQuery(eList,prefixTree);
+		queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X " +
+		" WHERE " +
+		" { " +
+		" 	?X rdf:type ub:GraduateStudent . " +
+		"	?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0> " +
+		" } ";
 		
-		System.out.println("eList -- " + eList.size());
-		for (int i = 0; i < eList1.size(); i++) {
-			ArrayList<HadoopElement.HadoopTriple> triple = eList1.get(i).getTriple();
-			System.out.println("triple -- " + triple.size());
-			for (int j = 0; j < triple.size(); j++) {
-				System.out.println("---------------------------------------------------------------");
-				System.out.println("Subject -- " + triple.get(j).getSubject().toString());
-				System.out.println("Predicate -- " + triple.get(j).getPredicate().toString());
-				System.out.println("Object -- " + triple.get(j).getObject().toString());
-				System.out.println("---------------------------------------------------------------");
+		edu.utdallas.hadooprdf.query.parser.Query q = QueryParser.parseQuery(queryString);		
+		PrefixNamespaceTree prefixTree = ConfigPrefixTree.getPrefixTree(ConfgPath, hdfsPath, 5); // 5 - Cluster Id		
+		ArrayList <HadoopElement> eList1 = (ArrayList<HadoopElement>)QueryRewriter.rewriteQuery(q,prefixTree);
+
+		for( int i = 0; i < eList1.size(); i++ ) 
+		{
+			ArrayList<HadoopElement.HadoopTriple> triple = eList1.get( i ).getTriple();
+			System.out.println( "triple -- " + triple.size() );
+			for( int j = 0; j < triple.size(); j++ ) 
+			{
+				System.out.println( "---------------------------------------------------------------" );
+				System.out.println( "Subject -- " + triple.get( j ).getSubject().toString() );
+				System.out.println( "Predicate -- " + triple.get( j ).getPredicate().toString() );
+				System.out.println( "Object -- " + triple.get( j ).getObject().toString() );
+				System.out.println( "---------------------------------------------------------------" );
 			}		
 		}
 
 		QueryPlanGenerator qpgen = QueryPlanGeneratorFactory.createSimpleQueryPlanGenerator();
-		QueryPlan qp = qpgen.generateQueryPlan(eList1);
+		QueryPlan qp = qpgen.generateQueryPlan( eList1 );
 		
 		Iterator<JobPlan> iterJobPlans = qp.getJobPlans().iterator();
 		while( iterJobPlans.hasNext() )
 		{
 			JobPlan jp = iterJobPlans.next();
-			jp.getHadoopJob().waitForCompletion( false );
+			jp.getHadoopJob().waitForCompletion( true );
 		}
 	}
 }

@@ -2,19 +2,27 @@ package edu.utdallas.hadooprdf.query.parser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import org.semanticweb.owl.model.OWLOntologyCreationException;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Node_Literal;
 import com.hp.hpl.jena.graph.Node_URI;
+import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.sparql.syntax.Element;
+import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
+import com.hp.hpl.jena.sparql.util.NodeFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 
-import edu.utdallas.hadooprdf.query.parser.HadoopElement;
-import edu.utdallas.hadooprdf.query.parser.NotBasicElementException;
-import edu.utdallas.hadooprdf.query.parser.QueryRewriter;
-import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
 import edu.utdallas.hadooprdf.query.parser.HadoopElement.HadoopTriple;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
+import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixTree;
 
 
 
@@ -40,7 +48,7 @@ public class QueryRewriter {
 	}
 	
 	private static HashMap <Integer, HadoopElement.HadoopTriple> createTripleListMap (ArrayList<Integer> indices, 
-				List<HadoopElement.HadoopTriple> tripleList, PrefixNamespaceTree prefixTree) throws Exception {
+				List<HadoopElement.HadoopTriple> tripleList, PrefixNamespaceTree prefixTree, FileListGenerator filesGen) throws Exception {
 		HashMap <Integer, HadoopElement.HadoopTriple> tripleListMap = new HashMap<Integer, HadoopElement.HadoopTriple>();
 	
 		tripleListMap.put(indices.get(0), tripleList.get(indices.get(0)));
@@ -49,14 +57,24 @@ public class QueryRewriter {
 		for (int i = 1; i < indices.size(); i++) {					
 			String URI = tripleList.get(indices.get(i)).getPredicate().getURI() + 
 										"_";
-						
 			URI += prefixTree.matchAndReplacePrefix(tripleList.get(indices.get(0)).getObject().toString());										
 			Node predicate =  Node_Literal.createURI(URI);
+
 			
 			HadoopElement.HadoopTriple triple = new HadoopElement.HadoopTriple (tripleList.get(indices.get(i)).getSubject(), 
 										predicate, tripleList.get(indices.get(i)).getObject());
 			
+			
+			
 			try { triple = convertPredicateToPrefix (triple,prefixTree);} catch (Exception e) {throw e;}
+			
+			String classAssociated =  tripleList.get(indices.get(i)).getPredicate().getURI();
+			int index1 = classAssociated.lastIndexOf("#");
+			classAssociated = classAssociated.substring (index1, classAssociated.length ());
+			System.out.println (triple.getObject().toString()) ;
+			ArrayList<String> files = fetchAssociatedFilesForTriple(triple.getObject().toString(), 
+					classAssociated, triple.getPredicate().getURI (), filesGen);
+			triple.addFiles (files);
 			tripleListMap.put(indices.get(i), triple);			
 		}
 		
@@ -64,23 +82,31 @@ public class QueryRewriter {
 	}
 	
 	private static HashMap <Integer, HadoopElement.HadoopTriple> createTripleMap (int index, HadoopTriple triple, 
-																			PrefixNamespaceTree prefixTree) throws Exception {
+											PrefixNamespaceTree prefixTree, FileListGenerator filesGen) throws Exception {
 		
 		HashMap <Integer, HadoopElement.HadoopTriple> tripleMap = new HashMap<Integer, HadoopElement.HadoopTriple>();			
 		String URI = triple.getPredicate().getURI() + "_";
 		URI += prefixTree.matchAndReplacePrefix(triple.getObject().toString());
+		String tURI = prefixTree.matchAndReplacePrefix(triple.getPredicate().getURI());
 		Node predicate = Node_URI.createURI(URI);
 		
 		// Not required - Will not be using object since it is part of the predicate URI already.
-		//URI = prefixTree.matchAndReplacePrefix(triple.getObject().toString());
-		//Node object = Node_URI.createURI(URI);
+		URI = prefixTree.matchAndReplacePrefix(triple.getObject().toString());
+		Node object = Node_URI.createURI(URI);
 		
 	
-		HadoopElement.HadoopTriple tTriple = new HadoopElement.HadoopTriple (triple.getSubject(), predicate, triple.getObject());
-		try { tTriple = convertPredicateToPrefix (tTriple,prefixTree);} catch (Exception e) {throw e;}
+		HadoopElement.HadoopTriple tTriple = new HadoopElement.HadoopTriple (triple.getSubject(), predicate, object);
+		try { tTriple = convertPredicateToPrefix (tTriple,prefixTree);} catch (Exception e) {throw e;}	
 		
+		String classAssociated =  tTriple.getPredicate().getURI();
+		int index1 = classAssociated.lastIndexOf("#");
+		classAssociated = classAssociated.substring (index1, classAssociated.length ());
+		System.out.println (triple.getObject().toString()) ;
+		ArrayList<String> files = fetchAssociatedFilesForTriple(triple.getObject().toString(), classAssociated, 
+				tTriple.getPredicate().getURI (), filesGen);
+		tTriple.addFiles (files);
 		tripleMap.put(index, tTriple);
-		
+		tTriple = null;
 		return tripleMap;
 	}
 	
@@ -94,17 +120,17 @@ public class QueryRewriter {
 		return true;
 	}
 	private static HadoopElement createQueryElement (HashMap <Integer, HadoopElement.HadoopTriple>  tripleListMap, 
-				ArrayList<Integer> indicesOfTripleToBeRemoved) {
+				ArrayList<Integer> indicesOfTripleToBeRemoved) throws Exception {
 		
 		ArrayList<HadoopElement.HadoopTriple> tripleList = new ArrayList<HadoopElement.HadoopTriple>();
 			
 		for (int i = 0; i < tripleListMap.size(); i++) {
 			if (shouldTripleBePartofQuery (i, indicesOfTripleToBeRemoved) == true) {
-				tripleList.add((HadoopElement.HadoopTriple)tripleListMap.get(i));
+				HadoopElement.HadoopTriple triple = (HadoopElement.HadoopTriple)tripleListMap.get(i);				
+				tripleList.add(triple);
 			}
 		}
 						
-		System.out.println("Triple List Size -- " + tripleList.size());		
 		HadoopElement element = new HadoopElement (tripleList);
 		
 		return element;
@@ -112,12 +138,12 @@ public class QueryRewriter {
 	}
 	
 	private static ArrayList<HadoopElement>
-		rewriteBasicElement (List<HadoopElement> queryElementList, PrefixNamespaceTree prefixTree)
+		rewriteBasicElement (List<HadoopElement> queryElementList, PrefixNamespaceTree prefixTree, FileListGenerator filesGen)
 										throws Exception {
 		
 		ArrayList<HadoopElement> hElementList = new ArrayList<HadoopElement>();
 		
-		//System.out.println(queryElementList.size());
+
 		for (int i = 0; i < queryElementList.size(); i++) {
 			HadoopElement element = queryElementList.get(i);
 			
@@ -143,7 +169,7 @@ public class QueryRewriter {
 										
 					if (indices.size() > 1) {
 						try {
-							tripleListMap.putAll(QueryRewriter.createTripleListMap(indices, tripleList, prefixTree));
+							tripleListMap.putAll(QueryRewriter.createTripleListMap(indices, tripleList, prefixTree, filesGen));
 						} catch (Exception e) { throw e;}
 						
 						// Remove the first indices from the new Query, since its existence is 
@@ -152,21 +178,30 @@ public class QueryRewriter {
 						
 					} else {
 						try {						
-							tripleListMap.putAll(QueryRewriter.createTripleMap(j, triple, prefixTree));
+							tripleListMap.putAll(QueryRewriter.createTripleMap(j, triple, prefixTree, filesGen));
 						} catch (Exception e) { throw e;}
 					}					
 				} else {
+					String tURI = prefixTree.matchAndReplacePrefix(triple.getPredicate().getURI());
+					
+				
+					String classAssociated =  triple.getPredicate().getURI();
+					int index1 = classAssociated.lastIndexOf("#");
+					classAssociated = classAssociated.substring (index1, classAssociated.length ());
+					ArrayList<String> files = fetchAssociatedFilesForTriple(triple.getObject().toString(), classAssociated, 
+							tURI, filesGen);
+					triple.addFiles (files);
+					
 					HadoopElement.HadoopTriple tTriple = null;
-					tTriple = tripleListMap.put(j, triple);
+					tTriple = tripleListMap.put(j, triple);					
 					if (tTriple != null) {
 						tTriple = tripleListMap.put(j, tTriple);
-					}
+					}					
 				}
 			}
 			// Add Hadoop Element to the ArrayList
 			HadoopElement ele = QueryRewriter.createQueryElement(tripleListMap, TripleIndexToBeRemoved);
-			hElementList.add(ele);
-			
+			hElementList.add(ele);			
  		}
 				
 		return hElementList;
@@ -192,49 +227,24 @@ public class QueryRewriter {
 		return hTriple;
 	}
 	
-	private static ArrayList <HadoopElement> convertPredicatesToPrefixes (ArrayList<HadoopElement> queryElementList, 
-		PrefixNamespaceTree prefixTree) throws Exception {
-		ArrayList <HadoopElement> elements = new ArrayList<HadoopElement>();
-		
-		for (int i = 0; i < queryElementList.size(); i++) {
-			
-			ArrayList <HadoopElement.HadoopTriple> triples = null;
-			ArrayList <HadoopElement.HadoopTriple> transformedTriples = new ArrayList<HadoopElement.HadoopTriple>();
-			try {triples = queryElementList.get(i).getTriple();} catch (Exception e) {throw e;}
-			for (int index = 0; index < triples.size(); ++index) {
-				String prefix = prefixTree.matchAndReplacePrefix(triples.get(index).getPredicate().getURI());
-				if (prefix != null) {
-					Node predicate = Node_Literal.createURI(prefix);
-					HadoopElement.HadoopTriple triple = new HadoopElement.HadoopTriple (triples.get(index).getSubject(), predicate, triples.get(index).getObject());
-					transformedTriples.add((HadoopElement.HadoopTriple)triple);
-					
-				} else {
-					
-					throw new Exception ("Cannot execute the query, no metadata found for the prefix " + 
-								triples.get(index).getPredicate().getURI());				
-					//transformedTriples.add((HadoopElement.HadoopTriple)triples.get(index));
-				}
-			}	
-			
-			HadoopElement element = new HadoopElement(transformedTriples);
-			elements.add(element);
-		}
-		
-		return elements;
+	private static ArrayList<String> fetchAssociatedFilesForTriple (String uri, String classAssociated, 
+										String prefix, FileListGenerator filelistgen)  {		
+		return (ArrayList<String>) filelistgen.getFilesAssociatedWithTriple(uri, classAssociated, prefix);
 	}
 	
-
-	private static HadoopElement.HadoopTriple fetchAssociatedFilesForQuery (HadoopElement.HadoopTriple tripleToFindReqdFiles) {
-		HadoopElement.HadoopTriple triple = tripleToFindReqdFiles;		
-		return triple;
-	}
-	
-	public static List<HadoopElement>  rewriteQuery (List<HadoopElement> queryElementList, PrefixNamespaceTree prefixTree) throws 
+	public static List<HadoopElement>  rewriteQuery (edu.utdallas.hadooprdf.query.parser.Query query, PrefixNamespaceTree prefixTree) throws 
 								Exception  {		
 		
-		ArrayList<HadoopElement> tQueryElementList = (ArrayList<HadoopElement>)queryElementList;
+		FileListGenerator fileListGenerator = null;
 		try {
-			tQueryElementList = rewriteBasicElement (tQueryElementList, prefixTree);			
+			fileListGenerator = new FileListGenerator (query);
+		} catch (Exception e) {
+			throw e;
+		}
+		
+		ArrayList<HadoopElement> tQueryElementList = (ArrayList<HadoopElement>)query.getElements();
+		try {
+			tQueryElementList = rewriteBasicElement (tQueryElementList, prefixTree, fileListGenerator);			
 		} catch (Exception e) { throw e;}
 		
 		return tQueryElementList;

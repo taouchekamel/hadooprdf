@@ -1,15 +1,24 @@
 package edu.utdallas.hadooprdf.query.parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+
+import javax.swing.text.DefaultStyledDocument.ElementBuffer;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.sparql.core.BasicPattern;
 import com.hp.hpl.jena.sparql.syntax.Element;
+import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 import com.hp.hpl.jena.sparql.syntax.ElementGroup;
 import com.hp.hpl.jena.sparql.syntax.ElementOptional;
 import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
+import com.hp.hpl.jena.sparql.syntax.ElementUnion;
+import com.hp.hpl.jena.sparql.syntax.ElementVisitor;
+import com.hp.hpl.jena.sparql.util.NodeIsomorphismMap;
+
 
 /* 
  * Currently supports only queries of single graph of the types - Basic, Queries with optional, with Filter, with union
@@ -19,6 +28,10 @@ import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
 public class HadoopElement  {
 
 	private Element element = null;
+	private HashMap <Integer,ArrayList<String>> fileMap = new HashMap ();
+	boolean isHadoopElement = false;
+	private HashMap <String, String> prefixMap = new HashMap<String, String> ();
+	
 		
 	public static enum HElementType {
 		FILTER, BASIC, OPTIONAL, UNION
@@ -26,16 +39,30 @@ public class HadoopElement  {
 	
 	private  HElementType elementType = HElementType.BASIC;	
 	
+	public void setPrefixMap (String key, String value) {
+		prefixMap.put(key, value);
+	}
 	
-	public HadoopElement (List<HadoopTriple> triplesList) {
+	public String getNsPrefix (String key) {
+		return prefixMap.get(key);
+	}
+	
+	public Set<String> getNsPrefixKey () {
+		return prefixMap.keySet();
+	}
+	
+	public HadoopElement (List<HadoopTriple> triplesList) throws Exception {
 
 		elementType = HElementType.BASIC;			
 		ElementTriplesBlock bElement = new ElementTriplesBlock();
 		for (int i = 0; i < triplesList.size(); i++) {
 			
-			bElement.addTriple(triplesList.get(i));
-		}		
-		this.element = bElement;		
+			bElement.addTriple(triplesList.get(i));	
+			fileMap.put(i, (ArrayList<String>) triplesList.get(i).getAssociatedFiles());			
+		}	
+		this.element = bElement;
+		isHadoopElement = true;
+		
 	}
 		
 	public HadoopElement (Element element) throws UnhandledElementException {
@@ -56,16 +83,19 @@ public class HadoopElement  {
 		return this.element;
 	}
 	
-	public ArrayList <HadoopElement.HadoopTriple> getTriple () throws UnhandledElementException, NotBasicElementException {
+	public ArrayList <HadoopElement.HadoopTriple> getTriple () throws Exception {
 		ArrayList <HadoopElement.HadoopTriple> tripleList =  new ArrayList<HadoopElement.HadoopTriple>();
 		switch (elementType) {
 		case BASIC:
 			ElementTriplesBlock tBlock = (ElementTriplesBlock)this.element;
 			BasicPattern pattern = tBlock.getPattern();
-
+			
 			for (int i = 0; i < pattern.size(); i++) {
-				Triple triple = pattern.get(i);			
-				tripleList.add(new HadoopElement.HadoopTriple (triple.getSubject(), triple.getPredicate(), triple.getMatchObject()));
+				Triple triple = pattern.get(i);
+				HadoopTriple tTriple = new HadoopTriple (triple.getSubject(), triple.getPredicate(), triple.getObject());
+				if  (isHadoopElement == true)
+					tTriple.addFiles(this.fileMap.get(i));
+				tripleList.add(tTriple);
 			}
 			
 			break;
@@ -152,6 +182,7 @@ public class HadoopElement  {
 		}
 		
 		public void addFiles (List<String> filesPath) {
+			
 			filesAssociated.addAll(filesPath);
 		}
 	
