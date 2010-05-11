@@ -5,19 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.text.DefaultStyledDocument.ElementBuffer;
-
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.sparql.core.BasicPattern;
 import com.hp.hpl.jena.sparql.syntax.Element;
-import com.hp.hpl.jena.sparql.syntax.ElementFilter;
 import com.hp.hpl.jena.sparql.syntax.ElementGroup;
 import com.hp.hpl.jena.sparql.syntax.ElementOptional;
 import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
-import com.hp.hpl.jena.sparql.syntax.ElementUnion;
-import com.hp.hpl.jena.sparql.syntax.ElementVisitor;
-import com.hp.hpl.jena.sparql.util.NodeIsomorphismMap;
 
 
 /* 
@@ -28,7 +22,7 @@ import com.hp.hpl.jena.sparql.util.NodeIsomorphismMap;
 public class HadoopElement  {
 
 	private Element element = null;
-	private HashMap <Integer,ArrayList<String>> fileMap = new HashMap ();
+	private HashMap <Integer,ArrayList<String>> fileMap = new HashMap<Integer,ArrayList<String>>();
 	boolean isHadoopElement = false;
 	private HashMap <String, String> prefixMap = new HashMap<String, String> ();
 	

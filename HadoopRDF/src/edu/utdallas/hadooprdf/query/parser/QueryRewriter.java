@@ -2,27 +2,15 @@ package edu.utdallas.hadooprdf.query.parser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
-import org.semanticweb.owl.model.OWLOntologyCreationException;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.Node_Literal;
 import com.hp.hpl.jena.graph.Node_URI;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.sparql.syntax.Element;
-import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
-import com.hp.hpl.jena.sparql.util.NodeFactory;
 import com.hp.hpl.jena.vocabulary.RDF;
 
 import edu.utdallas.hadooprdf.query.parser.HadoopElement.HadoopTriple;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
-import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixTree;
 
 
 
@@ -87,7 +75,6 @@ public class QueryRewriter {
 		HashMap <Integer, HadoopElement.HadoopTriple> tripleMap = new HashMap<Integer, HadoopElement.HadoopTriple>();			
 		String URI = triple.getPredicate().getURI() + "_";
 		URI += prefixTree.matchAndReplacePrefix(triple.getObject().toString());
-		String tURI = prefixTree.matchAndReplacePrefix(triple.getPredicate().getURI());
 		Node predicate = Node_URI.createURI(URI);
 		
 		// Not required - Will not be using object since it is part of the predicate URI already.
