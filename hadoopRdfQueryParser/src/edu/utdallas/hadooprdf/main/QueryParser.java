@@ -1,11 +1,15 @@
 package edu.utdallas.hadooprdf.main;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 //import com.hp.hpl.jena.graph.query.Element;
 import com.hp.hpl.jena.graph.Triple;
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryFactory;
+import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.sparql.syntax.Element;
 import com.hp.hpl.jena.sparql.syntax.ElementGroup;
 import com.hp.hpl.jena.sparql.syntax.ElementTriplesBlock;
@@ -77,14 +81,31 @@ public class QueryParser {
 		
 		return hdpElementList;
 	}
-	public static List <HadoopElement> parseQuery (String queryString) throws UnhandledElementException {
+	
+	private static HashMap <String, String> getNsPrefixMap (Query query) {
+		HashMap <String, String> nsPrefixMap = new HashMap<String, String> ();
+		PrefixMapping map = query.getPrefixMapping();
+		System.out.println (map.toString());
+		Set<String> keySet = map.getNsPrefixMap().keySet();
+		Iterator<String> it = keySet.iterator();
+		while (it.hasNext()) {
+			String key = it.next();
+			String prefix = map.getNsPrefixURI(key);
+			nsPrefixMap.put(key, prefix);
+		}		
+		
+		return nsPrefixMap;		
+	}
+	
+	public static edu.utdallas.hadooprdf.main.Query parseQuery (String queryString) throws UnhandledElementException {
 		
 		Query query = QueryFactory.create(queryString);
 		noOfVaraiables = query.getResultVars().size();
 		resVars = query.getResultVars();
 		
+		
 		ElementGroup elementGrp = (ElementGroup)query.getQueryPattern();
-			
+		HashMap <String, String> prefixMap = getNsPrefixMap (query);
 		ArrayList <HadoopElement> eList = null;
 		try {
 			eList = parseQueryTree (elementGrp);
@@ -94,6 +115,9 @@ public class QueryParser {
 			throw e;
 		}
 		
-		return eList;
+		edu.utdallas.hadooprdf.main.Query q = new edu.utdallas.hadooprdf.main.Query (eList, prefixMap);
+		
+		return q;
 	}
+	
 }
