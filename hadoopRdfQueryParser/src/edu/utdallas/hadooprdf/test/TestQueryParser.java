@@ -29,11 +29,11 @@ public class TestQueryParser {
 				"?X ub:undergraduateDegreeFrom ?Y." +
 				"}";
 		
-		ArrayList <HadoopElement> eList = (ArrayList <HadoopElement>)QueryParser.parseQuery(queryString);		
+		edu.utdallas.hadooprdf.main.Query q = QueryParser.parseQuery(queryString);		
 		PrefixNamespaceTree prefixTree = ConfigPrefixTree.getPrefixTree(ConfgPath, hdfsPath, 5); // 5 - Cluster Id		
-		ArrayList <HadoopElement> eList1 = (ArrayList<HadoopElement>)QueryRewriter.rewriteQuery(eList,prefixTree);
+		ArrayList <HadoopElement> eList1 = (ArrayList<HadoopElement>)QueryRewriter.rewriteQuery(q,prefixTree);
 		
-		System.out.println("eList -- " + eList.size());
+		System.out.println("eList -- " + eList1.size());
 		for (int i = 0; i < eList1.size(); i++) {
 			ArrayList<HadoopElement.HadoopTriple> triple = eList1.get(i).getTriple();
 			System.out.println("triple -- " + triple.size());
@@ -42,7 +42,9 @@ public class TestQueryParser {
 				System.out.println("Subject -- " + triple.get(j).getSubject().toString());
 				System.out.println("Predicate -- " + triple.get(j).getPredicate().toString());
 				System.out.println("Object -- " + triple.get(j).getObject().toString());
+				System.out.println("Associated Files -- " + triple.get(j).getAssociatedFiles().toString());
 				System.out.println("---------------------------------------------------------------");
+
 			}		
 		}
 
