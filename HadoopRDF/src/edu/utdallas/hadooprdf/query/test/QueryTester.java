@@ -1,10 +1,16 @@
 package edu.utdallas.hadooprdf.query.test;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import edu.utdallas.hadooprdf.lib.util.JobParameters;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+
+import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
+import edu.utdallas.hadooprdf.lib.util.JobParameters;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 import edu.utdallas.hadooprdf.query.generator.plan.QueryPlan;
 import edu.utdallas.hadooprdf.query.generator.plan.QueryPlanGenerator;
@@ -69,7 +75,28 @@ public class QueryTester
 		Iterator<JobPlan> iterJobPlans = qp.getJobPlans().iterator();
 		while( iterJobPlans.hasNext() )
 		{
+			//Get the current job plan
 			JobPlan jp = iterJobPlans.next();
+			
+			//Serialize the job plan to a file
+			ObjectOutputStream objstream = new ObjectOutputStream(new FileOutputStream("/home/hadoop/job.txt"));
+	        objstream.writeObject(jp);
+	        objstream.close();
+	        
+	        //Transfer the file to the hdfs
+			try
+			{ 
+				edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+				org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
+			
+				FileSystem fs;
+				fs = FileSystem.get(hadoopConfiguration); 
+				
+				fs.delete( new Path( new DataSet( "/user/farhan/hadooprdf/LUBM1").getPathToPOSData(), "job.txt" ), true );
+				fs.copyFromLocalFile( new Path( "/home/hadoop/job.txt" ), new DataSet( "/user/farhan/hadooprdf/LUBM1").getPathToPOSData() );
+			}
+			catch( Exception e ) { e.printStackTrace(); }
+
 			jp.getHadoopJob().waitForCompletion( true );
 		}
 	}

@@ -1,5 +1,6 @@
 package edu.utdallas.hadooprdf.query.generator.triplepattern.impl;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,8 +13,11 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
  * @author sharath, vaibhav
  *
  */
-public class SimpleTriplePatternImpl implements TriplePattern
+public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 {
+	/**	The serial version UID **/
+	private static final long serialVersionUID = -5695001996186890719L;
+
 	/** The triple pattern id from the query **/
 	private int tpId = 0;
 	
@@ -30,13 +34,20 @@ public class SimpleTriplePatternImpl implements TriplePattern
 	private String literal = null;
 	
 	/** The predicate in this triple pattern **/
-	private Node subject = null, predicate = null, object = null;
+	private transient Node subject = null, predicate = null, object = null;
 	
 	/** The value of the joining variable in the current triple pattern **/
 	private String joiningVarValue = null;
 	
 	/** Constructor **/
 	public SimpleTriplePatternImpl() { }
+	
+	@Override
+	public String toString()
+	{
+		return tpId + " " + tpNumOfVars + " " + tpJoiningVar + "#" + filenamePrefixMap.toString() + "#" + literal +
+		" " + subject.toString() + " " + predicate.toString() + " " + object.toString() + " " + joiningVarValue;
+	}
 	
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setTriplePatternId(int)}

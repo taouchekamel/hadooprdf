@@ -1,5 +1,6 @@
 package edu.utdallas.hadooprdf.query.generator.job.impl;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +16,11 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
  * @author sharath, vaibhav
  *
  */
-public class SimpleJobPlanImpl implements JobPlan
+public class SimpleJobPlanImpl implements JobPlan, Serializable
 {	
+	/** The serial version UID **/
+	private static final long serialVersionUID = 5805319423033211556L;
+
 	/** A map of predicates and the associated triple pattern **/
 	private Map<String,TriplePattern> predTrPatternMap = new HashMap<String,TriplePattern>();
 	
@@ -24,7 +28,7 @@ public class SimpleJobPlanImpl implements JobPlan
 	private int totalVars = 0;
 	
 	/** The Hadoop Job object used by the current plan **/
-	private Job currJob = null;
+	private transient Job currJob = null;
 	
 	/** A boolean that denotes if there are more jobs to follow the current one **/
 	private boolean hasMoreJobs = false;
@@ -38,6 +42,12 @@ public class SimpleJobPlanImpl implements JobPlan
 	/** Constructor **/
 	public SimpleJobPlanImpl() { }
 
+	public String toString()
+	{
+		return "#1" + predTrPatternMap.toString() + "#1" + totalVars + " " + "" + 
+		hasMoreJobs + "#2" + varTrPatternCount + "#2" + "l1" + joiningVars.toString() + "l1"; 
+	}
+	
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#addPredicateBasedTriplePattern(String, TriplePattern)}
 	 */	

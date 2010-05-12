@@ -7,7 +7,7 @@ import com.hp.hpl.jena.graph.Node;
  * @author sharath, vaibhav
  *
  */
-public interface TriplePattern 
+public interface TriplePattern
 {
 	/**
 	 * A method to set the identifier for the current triple pattern
