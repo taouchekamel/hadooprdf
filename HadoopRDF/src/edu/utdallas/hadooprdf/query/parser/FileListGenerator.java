@@ -6,13 +6,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.mindswap.pellet.owlapi.Reasoner;
 import org.semanticweb.owl.apibinding.OWLManager;
 import org.semanticweb.owl.model.OWLDescription;
 import org.semanticweb.owl.model.OWLOntology;
 import org.semanticweb.owl.model.OWLOntologyCreationException;
 import org.semanticweb.owl.model.OWLOntologyManager;
+
+import edu.utdallas.hadooprdf.data.commons.Constants;
+import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 
 class FileListGenerator {
 	private OWLOntologyManager mManager = OWLManager.createOWLOntologyManager();
@@ -36,11 +41,35 @@ class FileListGenerator {
 		mReasoner.getKB().realize();
 	}
 	
-	public List<String> getFilesAssociatedWithTriple (String uri, String classAssociated, String prefix) {
+	public List<String> getFilesAssociatedWithTriple (String uri, String classAssociated, String prefix)
+	{
 		ArrayList<String> files = new ArrayList<String> ();
 		
-		if (uri.contains(".owl") == false) {
-			files.add(prefix + ".pos");
+		if (uri.contains(".owl") == false) 
+		{
+			//files.add(prefix + ".pos");
+			//return files;
+
+			try
+			{ 
+				edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+				org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
+			
+				FileSystem fs;
+				fs = FileSystem.get(hadoopConfiguration); 
+				
+				//TODO: This DataSet should come from the controller
+				FileStatus [] fstatus = fs.listStatus( new DataSet( "/user/farhan/hadooprdf/LUBM1" ).getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
+				for (int i = 0; i < fstatus.length; i++) 
+				{
+					if (!fstatus[i].isDir()) 
+					{
+						if( fstatus[i].getPath().getName().toString().startsWith( prefix ) )
+							files.add( fstatus[i].getPath().getName().toString() );
+					}
+				}
+			}
+			catch( Exception e ) { e.printStackTrace(); }
 			return files;
 		}
 		
@@ -62,8 +91,6 @@ class FileListGenerator {
 				isFilesAdded = true;
 			}			
 		}		
-		
-
 		
 		if (isFilesAdded == false) {
 			files.add(prefix + ".pos");

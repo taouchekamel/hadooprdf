@@ -3,12 +3,13 @@ package edu.utdallas.hadooprdf.query.test;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import edu.utdallas.hadooprdf.lib.util.JobParameters;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
-import edu.utdallas.hadooprdf.query.parser.ConfigPrefixTree;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 import edu.utdallas.hadooprdf.query.generator.plan.QueryPlan;
 import edu.utdallas.hadooprdf.query.generator.plan.QueryPlanGenerator;
 import edu.utdallas.hadooprdf.query.generator.plan.QueryPlanGeneratorFactory;
+import edu.utdallas.hadooprdf.query.parser.ConfigPrefixTree;
 import edu.utdallas.hadooprdf.query.parser.HadoopElement;
 import edu.utdallas.hadooprdf.query.parser.QueryParser;
 import edu.utdallas.hadooprdf.query.parser.QueryRewriter;
@@ -17,8 +18,8 @@ public class QueryTester
 {
 	public static void main (String [] args) throws Exception 
 	{	
-		String hdfsPath = "/user/sharath/hadooprdf/LUBM1";
-		String ConfgPath = "/home/hadoop/sharath/hadooprdf/hadooprdf/hadoopRdfQueryParser/conf/SemanticWebLabCluster";
+		String hdfsPath = "/user/farhan/hadooprdf/LUBM1/";
+		String ConfgPath = JobParameters.configFileDir;
 		
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +

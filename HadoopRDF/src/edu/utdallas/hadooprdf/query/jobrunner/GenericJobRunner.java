@@ -34,17 +34,20 @@ public class GenericJobRunner
 	 */
 	public class GenericMapper extends Mapper<Text, Text, Text, Text>
 	{
+		public GenericMapper() { }
 		/**
 		 * The setup method for this mapper
 		 * @param context - the context 
 		 */
-		protected void setup( Context context ) { }
+		@Override
+		public void setup( Context context ) { }
 		
 		/**
 		 * The cleanup method for this mapper
 		 * @param context - the context
 		 */
-		protected void cleanup( Context context ) { }
+		@Override
+		public void cleanup( Context context ) { }
 		
 		/**
 		 * The map method
@@ -52,7 +55,8 @@ public class GenericJobRunner
 		 * @param value - the input value
 		 * @param context - the context
 		 */
-		protected void map( Text key, Text value, Context context ) throws IOException, InterruptedException
+		@Override
+		public void map( Text key, Text value, Context context ) throws IOException, InterruptedException
 		{
 			//Tokenize the value
 			StringTokenizer st = new StringTokenizer( value.toString(), "\t" ); 
@@ -128,17 +132,20 @@ public class GenericJobRunner
 	 */
 	public class GenericReducer extends Reducer<Text, Text, Text, Text>
 	{
+		public GenericReducer() { }
 		/**
 		 * The setup method for this reducer
 		 * @param context - the context 
 		 */
-		protected void setup( Context context ) { }
+		@Override
+		public void setup( Context context ) { }
 
 		/**
 		 * The cleanup method for this reducer
 		 * @param context - the context
 		 */
-		protected void cleanup( Context context ) { }
+		@Override
+		public void cleanup( Context context ) { }
 
 		/**
 		 * The reduce method
@@ -146,7 +153,8 @@ public class GenericJobRunner
 		 * @param value - the input value
 		 * @param context - the context
 		 */
-		protected void reduce( Text key, Iterable<Text> value, Context context ) throws IOException, InterruptedException
+		@Override
+		public void reduce( Text key, Iterable<Text> value, Context context ) throws IOException, InterruptedException
 		{
 			int count = 0;
             String sValue = "";

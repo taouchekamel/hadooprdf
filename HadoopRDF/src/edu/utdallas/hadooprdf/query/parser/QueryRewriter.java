@@ -178,7 +178,9 @@ public class QueryRewriter {
 					ArrayList<String> files = fetchAssociatedFilesForTriple(triple.getObject().toString(), classAssociated, 
 							tURI, filesGen);
 					triple.addFiles (files);
-					
+
+					//TODO: Change this to the prefix format
+
 					HadoopElement.HadoopTriple tTriple = null;
 					tTriple = tripleListMap.put(j, triple);					
 					if (tTriple != null) {

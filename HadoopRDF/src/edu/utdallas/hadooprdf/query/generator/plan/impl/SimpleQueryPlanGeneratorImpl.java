@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
@@ -34,6 +35,7 @@ import edu.utdallas.hadooprdf.query.parser.NotBasicElementException;
 import edu.utdallas.hadooprdf.query.parser.QueryParser;
 import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
 import edu.utdallas.hadooprdf.query.parser.HadoopElement.HadoopTriple;
+import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.lib.util.JobParameters;
 
 /**
@@ -59,10 +61,20 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	/** The internal prefix used in a Hadoop job **/
 	private static int uniquePrefixGenerator = 0;
 	
+	private DataSet dataset = null;
+	
 	/**
 	 * Constructor
 	 */
-	public SimpleQueryPlanGeneratorImpl() { }
+	public SimpleQueryPlanGeneratorImpl() 
+	{ 
+		//TODO: This DataSet needs to come from the controller
+		try
+		{
+			this.dataset = new DataSet( "/user/farhan/hadooprdf/LUBM1" ); 
+		}
+		catch( Exception e ) { e.printStackTrace(); }
+	}
 
 	/**
 	 * A method that generates the query plan based on the "elimination count" algorithm
@@ -138,7 +150,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					TriplePattern tp = tpMap.get( tpId );
 					
 					//Remove that triple pattern from the 
-					tpMap.remove( tpId );
+					//tpMap.remove( tpId );
 					
 					//Reduce the number of total triple patterns by one
 					totalTrPatterns--;
@@ -156,7 +168,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					String pred = tp.getPredicateValue().toString();
 
 					//Add the filename to the Job object
-					FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + pred ) );
+					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), pred ) );
 
 					//Add the filenames and their associated prefixes to the triple pattern
 					tp.setFilenameBasedPrefix( pred, ++SimpleQueryPlanGeneratorImpl.uniquePrefixGenerator + "#" );
@@ -169,7 +181,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				if( jobId > 1 )
 				{
 					//Add the filename to the Job object as an input file, this input file is the output file from the previous job 
-					FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + "test" + ( jobId - 1 ) ) );
+					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), "test" + ( jobId - 1 ) ) );
 				}
 
 				//Add the joining variable to the job plan
@@ -179,7 +191,10 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				jp.setVarTrPatternCount( commonVariable, varOrigTpBasedMap.get( commonVariable ).split( "~" ).length );
 
 				//Add the output file to the Job object
-				FileOutputFormat.setOutputPath(currJob, new Path( JobParameters.outputHDFSDir + "test" + jobId ) );
+				Path opPath = new Path( dataset.getPathToTemp(), "test" + jobId );
+				FileSystem fs = FileSystem.get( hadoopConfig );
+				fs.delete( opPath, true );
+				FileOutputFormat.setOutputPath(currJob, opPath );
 
 				//Add the Hadoop Job to the JobPlan
 				jp.setHadoopJob( currJob );
@@ -250,7 +265,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							String pred = tp.getPredicateValue().toString();
 							
 							//Add the filename to the Job object
-							FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + pred ) );
+							FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), pred ) );
 
 							//Add the filenames and their associated prefixes to the triple pattern
 							tp.setFilenameBasedPrefix( pred, "" );
@@ -271,11 +286,11 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				if( jobId > 1 )
 				{
 					//Add the filename to the Job object
-					FileInputFormat.addInputPath( currJob, new Path( JobParameters.inputHDFSDir + "test" + ( jobId - 1 ) ) );
+					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), "test" + ( jobId - 1 ) ) );
 				}
 				
 				//Add the output file to the Job object
-				FileOutputFormat.setOutputPath(currJob, new Path( JobParameters.outputHDFSDir + "test" ) );
+				FileOutputFormat.setOutputPath(currJob, new Path( dataset.getPathToTemp(), "test" ) );
 
 				//Add the Hadoop Job to the JobPlan
 				jp.setHadoopJob( currJob );
@@ -661,8 +676,8 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		( (JobConf) currJob.getConfiguration() ).setJar( JobParameters.jarFile );
 
 		//Set the mapper and reducer classes to be used
-		currJob.setMapperClass( JobParameters.mapperClass );
-		currJob.setReducerClass( JobParameters.reducerClass );
+		currJob.setMapperClass( edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericMapper.class );
+		currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericReducer.class );
 
 		//Set the number of reducers
 		currJob.setNumReduceTasks( JobParameters.numOfReducers );
@@ -675,13 +690,18 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	 */
 	private Configuration getConfiguration( String path )
 	{
-		Configuration config = new Configuration();
+		org.apache.hadoop.conf.Configuration hadoopConfiguration = null;
+		try
+		{ 
+			edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+			hadoopConfiguration = new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
 
-		config.addResource( path + "core-site.xml" );
-		config.addResource( path + "mapred-site.xml" );
-		config.addResource( path + "hdfs-site.xml" );
-
-		return config;
+			hadoopConfiguration.addResource( path + "core-site.xml" );
+			hadoopConfiguration.addResource( path + "mapred-site.xml" );
+			hadoopConfiguration.addResource( path + "hdfs-site.xml" );
+		}
+		catch( Exception e ) { e.printStackTrace(); }
+		return hadoopConfiguration;
 	}
 
 	/**
