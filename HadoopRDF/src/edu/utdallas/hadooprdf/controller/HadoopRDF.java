@@ -1,5 +1,6 @@
 package edu.utdallas.hadooprdf.controller;
 
+import java.io.BufferedReader;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
@@ -8,13 +9,16 @@ import org.apache.hadoop.fs.Path;
 import edu.utdallas.hadooprdf.conf.ConfigurationException;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.query.QueryExecution;
+import edu.utdallas.hadooprdf.query.QueryExecutionFactory;
 
 /**
  * The controller class
  * @author Mohammad Farhan Husain
  *
  */
-public class HadoopRDF {
+public class HadoopRDF 
+{
 	/**
 	 * The class constructor
 	 * @param sLocalPathToHadoopConfigurationDirectory the path to the Hadoop Configuration directory in local filesystem having the xml configuration files
@@ -46,5 +50,20 @@ public class HadoopRDF {
 		} catch (ConfigurationNotInitializedException e) {
 			throw new HadoopRDFException("Framework could not list data sets because\n" + e.getMessage());
 		}
+	}
+	
+	/**
+	 * A method that executes the given SPARQL query and returns the result as a BufferedReader
+	 * @param queryString - the input SPARQL query as a string
+	 * @param dataset - the DataSet object
+	 * @return a BufferedReader containing the results
+	 */
+	public BufferedReader executeQuery( String queryString, DataSet dataset )
+	{
+		//Create a QueryExecution object
+		QueryExecution qexec = QueryExecutionFactory.create( queryString, dataset );
+		
+		//Get the output stream reader
+		return qexec.execSelect();
 	}
 }

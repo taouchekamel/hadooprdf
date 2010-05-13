@@ -1,7 +1,9 @@
 package edu.utdallas.hadooprdf.query.impl;
 
+import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -119,11 +121,9 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 	 * {@link edu.utdallas.hadooprdf.query.QueryExecution#execSelect()}
 	 */
 	@Override
-	public String execSelect() 
-	{
-		//TODO: Get this path differently
-		String opPath = "/home/hadoop/output";
-		
+	public BufferedReader execSelect() 
+	{	
+		BufferedReader resReader = null;
 		Iterator<JobPlan> iterJobPlans = queryPlan.getJobPlans().iterator();
 		while( iterJobPlans.hasNext() )
 		{
@@ -154,11 +154,11 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 				
 				//TODO: Get the output path differently
 				if( !jp.getHasMoreJobs() ) 
-					fs.copyToLocalFile( new Path( dataset.getPathToTemp(), "test" + jp.getJobId() + "/part-r-00000" ), new Path( opPath ) );
+					resReader = new BufferedReader( new InputStreamReader( fs.open( new Path( dataset.getPathToTemp(), "test" + jp.getJobId() + "/part-r-00000" ) ) ) );
 			}
 			catch( Exception e ) { e.printStackTrace(); }
 		}
-		return opPath;
+		return resReader;
 	}
 
 	/**

@@ -1,7 +1,6 @@
 package edu.utdallas.hadooprdf.query.test;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -41,7 +40,7 @@ public class QueryTester
 		"	?X ub:undergraduateDegreeFrom ?Y." +
 		" }";
 */
-		//LUBM Query 3
+/*		//LUBM Query 3
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -51,7 +50,7 @@ public class QueryTester
 		" 	?X rdf:type ub:Publication . " +
 		"	?X ub:publicationAuthor <http://www.Department0.University0.edu/AssistantProfessor0> " +
 		" } "; 
-		
+*/		
 /*		//LUBM Query 4
 		queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -67,7 +66,7 @@ public class QueryTester
 		" } "; 
 */		
 		
-/*		//LUBM Query 5
+		//LUBM Query 5
 		String queryString =
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -77,7 +76,7 @@ public class QueryTester
 		"	?X rdf:type ub:Person . " +
 		"	?X ub:memberOf <http://www.Department0.University0.edu> " +
 		" } ";
-*/
+
 		//Create the Hadoop configuration to be used
 		//TODO: This should be moved to the QueryExecution ??
 		Configuration config = new Configuration();
@@ -90,12 +89,11 @@ public class QueryTester
 		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/farhan/hadooprdf/data/LUBM1"), config ) );
 		
 		//Get the output file
-		String opFile = qexec.execSelect();
+		BufferedReader resReader = qexec.execSelect();
 
-		//Get the results from the output file
+		//Get the results from the reader
 		String resultStr = null;
-		BufferedReader inReader = new BufferedReader( new FileReader( opFile ) );
-		while( ( resultStr = inReader.readLine() ) != null )
+		while( ( resultStr = resReader.readLine() ) != null )
 		{
 			System.out.println( resultStr );
 		}

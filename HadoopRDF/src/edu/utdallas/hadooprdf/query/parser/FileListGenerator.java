@@ -11,8 +11,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.mindswap.pellet.owlapi.Reasoner;
 import org.semanticweb.owl.apibinding.OWLManager;
+import org.semanticweb.owl.model.OWLClass;
 import org.semanticweb.owl.model.OWLDescription;
-import org.semanticweb.owl.model.OWLOntology;
 import org.semanticweb.owl.model.OWLOntologyCreationException;
 import org.semanticweb.owl.model.OWLOntologyManager;
 
@@ -77,11 +77,7 @@ class FileListGenerator
 		}
 		
 		OWLDescription mpredClass;
-		mpredClass = mManager.getOWLDataFactory().getOWLClass(URI.create(uri));
-		
-		Set<OWLOntology> ontSet = mManager.getOntologies ();
-		
-		Iterator <OWLOntology> ontIt = ontSet.iterator ();
+		mpredClass = mManager.getOWLDataFactory().getOWLClass(URI.create(uri));		
 		boolean isFilesAdded = false;
 
 		try
@@ -92,19 +88,15 @@ class FileListGenerator
 			FileSystem fs;
 			fs = FileSystem.get(hadoopConfiguration); 
 
-			while (ontIt.hasNext ()) 
+			Iterator<OWLClass> iterAllClasses = mReasoner.getClasses().iterator();
+			while( iterAllClasses.hasNext() )
 			{
-				OWLOntology ont = ontIt.next ();
-				Set<OWLDescription> descSet = mpredClass.asOWLClass ().getSubClasses (ont);
-				Iterator <OWLDescription> descIt = descSet.iterator ();
-				while (descIt.hasNext ()) 
-				{
-					OWLDescription dsc =  descIt.next ();
-					String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + dsc + ".pos";	
+				OWLClass sClass = iterAllClasses.next();
+				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass) ) continue;
+				String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";	
 
-					if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
-						files.add( fileName );
-				}
+				if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
+					files.add( fileName );
 			}
 			
 			if( files.size() == 0 ) files.add( prefix + ".pos" );				
