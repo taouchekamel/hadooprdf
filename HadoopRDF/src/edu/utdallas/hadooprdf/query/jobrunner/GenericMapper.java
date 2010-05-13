@@ -28,7 +28,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 		try
 		{
 			org.apache.hadoop.conf.Configuration hadoopConfiguration = context.getConfiguration(); 
-			edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration);
+			//edu.utdallas.hadooprdf.conf.Configuration.createInstance( hadoopConfiguration, "/user/farhan/hadooprdf" );
 			FileSystem fs = FileSystem.get(hadoopConfiguration);
 			DataSet ds = new DataSet( hadoopConfiguration.get( "dataset" ) );
 			ObjectInputStream objstream = new ObjectInputStream( fs.open( new Path( ds.getPathToTemp(), "job.txt" ) ) );

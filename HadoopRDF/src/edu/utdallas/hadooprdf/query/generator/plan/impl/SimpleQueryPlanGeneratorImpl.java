@@ -99,7 +99,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		Configuration hadoopConfig = getConfiguration( JobParameters.configFileDir );
 
 		//Set the DataSet for the configuration
-		hadoopConfig.set( "dataset", dataset.getDataSetRoot().getName() );
+		hadoopConfig.set( "dataset", dataset.getDataSetRoot().toString() );
 		
 		//Get the total number of variables in the SELECT clause
 		int totalVarsSelectClause = QueryParser.getNumOfVarsInQuery();
@@ -320,6 +320,28 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 
 		//Return the query plan
 		return qp;
+	}
+
+	/**
+	 * A method that returns a Hadoop Configuration object based on the configuration files
+	 * @param path - the directory that contains the configuration files
+	 * @return a Hadoop Configuration object
+	 * @throws InterruptedException 
+	 */
+	public Configuration getConfiguration( String path ) throws InterruptedException
+	{
+		org.apache.hadoop.conf.Configuration hadoopConfiguration = null;
+		try
+		{ 
+			edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+			hadoopConfiguration = new org.apache.hadoop.conf.Configuration( config.getHadoopConfiguration() );
+
+			hadoopConfiguration.addResource( path + "core-site.xml" );
+			hadoopConfiguration.addResource( path + "mapred-site.xml" );
+			hadoopConfiguration.addResource( path + "hdfs-site.xml" );
+		}
+		catch( Exception e ) { throw new InterruptedException( e.getMessage() ); }
+		return hadoopConfiguration;
 	}
 
 	/**
@@ -719,28 +741,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 
 		//Set the number of reducers
 		currJob.setNumReduceTasks( JobParameters.numOfReducers );
-	}
-
-	/**
-	 * A method that returns a Hadoop Configuration object based on the configuration files
-	 * @param path - the directory that contains the configuration files
-	 * @return a Hadoop Configuration object
-	 * @throws InterruptedException 
-	 */
-	private Configuration getConfiguration( String path ) throws InterruptedException
-	{
-		org.apache.hadoop.conf.Configuration hadoopConfiguration = null;
-		try
-		{ 
-			edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
-			hadoopConfiguration = new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
-
-			hadoopConfiguration.addResource( path + "core-site.xml" );
-			hadoopConfiguration.addResource( path + "mapred-site.xml" );
-			hadoopConfiguration.addResource( path + "hdfs-site.xml" );
-		}
-		catch( Exception e ) { throw new InterruptedException( e.getMessage() ); }
-		return hadoopConfiguration;
 	}
 
 	/**

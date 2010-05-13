@@ -28,9 +28,9 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 		try
 		{
 			org.apache.hadoop.conf.Configuration hadoopConfiguration = context.getConfiguration(); 
-			edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration);
+			//edu.utdallas.hadooprdf.conf.Configuration.createInstance( hadoopConfiguration, "/user/farhan/hadooprdf"  );
 
-			FileSystem fs = FileSystem.get(hadoopConfiguration); 
+			FileSystem fs = FileSystem.get( hadoopConfiguration ); 
 
 			ObjectInputStream objstream = new ObjectInputStream( fs.open( new Path( new DataSet( hadoopConfiguration.get( "dataset" ) ).getPathToTemp(), "job.txt" ) ) );
 			this.jp = (JobPlan)objstream.readObject();
@@ -68,7 +68,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	if( jp.getTotalVariables() == 1 ) 
         	{
         		if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) ) 
-        			context.write( key, new Text( sValue ) );
+        			context.write( key, new Text( "" ) );
         	}
         	else
         	{

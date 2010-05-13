@@ -3,7 +3,11 @@ package edu.utdallas.hadooprdf.query.test;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.lib.util.JobParameters;
 import edu.utdallas.hadooprdf.query.QueryExecution;
 import edu.utdallas.hadooprdf.query.QueryExecutionFactory;
 
@@ -37,7 +41,7 @@ public class QueryTester
 		"	?X ub:undergraduateDegreeFrom ?Y." +
 		" }";
 */
-/*		//LUBM Query 3
+		//LUBM Query 3
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -47,7 +51,7 @@ public class QueryTester
 		" 	?X rdf:type ub:Publication . " +
 		"	?X ub:publicationAuthor <http://www.Department0.University0.edu/AssistantProfessor0> " +
 		" } "; 
-*/		
+		
 /*		//LUBM Query 4
 		queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -63,7 +67,7 @@ public class QueryTester
 		" } "; 
 */		
 		
-		//LUBM Query 5
+/*		//LUBM Query 5
 		String queryString =
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -73,9 +77,16 @@ public class QueryTester
 		"	?X rdf:type ub:Person . " +
 		"	?X ub:memberOf <http://www.Department0.University0.edu> " +
 		" } ";
-
+*/
 		//Create a QueryExecution object
-		QueryExecution qexec = QueryExecutionFactory.create(queryString, new DataSet( "/user/farhan/hadooprdf/data/LUBM1" ) );
+		Configuration config = new Configuration();
+		System.out.println("The core-site file: " + JobParameters.configFileDir + "/core-site.xml");
+		config.addResource( new Path( JobParameters.configFileDir + "/core-site.xml" ) );
+		config.addResource( new Path( JobParameters.configFileDir + "/mapred-site.xml" ) );
+		config.addResource( new Path( JobParameters.configFileDir + "/hdfs-site.xml" ) );
+		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/farhan/hadooprdf" );
+
+		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/farhan/hadooprdf/data/LUBM1"), config ) );
 		
 		//Get the output file
 		String opFile = qexec.execSelect();

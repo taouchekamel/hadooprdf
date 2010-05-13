@@ -11,11 +11,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 
-import edu.utdallas.hadooprdf.conf.ConfigurationException;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
-import edu.utdallas.hadooprdf.lib.util.JobParameters;
 import edu.utdallas.hadooprdf.query.QueryExecution;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 import edu.utdallas.hadooprdf.query.generator.plan.QueryPlan;
@@ -44,11 +42,11 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 	/**
 	 * Constructor
 	 * @param queryString - the SPARQL query as a string
-	 * @param dataset - the DataSet object to be used by the current QueryExecution
+	 * @param dataset - the DataSet object that will be used by the current QueryExecution
 	 */
 	public SimpleQueryExecutionImpl( String queryString, DataSet dataset )
 	{
-		//Assign this QueryExecution the given DataSet
+		//Assign the DataSet for this QueryExecution
 		this.dataset = dataset;
 
 		//Parse the query to get a Query object
@@ -98,10 +96,9 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 	private PrefixNamespaceTree getPrefixNamespaceTree()
 	{
 		PrefixNamespaceTree prefixTree = null;
-		try { prefixTree = ConfigPrefixTree.getPrefixTree( JobParameters.configFileDir, dataset.toString(), 5); }		
+		try { prefixTree = ConfigPrefixTree.getPrefixTree( dataset, 5); }		
 		catch( ConfigurationNotInitializedException e ) { e.printStackTrace(); }
 		catch( IOException e ) { e.printStackTrace(); }
-		catch (ConfigurationException e) { e.printStackTrace();	}
 		return prefixTree;
 	}
 	
@@ -125,7 +122,8 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 	public String execSelect() 
 	{
 		//TODO: Get this path differently
-		String opPath = "/home/hadoop/output.txt";
+		String opPath = "/home/hadoop/output";
+		
 		Iterator<JobPlan> iterJobPlans = queryPlan.getJobPlans().iterator();
 		while( iterJobPlans.hasNext() )
 		{
@@ -155,7 +153,8 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 				job.waitForCompletion( true );
 				
 				//TODO: Get the output path differently
-				if( !jp.getHasMoreJobs() ) fs.copyToLocalFile( new Path( dataset.getPathToTemp(), "test" + jp.getJobId() + "part-r-00000" ), new Path( "/home/hadoop/result.txt" ) );
+				if( !jp.getHasMoreJobs() ) 
+					fs.copyToLocalFile( new Path( dataset.getPathToTemp(), "test" + jp.getJobId() + "/part-r-00000" ), new Path( opPath ) );
 			}
 			catch( Exception e ) { e.printStackTrace(); }
 		}

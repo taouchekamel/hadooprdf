@@ -11,7 +11,8 @@ import edu.utdallas.hadooprdf.query.jobrunner.GenericReducer;
 public class JobParameters 
 {
 	/** The directory that stores the various hadoop configuration files **/
-	public static final String configFileDir = "/home/hadoop/sharath/hadooprdf/hadooprdf/conf/SemanticWebLabCluster";
+	//public static final String configFileDir = "conf/SemanticWebLabCluster";
+	public static final String configFileDir = "/home/hadoop/workspace-hadooprdf/HadoopRDF/conf/SemanticWebLabCluster";
 	
 	/** The location of the jar file that will be used in a Hadoop Job **/
 	public static final String jarFile = "/home/hadoop/HadoopRDF.jar";
@@ -26,5 +27,5 @@ public class JobParameters
 	public static final int numOfMappers = 10;
 
 	/** The number of reducers to be used in a Hadoop Job **/
-	public static final int numOfReducers = 1;	
+	public static final int numOfReducers = 1;		
 }

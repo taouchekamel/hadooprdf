@@ -13,7 +13,7 @@ public class QueryExecutionFactory
 	/**
 	 * A method that constructs a QueryExecution object
 	 * @param queryString - the input query as a string
-	 * @param dataset - the input DataSet object
+	 * @param dataset - the DataSet for this QueryExecution object
 	 * @return a QueryExecution object
 	 */
 	public static QueryExecution create( String queryString, DataSet dataset )

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/arq-2.8.1.jar"/>
 	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/aterm-java-1.6.jar"/>
 	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/commons-logging-1.0.4.jar"/>
@@ -52,5 +51,7 @@
 	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/xercesImpl-2.7.1.jar"/>
 	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/xmlenc-0.52.jar"/>
 	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/xsdlib.jar"/>
+	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/sunxacml.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
