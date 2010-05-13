@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
+import edu.utdallas.hadooprdf.conf.ConfigurationException;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
@@ -12,7 +13,7 @@ import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 public class ConfigPrefixTree {
 
 	public static PrefixNamespaceTree getPrefixTree (String confgDirPath, String hadoopDfsPath, int clusterId) throws  
-										IOException, ConfigurationNotInitializedException {
+										IOException, ConfigurationNotInitializedException, ConfigurationException {
 		
 		PrefixNamespaceTree prefixTree = null;
         // Create cluster configuration
@@ -22,10 +23,10 @@ public class ConfigPrefixTree {
         hadoopConfiguration.addResource(new Path(confgDirPath + "/mapred-site.xml"));
         
         // Create application configuration
-        edu.utdallas.hadooprdf.conf.Configuration config =
-            edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration);
-        config.setNumberOfTaskTrackersInCluster(clusterId); // 5 for semantic web lab, 10 for SAIAL lab
         try {
+            edu.utdallas.hadooprdf.conf.Configuration config =
+                edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/farhan/hadooprdf");
+            config.setNumberOfTaskTrackersInCluster(clusterId); // 5 for semantic web lab, 10 for SAIAL lab
             DataSet ds = new DataSet(hadoopDfsPath);
             ds.setOriginalDataFilesExtension("owl");
             prefixTree = ds.getPrefixNamespaceTree(); // This is the object to use to replace prefixes with namespaces
@@ -34,6 +35,9 @@ public class ConfigPrefixTree {
             throw e; 
         } catch (ConfigurationNotInitializedException e) {
             System.err.println("ConfigurationNotInitializedException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
+            throw e;
+		} catch (ConfigurationException e) {
+			System.err.println("ConfigurationException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
             throw e;
         }		
 		

@@ -8,6 +8,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.NamespacePrefixParser;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
@@ -52,5 +53,13 @@ public class Utility {
 		br.close();
 		fsdis.close();
 		return new PrefixNamespaceTree(npp.getNamespacePrefixes());
+	}
+	/**
+	 * Creates a directory in HDFS
+	 * @throws IOException
+	 * @throws ConfigurationNotInitializedException
+	 */
+	public static void createDirectory(org.apache.hadoop.conf.Configuration hadoopConfiguration, Path path) throws IOException {
+		FileSystem.get(hadoopConfiguration).mkdirs(path);
 	}
 }

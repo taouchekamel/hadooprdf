@@ -3,6 +3,7 @@ package edu.utdallas.hadooprdf.data.rdf.uri.prefix;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.NamespacePrefixParser.NamespacePrefix;
 
 /**
@@ -15,18 +16,18 @@ public class PrefixNamespaceTree {
 	 */
 	protected Map<Character, PrefixNode> m_TreeRoots;
 	/**
-	 * The separator character
+	 * The namespace prefix pairs
 	 */
-	private char m_chSeparator;
+	private NamespacePrefix [] m_NamespacePrefixes;
 	/**
 	 * The class constructor
-	 * @param prefixNamespaces the namespace prefix pairs
+	 * @param namespacePrefixes the namespace prefix pairs
 	 */
-	public PrefixNamespaceTree(NamespacePrefix [] prefixNamespaces) {
-		m_chSeparator = '#';
+	public PrefixNamespaceTree(NamespacePrefix [] namespacePrefixes) {
+		m_NamespacePrefixes = namespacePrefixes;
 		m_TreeRoots = new HashMap<Character, PrefixNode> ();
-		for (int i = 0; i < prefixNamespaces.length; i++)
-			addPrefixAndReplacementString(prefixNamespaces[i].getPrefix(), prefixNamespaces[i].getNamespace());
+		for (int i = 0; i < namespacePrefixes.length; i++)
+			addPrefixAndReplacementString(namespacePrefixes[i].getPrefix(), namespacePrefixes[i].getNamespace());
 	}
 	/**
 	 * Add a prefix and its corresponding replacement string
@@ -76,19 +77,13 @@ public class PrefixNamespaceTree {
 		StringBuffer returnNamespace = new StringBuffer();
 		int index = matchPrefix(s, returnNamespace);
 		if (-1 != index)
-			return returnNamespace.toString() + m_chSeparator	+ s.substring(index);
+			return returnNamespace.toString() + Constants.NAMESPACE_DELIMITER + s.substring(index);
 		return null;
 	}
 	/**
-	 * @return the m_chSeparator
+	 * @return the m_NamespacePrefixes
 	 */
-	public char getSeparator() {
-		return m_chSeparator;
-	}
-	/**
-	 * @param mChSeparator the m_chSeparator to set
-	 */
-	public void setSeparator(char mChSeparator) {
-		m_chSeparator = mChSeparator;
+	public NamespacePrefix [] getNamespacePrefixes() {
+		return m_NamespacePrefixes;
 	}
 }

@@ -8,6 +8,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
+import edu.utdallas.hadooprdf.conf.ConfigurationException;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
@@ -25,11 +26,11 @@ public class PrefixFinderTest {
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/core-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
-		// Create application configuration
-		edu.utdallas.hadooprdf.conf.Configuration config =
-			edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration);
-		config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
 		try {
+			// Create application configuration
+			edu.utdallas.hadooprdf.conf.Configuration config =
+				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/farhan/hadooprdf");
+			config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
 			DataSet ds = new DataSet("/user/farhan/hadooprdf/LUBM1");
 			ds.setOriginalDataFilesExtension("owl");
 			PrefixFinder pf = new PrefixFinder(ds);
@@ -48,6 +49,10 @@ public class PrefixFinderTest {
 			fail(e.getMessage());
 		} catch (PrefixFinderException e) {
 			System.err.println("PrefixFinderException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
+			e.printStackTrace();
+			fail(e.getMessage());
+		} catch (ConfigurationException e) {
+			System.err.println("ConfigurationException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
 			e.printStackTrace();
 			fail(e.getMessage());
 		}

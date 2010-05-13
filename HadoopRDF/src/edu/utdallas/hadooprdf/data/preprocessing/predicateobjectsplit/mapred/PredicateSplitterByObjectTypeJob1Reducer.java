@@ -59,7 +59,7 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 		if (null != sType) {
 			sTypeInfo = "_" + sType;
 			// Output to the type file
-			m_txtKey.set(m_sRDFTypeFilenameWithoutExtension + '_' + sType + '.' + Constants.POS_EXTENSION);
+			m_txtKey.set(m_sRDFTypeFilenameWithoutExtension + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + sType + '.' + Constants.POS_EXTENSION);
 			m_txtValue.set(sKey);
 			context.write(m_txtKey, m_txtValue);
 		}
