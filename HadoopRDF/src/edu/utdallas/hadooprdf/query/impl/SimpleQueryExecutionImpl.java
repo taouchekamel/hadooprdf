@@ -11,6 +11,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 
+import edu.utdallas.hadooprdf.conf.ConfigurationException;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
@@ -100,6 +101,7 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 		try { prefixTree = ConfigPrefixTree.getPrefixTree( JobParameters.configFileDir, dataset.toString(), 5); }		
 		catch( ConfigurationNotInitializedException e ) { e.printStackTrace(); }
 		catch( IOException e ) { e.printStackTrace(); }
+		catch (ConfigurationException e) { e.printStackTrace();	}
 		return prefixTree;
 	}
 	
