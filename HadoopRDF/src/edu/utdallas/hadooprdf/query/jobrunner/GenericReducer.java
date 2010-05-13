@@ -10,6 +10,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 
 /**
@@ -20,6 +21,7 @@ import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 public class GenericReducer extends Reducer<Text, Text, Text, Text>
 {		
 	private JobPlan jp = null;
+	private PrefixNamespaceTree prefixTree = null;
 	
 	@Override
 	protected void setup(Context context) throws IOException,
@@ -28,13 +30,12 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 		try
 		{
 			org.apache.hadoop.conf.Configuration hadoopConfiguration = context.getConfiguration(); 
-			//edu.utdallas.hadooprdf.conf.Configuration.createInstance( hadoopConfiguration, "/user/farhan/hadooprdf"  );
-
-			FileSystem fs = FileSystem.get( hadoopConfiguration ); 
-
-			ObjectInputStream objstream = new ObjectInputStream( fs.open( new Path( new DataSet( hadoopConfiguration.get( "dataset" ) ).getPathToTemp(), "job.txt" ) ) );
+			FileSystem fs = FileSystem.get( hadoopConfiguration );
+			DataSet ds = new DataSet( new Path( hadoopConfiguration.get( "dataset" ) ), hadoopConfiguration );
+			ObjectInputStream objstream = new ObjectInputStream( fs.open( new Path( ds.getPathToTemp(), "job.txt" ) ) );
 			this.jp = (JobPlan)objstream.readObject();
 			objstream.close();
+			prefixTree = ds.getPrefixNamespaceTree();
 		}
 		catch( Exception e ) { throw new InterruptedException(e.getMessage()); }//e.printStackTrace(); }
 	}
@@ -67,8 +68,13 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         {
         	if( jp.getTotalVariables() == 1 ) 
         	{
-        		if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) ) 
-        			context.write( key, new Text( "" ) );
+        		if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+        		{
+        			String keyString = key.toString();
+        			String prefix = keyString.substring( 0, keyString.indexOf( "#" ) + 1 );
+        			String namespace = prefixTree.matchAndReplaceNamespace( prefix );
+        			context.write( new Text( namespace + keyString.substring( keyString.indexOf( "#" ) + 1, keyString.length() ) ), new Text( "" ) );
+        		}
         	}
         	else
         	{

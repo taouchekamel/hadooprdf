@@ -78,14 +78,15 @@ public class QueryTester
 		"	?X ub:memberOf <http://www.Department0.University0.edu> " +
 		" } ";
 */
-		//Create a QueryExecution object
+		//Create the Hadoop configuration to be used
+		//TODO: This should be moved to the QueryExecution ??
 		Configuration config = new Configuration();
-		System.out.println("The core-site file: " + JobParameters.configFileDir + "/core-site.xml");
 		config.addResource( new Path( JobParameters.configFileDir + "/core-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/mapred-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/hdfs-site.xml" ) );
 		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/farhan/hadooprdf" );
 
+		//Create a QueryExecution object
 		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/farhan/hadooprdf/data/LUBM1"), config ) );
 		
 		//Get the output file

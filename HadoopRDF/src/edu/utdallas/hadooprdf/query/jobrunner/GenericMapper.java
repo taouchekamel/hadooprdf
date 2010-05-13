@@ -24,13 +24,13 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 
 	@Override
 	protected void setup(Context context) throws IOException,
-	InterruptedException {
+	InterruptedException 
+	{
 		try
 		{
 			org.apache.hadoop.conf.Configuration hadoopConfiguration = context.getConfiguration(); 
-			//edu.utdallas.hadooprdf.conf.Configuration.createInstance( hadoopConfiguration, "/user/farhan/hadooprdf" );
 			FileSystem fs = FileSystem.get(hadoopConfiguration);
-			DataSet ds = new DataSet( hadoopConfiguration.get( "dataset" ) );
+			DataSet ds = new DataSet( new Path( hadoopConfiguration.get( "dataset" ) ), hadoopConfiguration );
 			ObjectInputStream objstream = new ObjectInputStream( fs.open( new Path( ds.getPathToTemp(), "job.txt" ) ) );
 			this.jp = (JobPlan)objstream.readObject();
 			objstream.close();
