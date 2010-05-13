@@ -13,7 +13,8 @@ import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 
 public class PrefixNamespaceTreeTest extends TestCase  {
 	private NamespacePrefixParser npp;
-
+	private PrefixNamespaceTree pnt;
+	
 	public PrefixNamespaceTreeTest() {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader("test/PrefixNamespaceTreeTestInput.txt"));
@@ -21,6 +22,7 @@ public class PrefixNamespaceTreeTest extends TestCase  {
 			sLine = br.readLine();
 			br.close();
 			npp = new NamespacePrefixParser(sLine);
+			pnt = new PrefixNamespaceTree(npp.getNamespacePrefixes());
 		} catch (IOException e) {
 			fail("testGetLongestCommonPrefixes failed\n" + e.getMessage());
 		}
@@ -28,7 +30,6 @@ public class PrefixNamespaceTreeTest extends TestCase  {
 	
 	@Test
 	public void testMatchAndReplacePrefix() {
-		PrefixNamespaceTree pnt = new PrefixNamespaceTree(npp.getNamespacePrefixes());
 		String s = "http://www.University10";
 		String sNew = pnt.matchAndReplacePrefix(s);
 		if (null == sNew)
@@ -85,4 +86,43 @@ public class PrefixNamespaceTreeTest extends TestCase  {
 			System.out.println(s + " has prefix match: " + index + ' ' + returnNamespace);
 	}
 
+	@Test
+	public void testMatchAndReplaceNamespace() {
+		String s = "http://www.University10";
+		String sNew = pnt.matchAndReplacePrefix(s);
+		if (null == sNew)
+			fail("There should be a new string for " + s);
+		else {
+			System.out.println(s + " has new string: " + sNew);
+			sNew = pnt.matchAndReplaceNamespace(sNew);
+			System.out.println("Reconstructed string: " + sNew);
+			assertEquals(s, sNew);
+		}
+		s = "http://www.University";
+		sNew = pnt.matchAndReplacePrefix(s);
+		if (null == sNew)
+			fail("There should be a new string for " + s);
+		else {
+			System.out.println(s + " has new string: " + sNew);
+			sNew = pnt.matchAndReplaceNamespace(sNew);
+			System.out.println("Reconstructed string: " + sNew);
+			assertEquals(s, sNew);
+		}
+		s = "http://www.Universit";
+		sNew = pnt.matchAndReplacePrefix(s);
+		if (null != sNew)
+			fail("There should not be a new string for " + s);
+		else
+			System.out.println(s + " does not have new string");
+		s = "http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Professor";
+		sNew = pnt.matchAndReplacePrefix(s);
+		if (null == sNew)
+			fail("There should be a new string for " + s);
+		else {
+			System.out.println(s + " has new string: " + sNew);
+			sNew = pnt.matchAndReplaceNamespace(sNew);
+			System.out.println("Reconstructed string: " + sNew);
+			assertEquals(s, sNew);
+		}
+	}
 }

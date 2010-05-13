@@ -20,14 +20,22 @@ public class PrefixNamespaceTree {
 	 */
 	private NamespacePrefix [] m_NamespacePrefixes;
 	/**
+	 * A map where the key is namespace and value is prefix.
+	 * It is needed for reverse lookup
+	 */
+	private Map<String, String> m_NamespacePrefixMap;
+	/**
 	 * The class constructor
 	 * @param namespacePrefixes the namespace prefix pairs
 	 */
 	public PrefixNamespaceTree(NamespacePrefix [] namespacePrefixes) {
 		m_NamespacePrefixes = namespacePrefixes;
+		m_NamespacePrefixMap = new HashMap<String, String> ();
 		m_TreeRoots = new HashMap<Character, PrefixNode> ();
-		for (int i = 0; i < namespacePrefixes.length; i++)
+		for (int i = 0; i < namespacePrefixes.length; i++) {
 			addPrefixAndReplacementString(namespacePrefixes[i].getPrefix(), namespacePrefixes[i].getNamespace());
+			m_NamespacePrefixMap.put(namespacePrefixes[i].getNamespace(), namespacePrefixes[i].getPrefix());
+		}
 	}
 	/**
 	 * Add a prefix and its corresponding replacement string
@@ -81,9 +89,30 @@ public class PrefixNamespaceTree {
 		return null;
 	}
 	/**
+	 * Matches a namespace and replaces it with prefix
+	 * @param s the string to match namespace in
+	 * @return the string with the namespace replaced by prefix if a match is found, otherwise the same string
+	 */
+	public String matchAndReplaceNamespace(String s) {
+		int index = s.indexOf(Constants.NAMESPACE_DELIMITER);
+		if (index != -1) {
+			String sNamespace = s.substring(0, index);
+			String sPrefix = m_NamespacePrefixMap.get(sNamespace);
+			if (sPrefix != null)
+				s = sPrefix + s.substring(index + 1);
+		}
+		return s;
+	}
+	/**
 	 * @return the m_NamespacePrefixes
 	 */
 	public NamespacePrefix [] getNamespacePrefixes() {
 		return m_NamespacePrefixes;
+	}
+	/**
+	 * @return the m_NamespacePrefixMap
+	 */
+	public Map<String, String> getNamespacePrefixMap() {
+		return m_NamespacePrefixMap;
 	}
 }
