@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.mindswap.pellet.owlapi.Reasoner;
 import org.semanticweb.owl.apibinding.OWLManager;
 import org.semanticweb.owl.model.OWLDescription;
@@ -19,12 +20,15 @@ import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 
-class FileListGenerator {
+class FileListGenerator 
+{
 	private OWLOntologyManager mManager = OWLManager.createOWLOntologyManager();
 	private Reasoner mReasoner = new Reasoner(mManager);
+	private DataSet dataset = null;
 	
-	public FileListGenerator (edu.utdallas.hadooprdf.query.parser.Query query) throws OWLOntologyCreationException {
-
+	public FileListGenerator (edu.utdallas.hadooprdf.query.parser.Query query, DataSet dataset ) throws OWLOntologyCreationException 
+	{
+		this.dataset = dataset;
 		Set <String> keys = query.getNsPrefixKeySet();
 		Iterator <String> keySet = keys.iterator();
 		while (keySet.hasNext()) {
@@ -58,8 +62,7 @@ class FileListGenerator {
 				FileSystem fs;
 				fs = FileSystem.get(hadoopConfiguration); 
 				
-				//TODO: This DataSet should come from the controller
-				FileStatus [] fstatus = fs.listStatus( new DataSet( "/user/farhan/hadooprdf/LUBM1" ).getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
+				FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
 				for (int i = 0; i < fstatus.length; i++) 
 				{
 					if (!fstatus[i].isDir()) 
@@ -80,18 +83,35 @@ class FileListGenerator {
 		
 		Iterator <OWLOntology> ontIt = ontSet.iterator ();
 		boolean isFilesAdded = false;
-		while (ontIt.hasNext ()) {
-			OWLOntology ont = ontIt.next ();
-			Set<OWLDescription> descSet = mpredClass.asOWLClass ().getSubClasses (ont);
-			Iterator <OWLDescription> descIt = descSet.iterator ();
-			while (descIt.hasNext ()) {
-				OWLDescription dsc =  descIt.next ();
-				String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + dsc + ".pos";	
-				files.add (fileName);	
-				isFilesAdded = true;
-			}			
-		}		
+
+		try
+		{ 
+			edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+			org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
 		
+			FileSystem fs;
+			fs = FileSystem.get(hadoopConfiguration); 
+
+			while (ontIt.hasNext ()) 
+			{
+				OWLOntology ont = ontIt.next ();
+				Set<OWLDescription> descSet = mpredClass.asOWLClass ().getSubClasses (ont);
+				Iterator <OWLDescription> descIt = descSet.iterator ();
+				while (descIt.hasNext ()) 
+				{
+					OWLDescription dsc =  descIt.next ();
+					String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + dsc + ".pos";	
+
+					if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
+						files.add( fileName );
+				}
+			}
+			
+			if( files.size() == 0 ) files.add( prefix + ".pos" );				
+			isFilesAdded = true;
+		}
+		catch( Exception e ) { e.printStackTrace(); }
+			
 		if (isFilesAdded == false) {
 			files.add(prefix + ".pos");
 		}

@@ -1,7 +1,7 @@
 package edu.utdallas.hadooprdf.lib.util;
 
-import edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericMapper;
-import edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericReducer;
+import edu.utdallas.hadooprdf.query.jobrunner.GenericMapper;
+import edu.utdallas.hadooprdf.query.jobrunner.GenericReducer;
 
 /**
  * A utility class that defines the various parameters needed in a Hadoop Job 
@@ -17,10 +17,10 @@ public class JobParameters
 	public static final String jarFile = "/home/hadoop/HadoopRDF.jar";
 	
 	/** The generic mapper class used in any Hadoop Job **/
-	public static final Class<GenericMapper> mapperClass = edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericMapper.class;
+	public static final Class<GenericMapper> mapperClass = edu.utdallas.hadooprdf.query.jobrunner.GenericMapper.class;
 
 	/** The generic mapper class used in any Hadoop Job **/
-	public static final Class<GenericReducer> reducerClass = edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericReducer.class;
+	public static final Class<GenericReducer> reducerClass = edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class;
 	
 	/** The number of mappers to be used in a Hadoop Job **/
 	public static final int numOfMappers = 10;

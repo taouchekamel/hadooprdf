@@ -1,5 +1,6 @@
 package edu.utdallas.hadooprdf.query.generator.plan;
 
+import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.query.generator.plan.impl.SimpleQueryPlanGeneratorImpl;
 
 /**
@@ -16,8 +17,8 @@ public class QueryPlanGeneratorFactory
 	 * Factory method that returns a QueryPlanGenerator based on the elimination count algorithm
 	 * @return a QueryPlanGenerator object that is based on the elimination count algorithm
 	 */
-	public static QueryPlanGenerator createSimpleQueryPlanGenerator()
+	public static QueryPlanGenerator createSimpleQueryPlanGenerator( DataSet dataset )
 	{
-		return new SimpleQueryPlanGeneratorImpl();
+		return new SimpleQueryPlanGeneratorImpl( dataset );
 	}
 }

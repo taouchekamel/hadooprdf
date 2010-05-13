@@ -1,32 +1,28 @@
 package edu.utdallas.hadooprdf.query.test;
 
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
-import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
-import edu.utdallas.hadooprdf.lib.util.JobParameters;
-import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
-import edu.utdallas.hadooprdf.query.generator.plan.QueryPlan;
-import edu.utdallas.hadooprdf.query.generator.plan.QueryPlanGenerator;
-import edu.utdallas.hadooprdf.query.generator.plan.QueryPlanGeneratorFactory;
-import edu.utdallas.hadooprdf.query.parser.ConfigPrefixTree;
-import edu.utdallas.hadooprdf.query.parser.HadoopElement;
-import edu.utdallas.hadooprdf.query.parser.QueryParser;
-import edu.utdallas.hadooprdf.query.parser.QueryRewriter;
+import edu.utdallas.hadooprdf.query.QueryExecution;
+import edu.utdallas.hadooprdf.query.QueryExecutionFactory;
 
 public class QueryTester 
 {
 	public static void main (String [] args) throws Exception 
 	{	
-		String hdfsPath = "/user/farhan/hadooprdf/LUBM1/";
-		String ConfgPath = JobParameters.configFileDir;
-		
+/*		//LUBM Query 1
+		String queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X " +
+		" WHERE " +
+		" { " +
+		" 	?X rdf:type ub:GraduateStudent . " +
+		"	?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0> " +
+		" } ";
+*/		
+/*		//LUBM Query 2
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -40,64 +36,56 @@ public class QueryTester
 		"	?Z ub:subOrganizationOf ?Y ." +
 		"	?X ub:undergraduateDegreeFrom ?Y." +
 		" }";
-		
-		queryString = 
+*/
+/*		//LUBM Query 3
+		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
 		" SELECT ?X " +
 		" WHERE " +
 		" { " +
-		" 	?X rdf:type ub:GraduateStudent . " +
-		"	?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0> " +
+		" 	?X rdf:type ub:Publication . " +
+		"	?X ub:publicationAuthor <http://www.Department0.University0.edu/AssistantProfessor0> " +
+		" } "; 
+*/		
+/*		//LUBM Query 4
+		queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X ?Y1 ?Y2 ?Y3 " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:Professor . " +
+		"	?X ub:worksFor <http://www.Department0.University0.edu> . " +
+		"	?X ub:name ?Y1 . " +
+		"	?X ub:emailAddress ?Y2 . " +
+		"	?X ub:telephone ?Y3 " +
+		" } "; 
+*/		
+		
+		//LUBM Query 5
+		String queryString =
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:Person . " +
+		"	?X ub:memberOf <http://www.Department0.University0.edu> " +
 		" } ";
+
+		//Create a QueryExecution object
+		QueryExecution qexec = QueryExecutionFactory.create(queryString, new DataSet( "/user/farhan/hadooprdf/data/LUBM1" ) );
 		
-		edu.utdallas.hadooprdf.query.parser.Query q = QueryParser.parseQuery(queryString);		
-		PrefixNamespaceTree prefixTree = ConfigPrefixTree.getPrefixTree(ConfgPath, hdfsPath, 5); // 5 - Cluster Id		
-		ArrayList <HadoopElement> eList1 = (ArrayList<HadoopElement>)QueryRewriter.rewriteQuery(q,prefixTree);
+		//Get the output file
+		String opFile = qexec.execSelect();
 
-		for( int i = 0; i < eList1.size(); i++ ) 
+		//Get the results from the output file
+		String resultStr = null;
+		BufferedReader inReader = new BufferedReader( new FileReader( opFile ) );
+		while( ( resultStr = inReader.readLine() ) != null )
 		{
-			ArrayList<HadoopElement.HadoopTriple> triple = eList1.get( i ).getTriple();
-			System.out.println( "triple -- " + triple.size() );
-			for( int j = 0; j < triple.size(); j++ ) 
-			{
-				System.out.println( "---------------------------------------------------------------" );
-				System.out.println( "Subject -- " + triple.get( j ).getSubject().toString() );
-				System.out.println( "Predicate -- " + triple.get( j ).getPredicate().toString() );
-				System.out.println( "Object -- " + triple.get( j ).getObject().toString() );
-				System.out.println( "---------------------------------------------------------------" );
-			}		
-		}
-
-		QueryPlanGenerator qpgen = QueryPlanGeneratorFactory.createSimpleQueryPlanGenerator();
-		QueryPlan qp = qpgen.generateQueryPlan( eList1 );
-		
-		Iterator<JobPlan> iterJobPlans = qp.getJobPlans().iterator();
-		while( iterJobPlans.hasNext() )
-		{
-			//Get the current job plan
-			JobPlan jp = iterJobPlans.next();
-			
-			//Serialize the job plan to a file
-			ObjectOutputStream objstream = new ObjectOutputStream(new FileOutputStream("/home/hadoop/job.txt"));
-	        objstream.writeObject(jp);
-	        objstream.close();
-	        
-	        //Transfer the file to the hdfs
-			try
-			{ 
-				edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
-				org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
-			
-				FileSystem fs;
-				fs = FileSystem.get(hadoopConfiguration); 
-				
-				fs.delete( new Path( new DataSet( "/user/farhan/hadooprdf/LUBM1").getPathToPOSData(), "job.txt" ), true );
-				fs.copyFromLocalFile( new Path( "/home/hadoop/job.txt" ), new DataSet( "/user/farhan/hadooprdf/LUBM1").getPathToPOSData() );
-			}
-			catch( Exception e ) { e.printStackTrace(); }
-
-			jp.getHadoopJob().waitForCompletion( true );
+			System.out.println( resultStr );
 		}
 	}
 }

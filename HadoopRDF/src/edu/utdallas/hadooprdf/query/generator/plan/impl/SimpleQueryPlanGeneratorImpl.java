@@ -61,19 +61,18 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	/** The internal prefix used in a Hadoop job **/
 	private static int uniquePrefixGenerator = 0;
 	
+	/** The DataSet to be used **/
 	private DataSet dataset = null;
+	
+	/** A map between variables and the number of triple patterns they are found in **/
+	private Map<String,Integer> varTpCountMap = new HashMap<String,Integer>();
 	
 	/**
 	 * Constructor
 	 */
-	public SimpleQueryPlanGeneratorImpl() 
+	public SimpleQueryPlanGeneratorImpl( DataSet dataset ) 
 	{ 
-		//TODO: This DataSet needs to come from the controller
-		try
-		{
-			this.dataset = new DataSet( "/user/farhan/hadooprdf/LUBM1" ); 
-		}
-		catch( Exception e ) { e.printStackTrace(); }
+		this.dataset = dataset;
 	}
 
 	/**
@@ -99,6 +98,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//Create the Hadoop configuration based on the path where the various site files are
 		Configuration hadoopConfig = getConfiguration( JobParameters.configFileDir );
 
+		//Set the DataSet for the configuration
+		hadoopConfig.set( "dataset", dataset.getDataSetRoot().getName() );
+		
 		//Get the total number of variables in the SELECT clause
 		int totalVarsSelectClause = QueryParser.getNumOfVarsInQuery();
 
@@ -126,6 +128,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			//Create a single job plan
 			JobPlan jp = JobPlanFactory.createSimpleJobPlan();
 
+			//Set the job id
+			jp.setJobId( jobId );
+			
 			//Set the total number of variables expected in the result
 			jp.setTotalVariables( totalVarsSelectClause );
 			
@@ -188,7 +193,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				jp.addVarToJoiningVariables( commonVariable );
 				
 				//Set the total triple patterns associated with this variable in the job plan
-				jp.setVarTrPatternCount( commonVariable, varOrigTpBasedMap.get( commonVariable ).split( "~" ).length );
+				jp.setVarTrPatternCount( commonVariable, varTpCountMap.get( commonVariable ) );
 
 				//Add the output file to the Job object
 				Path opPath = new Path( dataset.getPathToTemp(), "test" + jobId );
@@ -278,7 +283,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 						jp.addVarToJoiningVariables( vars[i] );
 
 						//Set the total triple patterns associated with this variable in the job plan
-						jp.setVarTrPatternCount( vars[i], varOrigTpBasedMap.get( vars[i] ).split( "~" ).length );
+						jp.setVarTrPatternCount( vars[i], varTpCountMap.get( vars[i] ) );
 					}
 				}
 				
@@ -495,14 +500,14 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	{
 		//A counter for the triple pattern id
 		int count = 0;
-
+		
 		//Iterate over all elements
 		Iterator<HadoopElement> iterElements = elements.iterator();
 		while( iterElements.hasNext() )
 		{
 			//Get each element
 			HadoopElement element = iterElements.next();
-
+			
 			//Get triple patterns associated with an element
 			Iterator<HadoopTriple> iterTriplePatterns = element.getTriple().iterator();
 			while( iterTriplePatterns.hasNext() )
@@ -513,9 +518,15 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Get the files associated with a triple pattern
 				Iterator<String> files = triple.getAssociatedFiles().iterator();
 				
+				//A counter for actual triple patterns, the above counter does not keep track of triple patterns when there
+				//are multiple files
+				int varTpCount = 0;
+				
 				//Iterate over the files, creating a TriplePattern for each of them
 				while( files.hasNext() )
-				{				
+				{	
+					varTpCount++;
+					
 					//Create a TriplePattern object that will be used by a JobPlan
 					TriplePattern tp = TriplePatternFactory.createSimpleTriplePattern();
 
@@ -538,12 +549,27 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 						if( varOrigTpBasedMap.isEmpty() ) { varOrigTpBasedMap.put( strSub, "" + count + "~" ); varOrigTpBasedMap.put( strObj, "" + count + "~" ); }
 						else
 						{
-							varOrigTpBasedMap.put( strSub, varOrigTpBasedMap.get( strSub ) + count + "~" );
-							varOrigTpBasedMap.put( strObj, varOrigTpBasedMap.get( strObj ) + count + "~" );
+							if( varOrigTpBasedMap.get( strSub ) == null ) varOrigTpBasedMap.put( strSub, "" + count + "~" );
+							else varOrigTpBasedMap.put( strSub, varOrigTpBasedMap.get( strSub ) + count + "~" );
+							
+							if( varOrigTpBasedMap.get( strObj ) == null ) varOrigTpBasedMap.put( strObj, "" + count + "~" );
+							else varOrigTpBasedMap.put( strObj, varOrigTpBasedMap.get( strObj ) + count + "~" );
 						}
 					
 						//Set the number of variables in the triple pattern to two
 						tp.setNumOfVariables( 2 );
+						
+						//Add an entry to the variable-triple pattern count hashmap
+						if( varTpCountMap.isEmpty() ) { varTpCountMap.put( strSub, new Integer( 1 ) ); varTpCountMap.put( strObj, new Integer( 1 ) ); }
+						else
+							if( varTpCount == 1 )
+							{
+								if( varTpCountMap.get( strSub ) == null ) varTpCountMap.put( strSub, new Integer( 1 ) );
+								else varTpCountMap.put( strSub, new Integer( varTpCountMap.get( strSub ).intValue() + 1 ) );
+								
+								if( varTpCountMap.get( strObj ) == null ) varTpCountMap.put( strObj, new Integer( 1 ) );
+								else varTpCountMap.put( strObj, new Integer( varTpCountMap.get( strObj ).intValue() + 1 ) );
+							}
 					}
 					else
 					{
@@ -559,15 +585,27 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 						
 							//Add the object as a literal for the current triple pattern
 							tp.setLiteralValue( strObj );
+							
+							//Add an entry to the variable-triple pattern count hashmap
+							if( varTpCountMap.isEmpty() || varTpCountMap.get( strSub ) == null ) { varTpCountMap.put( strSub, new Integer( 1 ) ); }
+							else
+								if( varTpCount == 1 )
+									varTpCountMap.put( strSub, new Integer( varTpCountMap.get( strSub ).intValue() + 1 ) );
 						}
 						else
 						{
 							//Add entries to the variable-triple pattern identifiers hashmap
-							if( varOrigTpBasedMap.isEmpty() || varOrigTpBasedMap.get( strSub ) == null ) varOrigTpBasedMap.put( strObj, "" + count + "~" );
+							if( varOrigTpBasedMap.isEmpty() || varOrigTpBasedMap.get( strObj ) == null ) varOrigTpBasedMap.put( strObj, "" + count + "~" );
 							else varOrigTpBasedMap.put( strObj, varOrigTpBasedMap.get( strObj ) + count + "~" );
 
 							//Add the subject as a literal value for the current triple pattern
 							tp.setLiteralValue( strSub );
+							
+							//Add an entry to the variable-triple pattern count hashmap
+							if( varTpCountMap.isEmpty() || varTpCountMap.get( strObj ) == null ) { varTpCountMap.put( strObj, new Integer( 1 ) ); }
+							else
+								if( varTpCount == 1 )
+									varTpCountMap.put( strObj, new Integer( varTpCountMap.get( strObj ).intValue() + 1 ) );
 						}
 					}
 
@@ -676,8 +714,8 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		( (JobConf) currJob.getConfiguration() ).setJar( JobParameters.jarFile );
 
 		//Set the mapper and reducer classes to be used
-		currJob.setMapperClass( edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericMapper.class );
-		currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericJobRunner.GenericReducer.class );
+		currJob.setMapperClass( edu.utdallas.hadooprdf.query.jobrunner.GenericMapper.class );
+		currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class );
 
 		//Set the number of reducers
 		currJob.setNumReduceTasks( JobParameters.numOfReducers );
@@ -687,8 +725,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	 * A method that returns a Hadoop Configuration object based on the configuration files
 	 * @param path - the directory that contains the configuration files
 	 * @return a Hadoop Configuration object
+	 * @throws InterruptedException 
 	 */
-	private Configuration getConfiguration( String path )
+	private Configuration getConfiguration( String path ) throws InterruptedException
 	{
 		org.apache.hadoop.conf.Configuration hadoopConfiguration = null;
 		try
@@ -700,7 +739,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			hadoopConfiguration.addResource( path + "mapred-site.xml" );
 			hadoopConfiguration.addResource( path + "hdfs-site.xml" );
 		}
-		catch( Exception e ) { e.printStackTrace(); }
+		catch( Exception e ) { throw new InterruptedException( e.getMessage() ); }
 		return hadoopConfiguration;
 	}
 

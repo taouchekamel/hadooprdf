@@ -39,6 +39,8 @@ public class SimpleJobPlanImpl implements JobPlan, Serializable
 	/** The list of joining variables **/
 	private List<String> joiningVars = new ArrayList<String>();
 	
+	private int jobId = 0;
+	
 	/** Constructor **/
 	public SimpleJobPlanImpl() { }
 
@@ -129,5 +131,15 @@ public class SimpleJobPlanImpl implements JobPlan, Serializable
 	public List<String> getJoiningVariablesList()
 	{
 		return joiningVars;
+	}
+	
+	public void setJobId( int jobId )
+	{ 
+		this.jobId = jobId;
+	}
+	
+	public int getJobId()
+	{
+		return jobId;
 	}
 }

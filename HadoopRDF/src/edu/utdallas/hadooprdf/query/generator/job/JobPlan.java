@@ -13,6 +13,10 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
  */
 public interface JobPlan 
 {
+	public void setJobId( int jobId ) ;
+	
+	public int getJobId() ;
+	
 	/**
 	 * A method that stores the association between a predicate and its TriplePattern
 	 * @param pred - the predicate of every triple pattern
