@@ -66,7 +66,7 @@ public class QueryTester
 		" } "; 
 */		
 		
-		//LUBM Query 5
+/*		//LUBM Query 5
 		String queryString =
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -76,7 +76,115 @@ public class QueryTester
 		"	?X rdf:type ub:Person . " +
 		"	?X ub:memberOf <http://www.Department0.University0.edu> " +
 		" } ";
+*/
+/*		//LUBM Query 6
+		String queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X WHERE { ?X rdf:type ub:Student } "; 	
+*/
+/*		//LUBM Query 7
+		String queryString =
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X ?Y " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:Student . " +
+		" 	?Y rdf:type ub:Course . " +
+		"	?X ub:takesCourse ?Y . " +
+		" 	<http://www.Department0.University0.edu/AssociateProfessor0> ub:teacherOf ?Y " +
+		" } "; 
+*/
+/*		//LUBM Query 8
+		String queryString =
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X ?Y ?Z " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:Student . " +	
+		"	?Y rdf:type ub:Department . " +
+		" 	?X ub:memberOf ?Y . " +
+		"	?Y ub:subOrganizationOf <http://www.University0.edu> . " +
+		"	?X ub:emailAddress ?Z " +
+		" } ";
+*/
+		
+/*		//LUBM Query 9
+		String queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X ?Y ?Z " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:Student . " +
+		"	?Y rdf:type ub:Faculty . " +
+		"	?Z rdf:type ub:Course . " +
+		"	?X ub:advisor ?Y . " +
+		"	?Y ub:teacherOf ?Z . " +
+		"	?X ub:takesCourse ?Z " +
+		" } "; 
+*/
+		
+/*		//LUBM Query 10
+		String queryString =
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:Student . " +
+		"	?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0> " +
+		" } ";
+*/		
+/*		//LUBM Query 11
+		String queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:ResearchGroup . " +
+		"	?X ub:subOrganizationOf <http://www.University0.edu> " +
+		" } ";
+*/
+		
+/*		//LUBM Query 12
+		String queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X ?Y " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:Chair . " +
+		"	?Y rdf:type ub:Department . " +
+		"	?X ub:worksFor ?Y . " +
+		"	?Y ub:subOrganizationOf <http://www.University0.edu> " +
+		" } "; 
+*/		
+/*		//LUBM Query 13
+		String queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:Person . " +
+		"	<http://www.University0.edu> ub:hasAlumnus ?X " +
+		" } " ; 
+*/
 
+		//LUBM Query 14
+		String queryString = 
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
+		" SELECT ?X " +
+		" WHERE " +
+		" { " +
+		"	?X rdf:type ub:UndergraduateStudent " +
+		" } "; 
+		
 		//Create the Hadoop configuration to be used
 		//TODO: This should be moved to the QueryExecution ??
 		Configuration config = new Configuration();
@@ -92,10 +200,12 @@ public class QueryTester
 		BufferedReader resReader = qexec.execSelect();
 
 		//Get the results from the reader
-		String resultStr = null;
+		String resultStr = null; int count = 0;
 		while( ( resultStr = resReader.readLine() ) != null )
 		{
+			count++;
 			System.out.println( resultStr );
 		}
+		System.out.println( "count of results = " + count );
 	}
 }
