@@ -15,6 +15,7 @@ import org.apache.hadoop.mapreduce.Job;
 
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.data.metadata.DataSetException;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 import edu.utdallas.hadooprdf.query.QueryExecution;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
@@ -101,6 +102,7 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 		try { prefixTree = ConfigPrefixTree.getPrefixTree( dataset, 5); }		
 		catch( ConfigurationNotInitializedException e ) { e.printStackTrace(); }
 		catch( IOException e ) { e.printStackTrace(); }
+		catch (DataSetException e) { e.printStackTrace(); }
 		return prefixTree;
 	}
 	

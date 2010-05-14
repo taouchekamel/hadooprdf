@@ -33,7 +33,7 @@ public class NamespaceProcessorPredicateSplitter {
 	 * @throws ConfigurationNotInitializedException
 	 * @throws NamespaceProcessorPredicateSplitterException
 	 */
-	public void processDataForNamespace() throws ConfigurationNotInitializedException, NamespaceProcessorPredicateSplitterException {
+	public void processDataForNamespacePredicateSplit() throws ConfigurationNotInitializedException, NamespaceProcessorPredicateSplitterException {
 		try {
 			PrefixFinder pf = new PrefixFinder(m_DataSet);
 			pf.findPrefixes();

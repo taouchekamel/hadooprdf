@@ -44,8 +44,9 @@ public class ConvertToNTriples extends PreprocessorJobRunner {
 	 * @param outputDirectoryPath
 	 *            the output directory
 	 * @throws DataFileExtensionNotSetException 
+	 * @throws IOException 
 	 */
-	public ConvertToNTriples(SerializationFormat inputFormat, DataSet dataSet) throws DataFileExtensionNotSetException {
+	public ConvertToNTriples(SerializationFormat inputFormat, DataSet dataSet) throws DataFileExtensionNotSetException, IOException {
 		super(dataSet);
 		m_InputFormat = inputFormat;
 		m_InputDirectoryPath = m_DataSet.getPathToOriginalData();

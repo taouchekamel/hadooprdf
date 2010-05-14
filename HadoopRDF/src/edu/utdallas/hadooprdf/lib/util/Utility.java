@@ -8,7 +8,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.NamespacePrefixParser;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
@@ -62,10 +61,21 @@ public class Utility
 	}
 	/**
 	 * Creates a directory in HDFS
+	 * @param hadoopConfiguration the Hadoop Configuration of the cluster
+	 * @param path the path to the directory
 	 * @throws IOException
-	 * @throws ConfigurationNotInitializedException
 	 */
 	public static void createDirectory(org.apache.hadoop.conf.Configuration hadoopConfiguration, Path path) throws IOException {
 		FileSystem.get(hadoopConfiguration).mkdirs(path);
+	}
+	/**
+	 * Create a directory in HDFS if it does not already exist
+	 * @param hadoopConfiguration the Hadoop Configuration of the cluster
+	 * @param path the path to the directory
+	 * @throws IOException
+	 */
+	public static void createDirectoryIfNotExists(org.apache.hadoop.conf.Configuration hadoopConfiguration, Path path) throws IOException {
+		if (!FileSystem.get(hadoopConfiguration).exists(path))
+			createDirectory(hadoopConfiguration, path);
 	}
 }

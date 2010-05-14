@@ -66,6 +66,10 @@ public class DataSet {
 	 */
 	private Collection<String> m_PredicateCollection;
 	/**
+	 * The Hadoop Configuration
+	 */
+	private org.apache.hadoop.conf.Configuration m_HadoopConfiguration;
+	/**
 	 * Class constructor
 	 * @param sDataSetRoot the root path of the data set as a String
 	 * @param sOriginalDataFilesExtension the extension of original data files in lower case
@@ -91,6 +95,7 @@ public class DataSet {
 	 * @throws IOException 
 	 */
 	public DataSet(Path dataSetRoot, org.apache.hadoop.conf.Configuration hadoopConfiguration) throws IOException {
+		m_HadoopConfiguration = hadoopConfiguration;
 		m_sOriginalDataFilesExtension = null;
 		m_DataSetRoot = dataSetRoot;
 		m_PathToOriginalData = new Path(m_DataSetRoot, "Original");
@@ -101,7 +106,7 @@ public class DataSet {
 		Utility.createDirectory(hadoopConfiguration, m_PathToMetaData);
 		m_PathToPrefixFile = new Path(m_PathToMetaData, "prefixes");
 		m_PathToTemp = new Path(m_DataSetRoot, "tmp");
-		m_PrefixNamespaceTree = Utility.getPrefixNamespaceTreeForDataSet(hadoopConfiguration, m_PathToPrefixFile);
+		m_PrefixNamespaceTree = null;
 		m_PredicateCollection = createPredicateCollection(hadoopConfiguration);
 	}
 	/**
@@ -130,8 +135,15 @@ public class DataSet {
 	/**
 	 * Returns the prefix namespace tree for the data set
 	 * @return the prefix namespace tree for the data set
+	 * @throws DataSetException 
 	 */
-	public PrefixNamespaceTree getPrefixNamespaceTree() {
+	public PrefixNamespaceTree getPrefixNamespaceTree() throws DataSetException {
+		try {
+			if (null == m_PrefixNamespaceTree && FileSystem.get(m_HadoopConfiguration).exists(m_PathToPrefixFile))
+					m_PrefixNamespaceTree = Utility.getPrefixNamespaceTreeForDataSet(m_HadoopConfiguration, m_PathToPrefixFile);
+		} catch (IOException e) {
+			throw new DataSetException("PrefixNamespaceTree could not be built because\n" + e.getMessage());
+		}
 		return m_PrefixNamespaceTree;
 	}
 	/**
@@ -149,8 +161,10 @@ public class DataSet {
 	}
 	/**
 	 * @return the m_PathToOriginalData
+	 * @throws IOException 
 	 */
-	public Path getPathToOriginalData() {
+	public Path getPathToOriginalData() throws IOException {
+		Utility.createDirectoryIfNotExists(m_HadoopConfiguration, m_PathToOriginalData);
 		return m_PathToOriginalData;
 	}
 	/**
@@ -205,8 +219,15 @@ public class DataSet {
 	}
 	/**
 	 * @return the m_PredicateCollection
+	 * @throws DataSetException 
 	 */
-	public Collection<String> getPredicateCollection() {
+	public Collection<String> getPredicateCollection() throws DataSetException {
+		try {
+			if (null == m_PredicateCollection && FileSystem.get(m_HadoopConfiguration).exists(m_PathToPOSData))
+				m_PredicateCollection = createPredicateCollection(m_HadoopConfiguration);
+		} catch (IOException e) {
+			throw new DataSetException("PredicateCollection could not be built because\n" + e.getMessage());
+		}
 		return m_PredicateCollection;
 	}
 }
