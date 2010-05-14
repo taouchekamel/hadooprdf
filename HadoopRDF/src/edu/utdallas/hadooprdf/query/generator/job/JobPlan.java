@@ -74,4 +74,8 @@ public interface JobPlan
 	public void addVarToJoiningVariables( String var ) ;
 	
 	public List<String> getJoiningVariablesList() ;
+	
+	public void setSelectClauseVarList( List<String> listVars ) ;
+	
+	public List<String> getSelectClauseVarList() ;
 }

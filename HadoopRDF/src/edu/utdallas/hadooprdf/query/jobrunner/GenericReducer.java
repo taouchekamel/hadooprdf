@@ -3,6 +3,8 @@ package edu.utdallas.hadooprdf.query.jobrunner;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -66,11 +68,13 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         //Write the result
         if( !jp.getHasMoreJobs() )
         {
+        	//Single variable in the query, e.g. ?X
+        	//or multiple variables e.g. ?X ?Y
         	if( jp.getTotalVariables() == 1 ) 
         	{
         		if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
         		{
-        			String keyString = key.toString();
+        			String keyString = key.toString().substring( jp.getJoiningVariablesList().get( 0 ).substring( 1 ).length() );
         			String prefix = keyString.substring( 0, keyString.indexOf( "#" ) + 1 );
         			String namespace = prefixTree.matchAndReplaceNamespace( prefix );
         			context.write( new Text( namespace + keyString.substring( keyString.indexOf( "#" ) + 1, keyString.length() ) ), new Text( "" ) );
@@ -78,7 +82,45 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	}
         	else
         	{
-        		
+        		if( jp.getJoiningVariablesList().size() == 1 && count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+        		{
+        			Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
+        			Map<String,String> vars = new TreeMap<String,String>();
+        			while( iterVars.hasNext() )
+        			{
+        				String variable = iterVars.next();
+        				vars.put( variable, variable );
+        			}
+        			
+        			String keyString = key.toString();
+        			String[] splitKey = keyString.split( "#" );
+        			String varKey = splitKey[0];
+        			String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
+        			String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
+        			if( splitKey.length > 2 ) vars.put( varKey, namespaceKey + splitKey[2] );
+        			else vars.put( varKey,  namespaceKey + splitKey[1] );
+        			
+        			String[] splitRes = sValue.split( "\t" );
+        			for( int j = 0; j < splitRes.length; j++ )
+        			{
+        				String[] splitValueRes = splitRes[j].split( "#" );
+        				String varValueRes = splitValueRes[0];
+        				String prefixValueRes = ""; if( splitValueRes.length > 2 ) prefixValueRes = splitValueRes[1] + "#";
+        				String namespaceValueRes = null;
+        				if( varKey.equalsIgnoreCase( varValueRes ) ) continue;
+        				else namespaceValueRes = prefixTree.matchAndReplaceNamespace( prefixValueRes );
+        				if( splitValueRes.length > 2 ) vars.put( varValueRes, namespaceValueRes + splitValueRes[2] );
+        				else vars.put( varValueRes, namespaceValueRes + splitValueRes[1] );
+        			}
+        			
+        			String resultInOrder = ""; 
+        			Iterator<String> iterMap = vars.values().iterator();
+        			while( iterMap.hasNext() )
+        			{
+        				resultInOrder += iterMap.next() + "\t";
+        			}
+        			context.write( new Text( resultInOrder ), new Text( "" ) );
+        		}
         	}
         }
         else

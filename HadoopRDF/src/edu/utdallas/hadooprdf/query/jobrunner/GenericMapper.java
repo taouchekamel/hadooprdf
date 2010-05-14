@@ -63,11 +63,15 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			//Get the subject
 			String sSubject = st.nextToken();
 
+			//Get the joining variable value
+			String joiningVariableValue = tp.getJoiningVariableValue().substring( 1 ) + "#";
+			
 			//If file is of a standard predicate such as rdf, rdfs etc, we need to output only the subject since this is all the file contains
 			//Else depending on the number of variables in the triple pattern we output subject-subject, subject-object, object-subject or object-object 
 			if( sPredicate.startsWith( prefixTree.matchAndReplacePrefix( Constants.RDF_TYPE_URI ) ) )
 			{
-				context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
+				//context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
+				context.write( new Text( joiningVariableValue + sSubject ), new Text( joiningVariableValue + sSubject ) );
 			}
 			else
 			{
@@ -76,26 +80,26 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 				if( tp.getJoiningVariable().equalsIgnoreCase( "s" ) )
 				{
 					if( tp.getNumOfVariables() == 2 )
-						context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + st.nextToken() ) );
+						context.write( new Text( joiningVariableValue + sSubject ), new Text( tp.getSecondVariableValue().substring( 1 ) + "#" + st.nextToken() ) );
 					else
 					{
 						String sObject = st.nextToken();
 
 						if( sObject.equalsIgnoreCase( tp.getLiteralValue() ) )
-							context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
+							context.write( new Text( joiningVariableValue + sSubject ), new Text( joiningVariableValue + sSubject ) );
 					}
 				}
 				else
 					if( tp.getJoiningVariable().equalsIgnoreCase( "o" ) )
 					{
 						if( tp.getNumOfVariables() == 2 )
-							context.write( new Text( st.nextToken() ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
+							context.write( new Text( joiningVariableValue + st.nextToken() ), new Text( tp.getSecondVariableValue().substring( 1 ) + "#" + sSubject ) );
 						else
 						{
 							String sObject = st.nextToken();
 
 							if( sSubject.equalsIgnoreCase( tp.getLiteralValue() ) )
-								context.write( new Text( sObject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sObject ) );
+								context.write( new Text( joiningVariableValue + sObject ), new Text( joiningVariableValue + sObject ) );
 						}
 					}
 			}

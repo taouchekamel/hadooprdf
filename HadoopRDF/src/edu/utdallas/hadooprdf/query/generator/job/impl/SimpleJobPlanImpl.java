@@ -19,7 +19,7 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 public class SimpleJobPlanImpl implements JobPlan, Serializable
 {	
 	/** The serial version UID **/
-	private static final long serialVersionUID = 5805319423033211556L;
+	private static final long serialVersionUID = -8660692800623708427L;
 
 	/** A map of predicates and the associated triple pattern **/
 	private Map<String,TriplePattern> predTrPatternMap = new HashMap<String,TriplePattern>();
@@ -39,7 +39,11 @@ public class SimpleJobPlanImpl implements JobPlan, Serializable
 	/** The list of joining variables **/
 	private List<String> joiningVars = new ArrayList<String>();
 	
+	/** The job identifier **/
 	private int jobId = 0;
+	
+	/** The list of variables in the SELECT clause **/
+	private List<String> listVarsSelectClause = new ArrayList<String>();
 	
 	/** Constructor **/
 	public SimpleJobPlanImpl() { }
@@ -47,7 +51,8 @@ public class SimpleJobPlanImpl implements JobPlan, Serializable
 	public String toString()
 	{
 		return "#1" + predTrPatternMap.toString() + "#1" + totalVars + " " + "" + 
-		hasMoreJobs + "#2" + varTrPatternCount + "#2" + "l1" + joiningVars.toString() + "l1"; 
+		hasMoreJobs + "#2" + varTrPatternCount + "#2" + "l1" + joiningVars.toString() + "l1" + 
+		"l2" + listVarsSelectClause.toString() + "l2" ; 
 	}
 	
 	/**
@@ -141,5 +146,15 @@ public class SimpleJobPlanImpl implements JobPlan, Serializable
 	public int getJobId()
 	{
 		return jobId;
+	}
+	
+	public void setSelectClauseVarList( List<String> listVars )
+	{
+		this.listVarsSelectClause = listVars;
+	}
+	
+	public List<String> getSelectClauseVarList()
+	{
+		return listVarsSelectClause;
 	}
 }

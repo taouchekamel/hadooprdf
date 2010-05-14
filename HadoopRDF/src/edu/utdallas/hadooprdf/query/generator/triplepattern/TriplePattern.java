@@ -126,4 +126,8 @@ public interface TriplePattern
 	 * @return the value of the joining variable in this triple pattern
 	 */
 	public String getJoiningVariableValue() ;
+	
+	public void setSecondVariableValue( String value ) ;
+	
+	public String getSecondVariableValue() ;
 }

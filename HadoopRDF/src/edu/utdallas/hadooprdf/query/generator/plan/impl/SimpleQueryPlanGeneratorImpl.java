@@ -104,6 +104,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//Get the total number of variables in the SELECT clause
 		int totalVarsSelectClause = QueryParser.getNumOfVarsInQuery();
 
+		//Get the variables in the SELECT clause
+		List<String> varsSelectClause = QueryParser.getVars();
+		
 		//The job identifier
 		int jobId = 1;
 		
@@ -134,6 +137,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			//Set the total number of variables expected in the result
 			jp.setTotalVariables( totalVarsSelectClause );
 			
+			//Set the total variable from the SELECT clause
+			jp.setSelectClauseVarList( varsSelectClause );
+			
 			//The case where there is a common variable involves only a single job
 			//Else run the "elimination count" algorithm
 			if( commonVariable != null )
@@ -163,12 +169,18 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Set the value of the joining variable
 					tp.setJoiningVariableValue( commonVariable );
 
-					//Set the value of the joining variable for the current triple pattern
+					//Set the value of the joining variable and the second variable (if it exists) for the current triple pattern
 					if( tp.getSubjectValue().toString().equalsIgnoreCase( commonVariable ) )
-						tp.setJoiningVariable( "s" );
+					{ 
+						tp.setJoiningVariable( "s" ); 
+						if( tp.getObjectValue().isVariable() ) tp.setSecondVariableValue( tp.getObjectValue().toString() ); 
+					}
 					else
+					{
 						tp.setJoiningVariable( "o" );
-
+						if( tp.getSubjectValue().isVariable() ) tp.setSecondVariableValue( tp.getSubjectValue().toString() ); 
+					}
+					
 					//Get the predicate, i.e. filename
 					String pred = tp.getPredicateValue().toString();
 
@@ -260,11 +272,17 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							else
 								varUsedTpBasedMap.put( vars[i], varUsedTpBasedMap.get( vars[i] ) + trPatterns[j] + "~" );
 							
-							//Set the value of the joining variable for the current triple pattern
+							//Set the value of the joining variable and the second variable (if it exists) for the current triple pattern
 							if( tp.getSubjectValue().toString().equalsIgnoreCase( vars[i] ) )
+							{
 								tp.setJoiningVariable( "s" );
+								if( tp.getObjectValue().isVariable() ) tp.setSecondVariableValue( tp.getObjectValue().toString() ); 
+							}
 							else
+							{
 								tp.setJoiningVariable( "o" );
+								if( tp.getObjectValue().isVariable() ) tp.setSecondVariableValue( tp.getObjectValue().toString() ); 
+							}
 							
 							//Get the predicate, i.e. filename
 							String pred = tp.getPredicateValue().toString();
@@ -580,7 +598,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					
 						//Set the number of variables in the triple pattern to two
 						tp.setNumOfVariables( 2 );
-						
+												
 						//Add an entry to the variable-triple pattern count hashmap
 						if( varTpCountMap.isEmpty() ) { varTpCountMap.put( strSub, new Integer( 1 ) ); varTpCountMap.put( strObj, new Integer( 1 ) ); }
 						else

@@ -156,7 +156,10 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 				
 				//TODO: Get the output path differently
 				if( !jp.getHasMoreJobs() ) 
+				{
+					fs.delete( new Path( dataset.getPathToTemp(), "job.txt" ), true );
 					resReader = new BufferedReader( new InputStreamReader( fs.open( new Path( dataset.getPathToTemp(), "test" + jp.getJobId() + "/part-r-00000" ) ) ) );
+				}
 			}
 			catch( Exception e ) { e.printStackTrace(); }
 		}

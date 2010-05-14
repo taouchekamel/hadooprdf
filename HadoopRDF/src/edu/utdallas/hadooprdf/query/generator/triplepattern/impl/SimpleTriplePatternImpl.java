@@ -16,7 +16,7 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 {
 	/**	The serial version UID **/
-	private static final long serialVersionUID = -5695001996186890719L;
+	private static final long serialVersionUID = -1878912421727708001L;
 
 	/** The triple pattern id from the query **/
 	private int tpId = 0;
@@ -39,6 +39,9 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 	/** The value of the joining variable in the current triple pattern **/
 	private String joiningVarValue = null;
 	
+	/** The value of the second variable in a triple pattern when there are two variables in a triple pattern **/
+	private String secondVarValue = null;
+	
 	/** Constructor **/
 	public SimpleTriplePatternImpl() { }
 	
@@ -46,7 +49,8 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 	public String toString()
 	{
 		return tpId + " " + tpNumOfVars + " " + tpJoiningVar + "#" + filenamePrefixMap.toString() + "#" + literal +
-		" " + subject.toString() + " " + predicate.toString() + " " + object.toString() + " " + joiningVarValue;
+		" " + subject.toString() + " " + predicate.toString() + " " + object.toString() + " " + joiningVarValue + 
+		" " + secondVarValue;
 	}
 	
 	/**
@@ -199,5 +203,21 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 	public String getJoiningVariableValue()
 	{
 		return joiningVarValue;
+	}
+
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setSecondVariableValue(String)}
+	 */
+	public void setSecondVariableValue( String value )
+	{
+		this.secondVarValue = value;
+	}
+	
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getSecondVariableValue()}
+	 */
+	public String getSecondVariableValue()
+	{
+		return secondVarValue;
 	}
 }
