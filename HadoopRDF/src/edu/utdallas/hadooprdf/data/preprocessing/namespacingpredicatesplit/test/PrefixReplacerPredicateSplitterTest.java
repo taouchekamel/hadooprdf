@@ -2,8 +2,6 @@ package edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.test
 
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.junit.Before;
@@ -15,7 +13,7 @@ import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.PrefixReplacerPredicateSplitter;
 import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.PrefixReplacerPredicateSplitterException;
 
-public class PrefixReplacerTest {
+public class PrefixReplacerPredicateSplitterTest {
 	private edu.utdallas.hadooprdf.conf.Configuration config;
 	@Before
 	public void setUp() throws Exception {
@@ -34,14 +32,10 @@ public class PrefixReplacerTest {
 	@Test
 	public void testReplacePrefixes() {
 		try {
-			DataSet ds = new DataSet("/user/farhan/hadooprdf/LUBM1");
+			DataSet ds = edu.utdallas.hadooprdf.conf.Configuration.getInstance().getDataStore().getDataSetMap().get("LUBM1");
 			ds.setOriginalDataFilesExtension("owl");
 			PrefixReplacerPredicateSplitter pr = new PrefixReplacerPredicateSplitter(ds);
 			pr.replacePrefixesAndSplitByPredicate();
-		} catch (IOException e) {
-			System.err.println("IOException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
-			e.printStackTrace();
-			fail(e.getMessage());
 		} catch (ConfigurationNotInitializedException e) {
 			System.err.println("ConfigurationNotInitializedException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
 			e.printStackTrace();

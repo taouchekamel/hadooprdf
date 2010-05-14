@@ -31,4 +31,3 @@ edu.utdallas.hadooprdf.query.generator.triplepattern.impl
 edu.utdallas.hadooprdf.query.impl
 edu.utdallas.hadooprdf.query.jobrunner
 edu.utdallas.hadooprdf.query.parser
-edu.utdallas.hadooprdf.query.test
