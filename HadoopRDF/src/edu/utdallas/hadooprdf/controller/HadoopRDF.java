@@ -57,13 +57,21 @@ public class HadoopRDF
 	 * @param queryString - the input SPARQL query as a string
 	 * @param dataset - the DataSet object
 	 * @return a BufferedReader containing the results
+	 * @throws HadoopRDFException 
 	 */
-	public BufferedReader executeQuery( String queryString, DataSet dataset )
+	public BufferedReader executeQuery( String queryString, DataSet dataset ) throws HadoopRDFException
 	{
-		//Create a QueryExecution object
-		QueryExecution qexec = QueryExecutionFactory.create( queryString, dataset );
+		try
+		{
+			//Create a QueryExecution object
+			QueryExecution qexec = QueryExecutionFactory.create( queryString, dataset );
 		
-		//Get the output stream reader
-		return qexec.execSelect();
+			//Get the output stream reader
+			return qexec.execSelect();
+		}
+		catch( Exception e )
+		{
+			throw new HadoopRDFException( "Framework could not be queried because\n" + e.getMessage() );
+		}
 	}
 }

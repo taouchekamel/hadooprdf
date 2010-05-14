@@ -1,9 +1,6 @@
 package edu.utdallas.hadooprdf.query.generator.triplepattern.impl;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.hp.hpl.jena.graph.Node;
 
 import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
@@ -16,7 +13,7 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 {
 	/**	The serial version UID **/
-	private static final long serialVersionUID = -2619847027389992658L;
+	private static final long serialVersionUID = 5892746847161727087L;
 
 	/** The triple pattern id from the query **/
 	private int tpId = 0;
@@ -27,9 +24,6 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 	/** The joining variable in this triple pattern **/
 	private String tpJoiningVar = null;
 	
-	/** A map between filenames and their prefixes to be used in a job **/
-	private Map<String,String> filenamePrefixMap = new HashMap<String,String>();
-
 	/** A literal value, if present, in this triple pattern **/
 	private String literal = null;
 	
@@ -48,7 +42,7 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 	@Override
 	public String toString()
 	{
-		return tpId + " " + tpNumOfVars + " " + tpJoiningVar + "#" + filenamePrefixMap.toString() + "#" + literal +
+		return tpId + " " + tpNumOfVars + " " + tpJoiningVar + " " + literal +
 		" " + subject.toString() + " " + predicate.toString() + " " + object.toString() + " " + joiningVarValue + 
 		" " + secondVarValue;
 	}
@@ -101,14 +95,6 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 		return tpJoiningVar;
 	}
 	
-	/**
-	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#checkIfPrefixExists(String)}
-	 */
-	public boolean checkIfPrefixExists( String prefix )
-	{
-		return filenamePrefixMap.containsValue( prefix );
-	}
-
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setLiteralValue(String)}
 	 */
