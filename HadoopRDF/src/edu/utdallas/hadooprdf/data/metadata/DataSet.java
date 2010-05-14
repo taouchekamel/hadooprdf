@@ -149,9 +149,10 @@ public class DataSet {
 	/**
 	 * Gets an array of namespace-prefix pairs
 	 * @return an array of namespace-prefix pairs
+	 * @throws DataSetException 
 	 */
-	public NamespacePrefix [] getNamespacePrefixes() {
-		return m_PrefixNamespaceTree.getNamespacePrefixes();
+	public NamespacePrefix [] getNamespacePrefixes() throws DataSetException {
+		return getPrefixNamespaceTree().getNamespacePrefixes();
 	}
 	/**
 	 * @return the m_DataSetRoot

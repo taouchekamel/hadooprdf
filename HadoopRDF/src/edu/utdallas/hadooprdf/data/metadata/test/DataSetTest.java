@@ -27,7 +27,7 @@ public class DataSetTest {
 	}
 
 	@Test
-	public void testGetNamespacePrefixes() {
+	public void testGetNamespacePrefixes() throws DataSetException {
 		NamespacePrefix [] np = m_DataSet.getNamespacePrefixes();
 		System.out.println("Number of namespace-prefix pairs: " + np.length);
 		for (int i = 0; i < np.length; i++)
