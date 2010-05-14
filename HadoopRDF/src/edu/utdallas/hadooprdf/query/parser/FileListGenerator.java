@@ -31,17 +31,14 @@ class FileListGenerator
 		this.dataset = dataset;
 		Set <String> keys = query.getNsPrefixKeySet();
 		Iterator <String> keySet = keys.iterator();
-		while (keySet.hasNext()) {
+		while (keySet.hasNext()) 
+		{
 			String key = keySet.next();
 			String ontologyURI = query.getNsPrefix(key);
 			System.out.println (ontologyURI);
-			try {
-				mReasoner.loadOntology(mManager.loadOntology(URI.create(ontologyURI)));
-			} catch (OWLOntologyCreationException e) {
-				throw e;
-			}			
-		}
-		
+			try { mReasoner.loadOntology(mManager.loadOntology(URI.create(ontologyURI))); } 
+			catch (OWLOntologyCreationException e) { throw e; }			
+		}	
 		mReasoner.getKB().realize();
 	}
 	
@@ -51,9 +48,6 @@ class FileListGenerator
 		
 		if (uri.contains(".owl") == false) 
 		{
-			//files.add(prefix + ".pos");
-			//return files;
-
 			try
 			{ 
 				edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
@@ -104,10 +98,7 @@ class FileListGenerator
 		}
 		catch( Exception e ) { e.printStackTrace(); }
 			
-		if (isFilesAdded == false) {
-			files.add(prefix + ".pos");
-		}
-		
+		if (isFilesAdded == false) files.add(prefix + ".pos");
 		return files;
 	}
 }

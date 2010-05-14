@@ -7,7 +7,7 @@ import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 /**
  * An interface for query plans. There's not much to it so far, its just an abstraction
  * to the job plans 
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public interface QueryPlan 

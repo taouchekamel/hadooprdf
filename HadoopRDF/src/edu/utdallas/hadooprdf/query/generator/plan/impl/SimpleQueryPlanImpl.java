@@ -8,7 +8,7 @@ import edu.utdallas.hadooprdf.query.generator.plan.QueryPlan;
 
 /**
  * A specific implementation of the query plan for the current version
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public class SimpleQueryPlanImpl implements QueryPlan

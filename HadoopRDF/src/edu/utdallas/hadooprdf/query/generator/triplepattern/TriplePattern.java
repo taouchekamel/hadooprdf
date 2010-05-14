@@ -4,7 +4,7 @@ import com.hp.hpl.jena.graph.Node;
 
 /**
  * An interface for different triple patterns that are used in a job plan
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public interface TriplePattern
@@ -44,27 +44,6 @@ public interface TriplePattern
 	 * @return the number of variables in the current triple pattern
 	 */
 	public int getNumOfVariables() ;
-	
-	/**
-	 * A method that sets the mapping between a filename and its associated prefix
-	 * @param filename - the filename, i.e. the predicate in every triple pattern
-	 * @param prefix - the prefix associated with that filename
-	 */
-	public void setFilenameBasedPrefix( String filename, String prefix ) ;
-	
-	/**
-	 * A method that returns the prefix associated with the input filename
-	 * @param filename - the filename whose prefix is required
-	 * @return the associated prefix
-	 */
-	public String getFilenameBasedPrefix( String filename ) ;
-	
-	/**
-	 * A method that checks if a prefix exists
-	 * @param prefix - the prefix to be checked
-	 * @return true iff the prefix exists, false otherwise
-	 */
-	public boolean checkIfPrefixExists( String prefix ) ;
 	
 	/**
 	 * A method that sets for every triple pattern, if it has one a literal value
@@ -127,7 +106,15 @@ public interface TriplePattern
 	 */
 	public String getJoiningVariableValue() ;
 	
+	/**
+	 * A method that sets the value of the second variable in a triple pattern if there exists one
+	 * @param value - the value of the second variable in a triple pattern if there exists one
+	 */
 	public void setSecondVariableValue( String value ) ;
 	
+	/**
+	 * A method that returns the value of the second variable if there exits one
+	 * @return the value of the second variable
+	 */
 	public String getSecondVariableValue() ;
 }

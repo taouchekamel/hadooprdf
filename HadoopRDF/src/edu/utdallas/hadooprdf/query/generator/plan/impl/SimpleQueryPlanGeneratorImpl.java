@@ -40,7 +40,7 @@ import edu.utdallas.hadooprdf.lib.util.JobParameters;
 
 /**
  * A specific implementation of the query plan generator based on the "elimination count" algorithm
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 @SuppressWarnings("deprecation")
@@ -58,9 +58,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	/** A list of variables that are eliminated **/
 	private List<String> eliminatedVars = new ArrayList<String>();
 
-	/** The internal prefix used in a Hadoop job **/
-	private static int uniquePrefixGenerator = 0;
-	
 	/** The DataSet to be used **/
 	private DataSet dataset = null;
 	
@@ -187,9 +184,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Add the filename to the Job object
 					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), pred ) );
 
-					//Add the filenames and their associated prefixes to the triple pattern
-					tp.setFilenameBasedPrefix( pred, ++SimpleQueryPlanGeneratorImpl.uniquePrefixGenerator + "#" );
-
 					//Add the triple pattern to the job plan
 					jp.setPredicateBasedTriplePattern( pred, tp );					
 				}
@@ -197,8 +191,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//If this is not the first job do the following
 				if( jobId > 1 )
 				{
+					FileSystem fs = FileSystem.get( hadoopConfig );
+					fs.copyToLocalFile( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) + "/part-r-00000" ), new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ) );
+					fs.delete( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) ), true );
+					fs.moveFromLocalFile( new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ), dataset.getPathToTemp() );
+					
 					//Add the filename to the Job object as an input file, this input file is the output file from the previous job 
-					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), "test" + ( jobId - 1 ) ) );
+					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToTemp(), "job" + ( jobId - 1 ) + "-op.txt" ) );
 				}
 
 				//Add the joining variable to the job plan
@@ -211,7 +210,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				Path opPath = new Path( dataset.getPathToTemp(), "test" + jobId );
 				FileSystem fs = FileSystem.get( hadoopConfig );
 				fs.delete( opPath, true );
-				FileOutputFormat.setOutputPath(currJob, opPath );
+				FileOutputFormat.setOutputPath( currJob, opPath );
 
 				//Add the Hadoop Job to the JobPlan
 				jp.setHadoopJob( currJob );
@@ -290,9 +289,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							//Add the filename to the Job object
 							FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), pred ) );
 
-							//Add the filenames and their associated prefixes to the triple pattern
-							tp.setFilenameBasedPrefix( pred, "" );
-
 							//Add the triple pattern to the job plan
 							jp.setPredicateBasedTriplePattern( pred, tp );					
 						}
@@ -308,8 +304,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//If this is not the first job do the following
 				if( jobId > 1 )
 				{
-					//Add the filename to the Job object
-					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), "test" + ( jobId - 1 ) ) );
+					FileSystem fs = FileSystem.get( hadoopConfig );
+					fs.copyToLocalFile( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) + "/part-r-00000" ), new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ) );
+					fs.delete( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) ), true );
+					fs.moveFromLocalFile( new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ), dataset.getPathToTemp() );
+					
+					//Add the filename to the Job object as an input file, this input file is the output file from the previous job 
+					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToTemp(), "job" + ( jobId - 1 ) + "-op.txt" ) );
 				}
 				
 				//Add the output file to the Job object

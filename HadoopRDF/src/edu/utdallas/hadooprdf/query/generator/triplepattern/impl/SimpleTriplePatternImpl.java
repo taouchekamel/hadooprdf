@@ -10,13 +10,13 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 
 /**
  * A simple implementation of the triple pattern
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 {
 	/**	The serial version UID **/
-	private static final long serialVersionUID = -1878912421727708001L;
+	private static final long serialVersionUID = -2619847027389992658L;
 
 	/** The triple pattern id from the query **/
 	private int tpId = 0;
@@ -101,22 +101,6 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 		return tpJoiningVar;
 	}
 	
-	/**
-	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#setFilenameBasedPrefix(String, String)}
-	 */
-	public void setFilenameBasedPrefix( String filename, String prefix )
-	{
-		filenamePrefixMap.put( filename, prefix );
-	}
-	
-	/**
-	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#getFilenameBasedPrefix(String)}
-	 */
-	public String getFilenameBasedPrefix( String filename )
-	{
-		return filenamePrefixMap.get( filename );
-	}
-
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern#checkIfPrefixExists(String)}
 	 */

@@ -58,7 +58,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 		//Get the triple pattern associated with a predicate
 		TriplePattern tp = jp.getPredicateBasedTriplePattern( sPredicate );
 
-		if( tp.getFilenameBasedPrefix( sPredicate ) != null )
+		if( tp != null )
 		{
 			//Get the subject
 			String sSubject = st.nextToken();
@@ -75,7 +75,6 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			}
 			else
 			{
-				//TODO: How to generate a unique prefix ??
 				//If join is on subject and the number of variables in the triple pattern is 2 output ( subject, object )
 				if( tp.getJoiningVariable().equalsIgnoreCase( "s" ) )
 				{
@@ -110,7 +109,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			while( st.hasMoreTokens() )
 			{
 				String token = st.nextToken();
-				if( tp.checkIfPrefixExists( token.substring( 0, 2 ) ) )
+				//if( tp.checkIfPrefixExists( token.substring( 0, 2 ) ) )
 				{
 					context.write( new Text( token.substring( 2 ) ), new Text( key.toString() ) );
 				}

@@ -5,7 +5,7 @@ import edu.utdallas.hadooprdf.query.generator.plan.impl.SimpleQueryPlanGenerator
 
 /**
  * A factory class to generate different query plan generators
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public class QueryPlanGeneratorFactory 

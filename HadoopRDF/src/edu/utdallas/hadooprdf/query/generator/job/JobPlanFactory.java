@@ -4,7 +4,7 @@ import edu.utdallas.hadooprdf.query.generator.job.impl.SimpleJobPlanImpl;
 
 /**
  * A factory class that creates different implementations of job plans
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public class JobPlanFactory 

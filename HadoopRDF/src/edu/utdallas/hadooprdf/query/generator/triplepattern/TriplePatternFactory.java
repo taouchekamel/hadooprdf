@@ -4,7 +4,7 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.impl.SimpleTriplePat
 
 /**
  * A factory class for different implementations of triple patterns
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public class TriplePatternFactory 

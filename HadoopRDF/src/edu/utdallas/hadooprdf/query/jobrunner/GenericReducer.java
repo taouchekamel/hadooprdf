@@ -74,10 +74,12 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	{
         		if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
         		{
-        			String keyString = key.toString().substring( jp.getJoiningVariablesList().get( 0 ).substring( 1 ).length() );
-        			String prefix = keyString.substring( 0, keyString.indexOf( "#" ) + 1 );
-        			String namespace = prefixTree.matchAndReplaceNamespace( prefix );
-        			context.write( new Text( namespace + keyString.substring( keyString.indexOf( "#" ) + 1, keyString.length() ) ), new Text( "" ) );
+        			String keyString = key.toString();
+        			String[] splitKey = keyString.split( "#" );
+        			String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
+        			String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
+        			if( splitKey.length > 2 ) context.write( new Text( namespaceKey + splitKey[2] ), new Text( "" ) );
+        			else context.write( new Text( namespaceKey + splitKey[1] ), new Text( "" ) );
         		}
         	}
         	else
@@ -98,7 +100,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         			String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
         			String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
         			if( splitKey.length > 2 ) vars.put( varKey, namespaceKey + splitKey[2] );
-        			else vars.put( varKey,  namespaceKey + splitKey[1] );
+        			else vars.put( varKey, namespaceKey + splitKey[1] );
         			
         			String[] splitRes = sValue.split( "\t" );
         			for( int j = 0; j < splitRes.length; j++ )

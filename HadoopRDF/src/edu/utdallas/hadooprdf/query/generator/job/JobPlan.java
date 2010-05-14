@@ -8,13 +8,21 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 
 /**
  * An interface for job plans that defines variables and methods needed in any job plan
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public interface JobPlan 
 {
+	/**
+	 * A method that sets a job identifier for the current job in a JobPlan
+	 * @param jobId - the job identifier for the current job
+	 */
 	public void setJobId( int jobId ) ;
 	
+	/**
+	 * A method that returns the job identifier for the current job
+	 * @return the job identifier for the current job
+	 */
 	public int getJobId() ;
 	
 	/**
@@ -67,15 +75,42 @@ public interface JobPlan
 	 */
 	public boolean getHasMoreJobs() ;
 	
+	/**
+	 * A method that adds the association between a variable and the number of triple patterns that contain the variable
+	 * to a map
+	 * @param var - a variable from the SPARQL query
+	 * @param count - the number of triple patterns that contain the given variable
+	 */
 	public void setVarTrPatternCount( String var, Integer count ) ;
 	
+	/**
+	 * A method that returns the number of triple patterns that contain the given variable
+	 * @param var - the variable for which the number of triple patterns is desired
+	 * @return the number of triple patterns that cotain the given variable
+	 */
 	public Integer getVarTrPatternCount( String var ) ;
 	
+	/**
+	 * A method that adds the given variable to a list of joining variables
+	 * @param var - a given variable 
+	 */
 	public void addVarToJoiningVariables( String var ) ;
 	
+	/**
+	 * A method that returns the list of joining variables
+	 * @return the list that contains all joining variables for a job
+	 */
 	public List<String> getJoiningVariablesList() ;
 	
+	/**
+	 * A method that sets the list of variables in the SELECT clause
+	 * @param listVars - a list of variables in the SELECT clause of the SPARQL query
+	 */
 	public void setSelectClauseVarList( List<String> listVars ) ;
 	
+	/**
+	 * A method that returns the list of variables in the SELECT clause of the SPARQL query
+	 * @return a list containing variables in the SELECT clause
+	 */
 	public List<String> getSelectClauseVarList() ;
 }

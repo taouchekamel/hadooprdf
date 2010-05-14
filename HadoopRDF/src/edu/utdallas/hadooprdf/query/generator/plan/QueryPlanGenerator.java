@@ -9,7 +9,7 @@ import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
 
 /**
  * An interface that defines the methods needed for the query plan generator algorithm
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public interface QueryPlanGenerator 

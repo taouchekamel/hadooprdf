@@ -4,7 +4,7 @@ import edu.utdallas.hadooprdf.query.generator.plan.impl.SimpleQueryPlanImpl;
 
 /**
  * A factory class for different query plan implementations
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public class QueryPlanFactory 

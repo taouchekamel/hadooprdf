@@ -13,7 +13,7 @@ import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 
 /**
  * A simple implementation of the job plan interface
- * @author sharath, vaibhav
+ * @author vaibhav
  *
  */
 public class SimpleJobPlanImpl implements JobPlan, Serializable
@@ -48,6 +48,9 @@ public class SimpleJobPlanImpl implements JobPlan, Serializable
 	/** Constructor **/
 	public SimpleJobPlanImpl() { }
 
+	/**
+	 * Overrides the .toString() method so that this Object can be Serialized
+	 */
 	public String toString()
 	{
 		return "#1" + predTrPatternMap.toString() + "#1" + totalVars + " " + "" + 
@@ -58,103 +61,80 @@ public class SimpleJobPlanImpl implements JobPlan, Serializable
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#addPredicateBasedTriplePattern(String, TriplePattern)}
 	 */	
-	public void setPredicateBasedTriplePattern( String pred, TriplePattern tp )
-	{
-		predTrPatternMap.put( pred, tp );
-	}
+	public void setPredicateBasedTriplePattern( String pred, TriplePattern tp ) { predTrPatternMap.put( pred, tp ); }
 	
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getPredicateBasedTriplePattern(String)}
 	 */	
-	public TriplePattern getPredicateBasedTriplePattern( String pred )
-	{
-		return predTrPatternMap.get( pred );
-	}
+	public TriplePattern getPredicateBasedTriplePattern( String pred ) { return predTrPatternMap.get( pred ); }
+	
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setTotalVariables(int)}
 	 */
-	public void setTotalVariables( int totalVars )
-	{
-		this.totalVars = totalVars;
-	}
+	public void setTotalVariables( int totalVars ) { this.totalVars = totalVars; }
 	
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getTotalVariables()}
 	 */
-	public int getTotalVariables()
-	{
-		return totalVars;
-	}
+	public int getTotalVariables() { return totalVars; }
 
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setHadoopJob(Job)}
 	 */
-	public void setHadoopJob( Job currJob )
-	{
-		this.currJob = currJob;
-	}
+	public void setHadoopJob( Job currJob ) { this.currJob = currJob; }
 	
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getHadoopJob()}
 	 */
-	public Job getHadoopJob()
-	{
-		return currJob;
-	}
+	public Job getHadoopJob() { return currJob; }
 
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setHasMoreJobs(boolean)}
 	 */
-	public void setHasMoreJobs( boolean hasMoreJobs )
-	{
-		this.hasMoreJobs = hasMoreJobs;
-	}
+	public void setHasMoreJobs( boolean hasMoreJobs ) { this.hasMoreJobs = hasMoreJobs; }
 	
 	/**
 	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getHasMoreJobs()}
 	 */
-	public boolean getHasMoreJobs()
-	{
-		return hasMoreJobs;
-	}
+	public boolean getHasMoreJobs() { return hasMoreJobs; }
+
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setVarTrPatternCount(String, Integer)}
+	 */
+	public void setVarTrPatternCount( String var, Integer count ) { varTrPatternCount.put( var, count ); }
 	
-	public void setVarTrPatternCount( String var, Integer count )
-	{
-		varTrPatternCount.put( var, count );
-	}
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getVarTrPatternCount(String)}
+	 */
+	public Integer getVarTrPatternCount( String var ) { return varTrPatternCount.get( var ); }
 	
-	public Integer getVarTrPatternCount( String var )
-	{
-		return varTrPatternCount.get( var );
-	}
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#addVarToJoiningVariables(String)}
+	 */
+	public void addVarToJoiningVariables( String var ) { joiningVars.add( var ); }
 	
-	public void addVarToJoiningVariables( String var )
-	{
-		joiningVars.add( var );
-	}
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getJoiningVariablesList()}
+	 */
+	public List<String> getJoiningVariablesList() { return joiningVars; }
 	
-	public List<String> getJoiningVariablesList()
-	{
-		return joiningVars;
-	}
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setJobId(int)}
+	 */
+	public void setJobId( int jobId ) { this.jobId = jobId; }
 	
-	public void setJobId( int jobId )
-	{ 
-		this.jobId = jobId;
-	}
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getJobId()}
+	 */
+	public int getJobId() { return jobId; }
 	
-	public int getJobId()
-	{
-		return jobId;
-	}
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#setSelectClauseVarList(List)}
+	 */
+	public void setSelectClauseVarList( List<String> listVars ) { this.listVarsSelectClause = listVars; }
 	
-	public void setSelectClauseVarList( List<String> listVars )
-	{
-		this.listVarsSelectClause = listVars;
-	}
-	
-	public List<String> getSelectClauseVarList()
-	{
-		return listVarsSelectClause;
-	}
+	/**
+	 * {@link edu.utdallas.hadooprdf.query.generator.job.JobPlan#getSelectClauseVarList()}
+	 */
+	public List<String> getSelectClauseVarList() { return listVarsSelectClause; }
 }
