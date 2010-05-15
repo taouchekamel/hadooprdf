@@ -105,13 +105,18 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 		}
 		else
 		{
+			int count = 0;
+			String keyVal = "";
+			
 			//TODO: How to handle multiple prefixes in the same line
 			while( st.hasMoreTokens() )
 			{
 				String token = st.nextToken();
-				//if( tp.checkIfPrefixExists( token.substring( 0, 2 ) ) )
+				if( ++count == 1 ) keyVal = token;
+				String[] tokenSplit = token.split( "#" );
+				if( jp.getJoiningVariablesList().contains( tokenSplit[0] ) )
 				{
-					context.write( new Text( token.substring( 2 ) ), new Text( key.toString() ) );
+					context.write( new Text( token ), new Text( keyVal ) );
 				}
 			}
 		}

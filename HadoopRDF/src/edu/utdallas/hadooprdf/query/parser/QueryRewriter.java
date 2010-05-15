@@ -78,7 +78,6 @@ public class QueryRewriter
 		String classAssociated =  tTriple.getPredicate().getURI();
 		int index1 = classAssociated.lastIndexOf("#");
 		classAssociated = classAssociated.substring (index1, classAssociated.length ());
-		System.out.println (triple.getObject().toString()) ;
 		ArrayList<String> files = fetchAssociatedFilesForTriple(triple.getObject().toString(), classAssociated, tTriple.getPredicate().getURI (), filesGen);
 		tTriple.addFiles (files);
 		tripleMap.put(index, tTriple);

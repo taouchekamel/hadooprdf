@@ -53,5 +53,6 @@
 	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/xsdlib.jar"/>
 	<classpathentry kind="lib" path="/home/hadoop/workspace-hadooprdf/HadoopRDF/lib/sunxacml.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/hadoop/HadoopRDF.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

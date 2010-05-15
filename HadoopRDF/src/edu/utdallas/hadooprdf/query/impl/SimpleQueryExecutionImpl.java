@@ -1,6 +1,7 @@
 package edu.utdallas.hadooprdf.query.impl;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -132,14 +133,18 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 			//Get the current job plan
 			JobPlan jp = iterJobPlans.next();
 
+			//Get the job id
+			int jobId = jp.getJobId();
+			
 			//Get the Hadoop Job
 			Job job = jp.getHadoopJob();
 			
 			try
 			{ 
 				//Serialize the job plan to a file
-				ObjectOutputStream objstream = new ObjectOutputStream(new FileOutputStream("/home/hadoop/job.txt"));
-				objstream.writeObject(jp);
+				File serializationFile = new File( "/home/hadoop/job.txt" );
+				ObjectOutputStream objstream = new ObjectOutputStream( new FileOutputStream( serializationFile ) );
+				objstream.writeObject( jp );
 				objstream.close();
 	        
 				//Transfer the file to the hdfs
@@ -147,9 +152,16 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 				
 				FileSystem fs;
 				fs = FileSystem.get(hadoopConfiguration); 
+
+				if( jobId > 1 )
+				{
+					fs.moveToLocalFile( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) + "/part-r-00000" ), new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ) );
+					fs.moveFromLocalFile( new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ), dataset.getPathToTemp() );					
+				}
 				
 				fs.delete( new Path( dataset.getPathToTemp(), "job.txt" ), true );
 				fs.copyFromLocalFile( new Path( "/home/hadoop/job.txt" ), dataset.getPathToTemp() );
+				serializationFile.delete();
 				
 				//Run the current job
 				job.waitForCompletion( true );

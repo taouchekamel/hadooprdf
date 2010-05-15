@@ -14,7 +14,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -43,7 +42,6 @@ import edu.utdallas.hadooprdf.lib.util.JobParameters;
  * @author vaibhav
  *
  */
-@SuppressWarnings("deprecation")
 public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 {	
 	/** A map of original variables and the associated triple pattern identifiers **/
@@ -191,11 +189,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//If this is not the first job do the following
 				if( jobId > 1 )
 				{
-					FileSystem fs = FileSystem.get( hadoopConfig );
-					fs.copyToLocalFile( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) + "/part-r-00000" ), new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ) );
-					fs.delete( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) ), true );
-					fs.moveFromLocalFile( new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ), dataset.getPathToTemp() );
-					
 					//Add the filename to the Job object as an input file, this input file is the output file from the previous job 
 					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToTemp(), "job" + ( jobId - 1 ) + "-op.txt" ) );
 				}
@@ -304,17 +297,15 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//If this is not the first job do the following
 				if( jobId > 1 )
 				{
-					FileSystem fs = FileSystem.get( hadoopConfig );
-					fs.copyToLocalFile( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) + "/part-r-00000" ), new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ) );
-					fs.delete( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) ), true );
-					fs.moveFromLocalFile( new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ), dataset.getPathToTemp() );
-					
 					//Add the filename to the Job object as an input file, this input file is the output file from the previous job 
 					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToTemp(), "job" + ( jobId - 1 ) + "-op.txt" ) );
 				}
 				
 				//Add the output file to the Job object
-				FileOutputFormat.setOutputPath(currJob, new Path( dataset.getPathToTemp(), "test" ) );
+				Path opPath = new Path( dataset.getPathToTemp(), "test" + jobId );
+				FileSystem fs = FileSystem.get( hadoopConfig );
+				fs.delete( opPath, true );
+				FileOutputFormat.setOutputPath( currJob, opPath );
 
 				//Add the Hadoop Job to the JobPlan
 				jp.setHadoopJob( currJob );
@@ -752,8 +743,8 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		currJob.setOutputFormatClass( TextOutputFormat.class );
 
 		//Set the jar file to be used
-		( (JobConf) currJob.getConfiguration() ).setJar( JobParameters.jarFile );
-
+		currJob.setJarByClass( this.getClass() );
+		
 		//Set the mapper and reducer classes to be used
 		currJob.setMapperClass( edu.utdallas.hadooprdf.query.jobrunner.GenericMapper.class );
 		currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class );

@@ -35,7 +35,6 @@ class FileListGenerator
 		{
 			String key = keySet.next();
 			String ontologyURI = query.getNsPrefix(key);
-			System.out.println (ontologyURI);
 			try { mReasoner.loadOntology(mManager.loadOntology(URI.create(ontologyURI))); } 
 			catch (OWLOntologyCreationException e) { throw e; }			
 		}	

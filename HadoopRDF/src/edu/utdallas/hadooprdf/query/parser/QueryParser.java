@@ -102,6 +102,5 @@ public class QueryParser
 			throw e;
 		}
 		return new edu.utdallas.hadooprdf.query.parser.Query (eList, prefixMap);
-	}
-	
+	}	
 }
