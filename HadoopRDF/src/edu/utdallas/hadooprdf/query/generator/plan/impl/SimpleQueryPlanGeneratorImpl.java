@@ -241,7 +241,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				while( iterElimCount.hasNext() )
 				{
 					//If there is only a single triple pattern left it can't be used in any join, hence break
-					if( tpMap.size() <= 2 ) break;
+					if( checkIfOneTpLeft() ) break;
 
 					//Get each key
 					Integer elimCount = iterElimCount.next();
@@ -252,7 +252,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Iterate over all values
 					for( int i = 0; i < vars.length; i++ )
 					{
-						if( tpMap.size() <= 2 ) break;
+						if( checkIfOneTpLeft() ) break;
 						
 						String[] trPatterns = varOrigTpBasedMap.get( vars[i] ).split( "~" );
 						for( int j = 0; j < trPatterns.length; j++ )
@@ -346,13 +346,27 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		return qp;
 	}
 
+	private boolean checkIfOneTpLeft()
+	{
+		boolean isFirstKey = true; int parentTpId = 0, countOfParentTpId = 0;
+		Iterator<Integer> keysTpMap = tpMap.keySet().iterator();
+		while( keysTpMap.hasNext() )
+		{
+			TriplePattern tp = tpMap.get( keysTpMap.next() );
+			if( isFirstKey ) { isFirstKey = false; parentTpId = tp.getParentTriplePatternId(); countOfParentTpId++; }
+			else { if( parentTpId == tp.getParentTriplePatternId() ) countOfParentTpId++; }
+		}
+		if( countOfParentTpId == tpMap.keySet().size() ) return true;
+		else return false;
+	}
+	
 	/**
 	 * A method that returns a Hadoop Configuration object based on the configuration files
 	 * @param path - the directory that contains the configuration files
 	 * @return a Hadoop Configuration object
 	 * @throws InterruptedException 
 	 */
-	public Configuration getConfiguration( String path ) throws InterruptedException
+	private Configuration getConfiguration( String path ) throws InterruptedException
 	{
 		org.apache.hadoop.conf.Configuration hadoopConfiguration = null;
 		try
@@ -547,6 +561,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//A counter for the triple pattern id
 		int count = 0;
 		
+		//A counter for the parent triple pattern id
+		int parentTpId = 0;
+		
 		//Iterate over all elements
 		Iterator<HadoopElement> iterElements = elements.iterator();
 		while( iterElements.hasNext() )
@@ -561,6 +578,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Get each triple pattern
 				HadoopTriple triple = iterTriplePatterns.next();
 
+				//Increment the parent triple pattern identifier
+				parentTpId++;
+				
 				//Get the files associated with a triple pattern
 				Iterator<String> files = triple.getAssociatedFiles().iterator();
 				
@@ -576,6 +596,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Create a TriplePattern object that will be used by a JobPlan
 					TriplePattern tp = TriplePatternFactory.createSimpleTriplePattern();
 
+					//Set the parent triple pattern id for the current triple pattern
+					tp.setParentTriplePatternId( parentTpId );
+					
 					//Set the id of the triple pattern
 					tp.setTriplePatternId( ++count );
 
@@ -810,7 +833,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Iterate over all variables
 				for( int i = 0; i < vars.length; i++ )
 				{
+					//If both variables are the same do not update the count
 					if( i > 0 && vars[i].equalsIgnoreCase( vars[i-1] ) ) continue;
+					
 					//If the hashmap is empty or this variable is not found add it in the hashmap
 					//Else simply update the count of the times the variable was found
 					if( hm.isEmpty() || hm.get( vars[i] ) == null ) hm.put( vars[i], new Integer( "1" ) );

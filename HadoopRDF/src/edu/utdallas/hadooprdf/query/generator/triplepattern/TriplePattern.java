@@ -117,4 +117,16 @@ public interface TriplePattern
 	 * @return the value of the second variable
 	 */
 	public String getSecondVariableValue() ;
+	
+	/**
+	 * A method that sets the value of the parent triple pattern id for this triple pattern
+	 * @param parentId - the id for the parent triple pattern from the SPARQL query for this triple pattern
+	 */
+	public void setParentTriplePatternId( int parentId ) ;
+	
+	/**
+	 * A method that returns the value of the parent triple pattern identifier
+	 * @return the parent triple pattern identifier
+	 */
+	public int getParentTriplePatternId() ;
 }
