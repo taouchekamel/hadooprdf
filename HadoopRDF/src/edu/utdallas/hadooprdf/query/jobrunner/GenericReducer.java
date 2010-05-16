@@ -96,12 +96,15 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         		{
         			if( jp.getJoiningVariablesList().size() == 1 )
         			{
+        				int countOfTps = jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) );
+
         				Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
         				Map<String,String> vars = new TreeMap<String,String>();
         				while( iterVars.hasNext() )
         				{
         					String variable = iterVars.next();
-        					vars.put( variable, variable + "~" );
+        					if( count == countOfTps ) vars.put( variable, variable );
+        					else if( count > countOfTps ) vars.put( variable, variable + "~" );
         				}
         			
         				String keyString = key.toString();
@@ -109,9 +112,17 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         				String varKey = splitKey[0];
         				String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
         				String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
-        				if( splitKey.length > 2 ) vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[2] + "~" );
-        				else vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[1] + "~" );
-        			
+        				if( splitKey.length > 2 ) 
+        				{
+        					if( count == countOfTps ) vars.put( varKey, namespaceKey + splitKey[2] );
+        					else if( count > countOfTps ) vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[2] + "~" );
+        				}
+        				else 
+        				{
+        					if( count == countOfTps ) vars.put( varKey, namespaceKey + splitKey[1] );
+        					else if( count > countOfTps ) vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[1] + "~" );        			
+        				}
+        				
         				String[] splitRes = sValue.split( "\t" );
         				for( int j = 0; j < splitRes.length; j++ )
         				{
@@ -124,27 +135,29 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         					else namespaceValueRes = prefixTree.matchAndReplaceNamespace( prefixValueRes );
         					if( splitValueRes.length > 2 ) 
         					{
-        						if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+        						if( count == countOfTps )
         							vars.put( varValueRes, namespaceValueRes + splitValueRes[2] );
         						else
-        						{
-        							vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[2] + "~" );
-        							vars.put( varValueRes, vars.get( varValueRes ) + namespaceValueRes + splitValueRes[2] + "~" );
-        						}
+        							if( count > countOfTps )
+        							{
+        								vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[2] + "~" );
+        								vars.put( varValueRes, vars.get( varValueRes ) + namespaceValueRes + splitValueRes[2] + "~" );
+        							}	
         					}
         					else 
         					{
         						if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
         							vars.put( varValueRes, namespaceValueRes + splitValueRes[1] );
         						else
-        						{
-        							vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[1] + "~" );
-        							vars.put( varValueRes, vars.get( varValueRes ) + namespaceValueRes + splitValueRes[1] + "~" );
-        						}
+        							if( count > countOfTps )
+        							{
+        								vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[1] + "~" );
+        								vars.put( varValueRes, vars.get( varValueRes ) + namespaceValueRes + splitValueRes[1] + "~" );
+        							}
         					}
         				}
         				
-						if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+						if( count == countOfTps )
 						{
 							String resultInOrder = ""; 
 	        				Iterator<String> iterMap = vars.values().iterator();
@@ -155,6 +168,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 	        				context.write( new Text( resultInOrder ), new Text( "" ) );
 						}
 						else
+						if( count > countOfTps )
 						{
 							int length = vars.values().iterator().next().split( "~" ).length;
 							for( int j = 1; j < length; j++ )

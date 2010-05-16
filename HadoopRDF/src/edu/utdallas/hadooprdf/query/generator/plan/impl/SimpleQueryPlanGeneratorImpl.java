@@ -810,7 +810,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Iterate over all variables
 				for( int i = 0; i < vars.length; i++ )
 				{
-					if( hm.containsKey( vars[i] ) ) continue;
+					if( i > 0 && vars[i].equalsIgnoreCase( vars[i-1] ) ) continue;
 					//If the hashmap is empty or this variable is not found add it in the hashmap
 					//Else simply update the count of the times the variable was found
 					if( hm.isEmpty() || hm.get( vars[i] ) == null ) hm.put( vars[i], new Integer( "1" ) );
