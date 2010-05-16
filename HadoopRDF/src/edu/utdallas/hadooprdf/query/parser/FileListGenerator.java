@@ -45,8 +45,8 @@ class FileListGenerator
 	{
 		ArrayList<String> files = new ArrayList<String> ();
 		
-		if (uri.contains(".owl") == false) 
-		{
+		//if (uri.contains(".owl") == false) 
+		//{
 			try
 			{ 
 				edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
@@ -60,14 +60,14 @@ class FileListGenerator
 				{
 					if (!fstatus[i].isDir()) 
 					{
-						if( fstatus[i].getPath().getName().toString().startsWith( prefix ) )
+						if( fstatus[i].getPath().getName().toString().contains( classAssociated ) )
 							files.add( fstatus[i].getPath().getName().toString() );
 					}
 				}
 			}
 			catch( Exception e ) { e.printStackTrace(); }
-			return files;
-		}
+			//if( files.sreturn files;
+		//}
 		
 		OWLDescription mpredClass;
 		mpredClass = mManager.getOWLDataFactory().getOWLClass(URI.create(uri));		

@@ -3,6 +3,7 @@ package edu.utdallas.hadooprdf.query.jobrunner;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -84,44 +85,90 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	}
         	else
         	{
-        		if( jp.getJoiningVariablesList().size() == 1 && count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+        		List<String> listSelectVars = jp.getSelectClauseVarList();
+        		int i = 0;
+        		for( i = 0; i < listSelectVars.size(); i++ )
         		{
-        			Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
-        			Map<String,String> vars = new TreeMap<String,String>();
-        			while( iterVars.hasNext() )
+        			if( sValue.contains( listSelectVars.get( i ) ) ) continue;
+        			else break;
+        		}
+        		if( i == listSelectVars.size() )
+        		{
+        			if( jp.getJoiningVariablesList().size() == 1 )
         			{
-        				String variable = iterVars.next();
-        				vars.put( variable, variable );
-        			}
+        				Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
+        				Map<String,String> vars = new TreeMap<String,String>();
+        				while( iterVars.hasNext() )
+        				{
+        					String variable = iterVars.next();
+        					vars.put( variable, variable + "~" );
+        				}
         			
-        			String keyString = key.toString();
-        			String[] splitKey = keyString.split( "#" );
-        			String varKey = splitKey[0];
-        			String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
-        			String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
-        			if( splitKey.length > 2 ) vars.put( varKey, namespaceKey + splitKey[2] );
-        			else vars.put( varKey, namespaceKey + splitKey[1] );
+        				String keyString = key.toString();
+        				String[] splitKey = keyString.split( "#" );
+        				String varKey = splitKey[0];
+        				String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
+        				String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
+        				if( splitKey.length > 2 ) vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[2] + "~" );
+        				else vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[1] + "~" );
         			
-        			String[] splitRes = sValue.split( "\t" );
-        			for( int j = 0; j < splitRes.length; j++ )
-        			{
-        				String[] splitValueRes = splitRes[j].split( "#" );
-        				String varValueRes = splitValueRes[0];
-        				String prefixValueRes = ""; if( splitValueRes.length > 2 ) prefixValueRes = splitValueRes[1] + "#";
-        				String namespaceValueRes = null;
-        				if( varKey.equalsIgnoreCase( varValueRes ) ) continue;
-        				else namespaceValueRes = prefixTree.matchAndReplaceNamespace( prefixValueRes );
-        				if( splitValueRes.length > 2 ) vars.put( varValueRes, namespaceValueRes + splitValueRes[2] );
-        				else vars.put( varValueRes, namespaceValueRes + splitValueRes[1] );
+        				String[] splitRes = sValue.split( "\t" );
+        				for( int j = 0; j < splitRes.length; j++ )
+        				{
+        					//if( keyString.equalsIgnoreCase( splitRes[j] ) ) continue;
+        					String[] splitValueRes = splitRes[j].split( "#" );
+        					String varValueRes = splitValueRes[0];
+        					String prefixValueRes = ""; if( splitValueRes.length > 2 ) prefixValueRes = splitValueRes[1] + "#";
+        					String namespaceValueRes = null;
+        					if( varKey.equalsIgnoreCase( varValueRes ) ) continue;
+        					else namespaceValueRes = prefixTree.matchAndReplaceNamespace( prefixValueRes );
+        					if( splitValueRes.length > 2 ) 
+        					{
+        						if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+        							vars.put( varValueRes, namespaceValueRes + splitValueRes[2] );
+        						else
+        						{
+        							vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[2] + "~" );
+        							vars.put( varValueRes, vars.get( varValueRes ) + namespaceValueRes + splitValueRes[2] + "~" );
+        						}
+        					}
+        					else 
+        					{
+        						if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+        							vars.put( varValueRes, namespaceValueRes + splitValueRes[1] );
+        						else
+        						{
+        							vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[1] + "~" );
+        							vars.put( varValueRes, vars.get( varValueRes ) + namespaceValueRes + splitValueRes[1] + "~" );
+        						}
+        					}
+        				}
+        				
+						if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+						{
+							String resultInOrder = ""; 
+	        				Iterator<String> iterMap = vars.values().iterator();
+	        				while( iterMap.hasNext() )
+	        				{
+	        					resultInOrder += iterMap.next() + "\t";
+	        				}
+	        				context.write( new Text( resultInOrder ), new Text( "" ) );
+						}
+						else
+						{
+							int length = vars.values().iterator().next().split( "~" ).length;
+							for( int j = 1; j < length; j++ )
+							{
+								String resultInOrder = "";
+								Iterator<String> iterKeys = vars.keySet().iterator();
+								while( iterKeys.hasNext() )
+								{
+									resultInOrder += vars.get( iterKeys.next() ).split( "~" )[j] + "\t";
+								}
+		        				context.write( new Text( resultInOrder ), new Text( "" ) );								
+							}
+						}
         			}
-        			
-        			String resultInOrder = ""; 
-        			Iterator<String> iterMap = vars.values().iterator();
-        			while( iterMap.hasNext() )
-        			{
-        				resultInOrder += iterMap.next() + "\t";
-        			}
-        			context.write( new Text( resultInOrder ), new Text( "" ) );
         		}
         	}
         }

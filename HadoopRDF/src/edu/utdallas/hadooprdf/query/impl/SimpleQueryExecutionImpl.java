@@ -135,7 +135,7 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 
 			//Get the job id
 			int jobId = jp.getJobId();
-			
+						
 			//Get the Hadoop Job
 			Job job = jp.getHadoopJob();
 			

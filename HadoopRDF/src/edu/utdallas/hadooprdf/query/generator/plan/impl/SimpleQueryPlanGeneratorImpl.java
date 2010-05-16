@@ -62,6 +62,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	/** A map between variables and the number of triple patterns they are found in **/
 	private Map<String,Integer> varTpCountMap = new HashMap<String,Integer>();
 	
+	/**Variable for testing **/
+	private int countOfJobs = 0;
+	
 	/**
 	 * Constructor
 	 */
@@ -106,7 +109,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		int jobId = 1;
 		
 		//Get the total number of triple patterns
-		int totalTrPatterns = elements.get( 0 ).getTriple().size();
+		//int totalTrPatterns = elements.get( 0 ).getTriple().size();
 		
 		//Construct the input maps that will be used
 		constructInputMaps( elements );
@@ -118,8 +121,10 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//Initialize both input lists
 		oldInputVarList = newInputVarList = constructVarList();
 
-		while( totalTrPatterns > 0 || !newInputVarList.isEmpty() )
-		{							
+		while( tpMap.size() > 0 || !newInputVarList.isEmpty() )
+		{				
+			countOfJobs++;
+			
 			//Run the heuristic to find out if there is a common variable
 			String commonVariable = runHeuristic( newInputVarList );
 
@@ -145,6 +150,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Set the parameters for the job that are fixed in this version
 				setJobParameters( currJob );
 
+				//The list of triple patterns to be removed
+				List<Integer> tpToBeRemoved = new ArrayList<Integer>();
+				
 				//Find the position of the joining variable in each triple pattern
 				Iterator<Integer> iterTpMap = tpMap.keySet().iterator();
 				while( iterTpMap.hasNext() )
@@ -155,11 +163,11 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Get the corresponding triple pattern
 					TriplePattern tp = tpMap.get( tpId );
 					
-					//Remove that triple pattern from the 
-					//tpMap.remove( tpId );
+					//Add the triple pattern to be removed to the list 
+					tpToBeRemoved.add( tpId );
 					
 					//Reduce the number of total triple patterns by one
-					totalTrPatterns--;
+					//totalTrPatterns--;
 
 					//Set the value of the joining variable
 					tp.setJoiningVariableValue( commonVariable );
@@ -186,6 +194,12 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					jp.setPredicateBasedTriplePattern( pred, tp );					
 				}
 
+				//Remove the used triple patterns from the map
+				for( int i = 0; i < tpToBeRemoved.size(); i++ )
+				{
+					tpMap.remove( tpToBeRemoved.get( i ) );
+				}
+				
 				//If this is not the first job do the following
 				if( jobId > 1 )
 				{
@@ -226,8 +240,8 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				Iterator<Integer> iterElimCount = elimCountVarMap.keySet().iterator();
 				while( iterElimCount.hasNext() )
 				{
-					//If there is only a single triple pattern left it can be used in any join, hence break
-					if( tpMap.size() < 2 ) break;
+					//If there is only a single triple pattern left it can't be used in any join, hence break
+					if( tpMap.size() <= 2 ) break;
 
 					//Get each key
 					Integer elimCount = iterElimCount.next();
@@ -238,7 +252,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Iterate over all values
 					for( int i = 0; i < vars.length; i++ )
 					{
-						if( tpMap.size() < 2 ) break;
+						if( tpMap.size() <= 2 ) break;
 						
 						String[] trPatterns = varOrigTpBasedMap.get( vars[i] ).split( "~" );
 						for( int j = 0; j < trPatterns.length; j++ )
@@ -253,7 +267,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							tpMap.remove( new Integer( trPatterns[j] ) );
 							
 							//Reduce the number of total triple patterns by one
-							totalTrPatterns--;
+							//totalTrPatterns--;
 
 							//Set the value of the joining variable
 							tp.setJoiningVariableValue( vars[i] );
@@ -311,7 +325,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				jp.setHadoopJob( currJob );
 
 				//Set the flag for more jobs to true if there are still more triple patterns
-				if( totalTrPatterns > 0 ) jp.setHasMoreJobs( true );
+				if( tpMap.size() > 0 ) jp.setHasMoreJobs( true );
 			}
 			
 			//Add the job plan to the list of job plans
@@ -747,8 +761,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		
 		//Set the mapper and reducer classes to be used
 		currJob.setMapperClass( edu.utdallas.hadooprdf.query.jobrunner.GenericMapper.class );
+		//if( countOfJobs < 2 ) currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class );
 		currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class );
-
+		
 		//Set the number of reducers
 		currJob.setNumReduceTasks( JobParameters.numOfReducers );
 	}
@@ -795,6 +810,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Iterate over all variables
 				for( int i = 0; i < vars.length; i++ )
 				{
+					if( hm.containsKey( vars[i] ) ) continue;
 					//If the hashmap is empty or this variable is not found add it in the hashmap
 					//Else simply update the count of the times the variable was found
 					if( hm.isEmpty() || hm.get( vars[i] ) == null ) hm.put( vars[i], new Integer( "1" ) );

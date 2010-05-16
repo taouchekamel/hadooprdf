@@ -58,7 +58,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 		//Get the triple pattern associated with a predicate
 		TriplePattern tp = jp.getPredicateBasedTriplePattern( sPredicate );
 
-		if( tp != null )
+		if( !sPredicate.equalsIgnoreCase( "job" + ( jp.getJobId() - 1 ) + "-op.txt" ) )
 		{
 			//Get the subject
 			String sSubject = st.nextToken();
@@ -112,9 +112,9 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			while( st.hasMoreTokens() )
 			{
 				String token = st.nextToken();
-				if( ++count == 1 ) keyVal = token;
+				if( ++count == 1 ) { keyVal = token; continue; }
 				String[] tokenSplit = token.split( "#" );
-				if( jp.getJoiningVariablesList().contains( tokenSplit[0] ) )
+				if( jp.getJoiningVariablesList().contains( "?" + tokenSplit[0] ) )
 				{
 					context.write( new Text( token ), new Text( keyVal ) );
 				}

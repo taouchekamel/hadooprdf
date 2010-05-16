@@ -40,8 +40,8 @@ public class QueryTester
 		"	?X ub:undergraduateDegreeFrom ?Y." +
 		" }";
 */
-		//LUBM Query 3
-/*		String queryString = 
+/*		//LUBM Query 3
+		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
 		" SELECT ?X " +
@@ -82,7 +82,7 @@ public class QueryTester
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
 		" SELECT ?X WHERE { ?X rdf:type ub:Student } "; 	
 */
-/*		//LUBM Query 7
+		//LUBM Query 7
 		String queryString =
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -94,7 +94,7 @@ public class QueryTester
 		"	?X ub:takesCourse ?Y . " +
 		" 	<http://www.Department0.University0.edu/AssociateProfessor0> ub:teacherOf ?Y " +
 		" } "; 
-*/
+
 /*		//LUBM Query 8
 		String queryString =
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -170,7 +170,7 @@ public class QueryTester
 		"	<http://www.University0.edu> ub:hasAlumnus ?X " +
 		" } " ; 
 */
-		//LUBM Query 14
+/*		//LUBM Query 14
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -179,7 +179,7 @@ public class QueryTester
 		" { " +
 		"	?X rdf:type ub:UndergraduateStudent " +
 		" } "; 
-	
+*/	
 		//Create the Hadoop configuration to be used
 		//TODO: This should be moved to the QueryExecution ??
 		Configuration config = new Configuration();
