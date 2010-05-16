@@ -85,13 +85,30 @@ class FileListGenerator
 			while( iterAllClasses.hasNext() )
 			{
 				OWLClass sClass = iterAllClasses.next();
-				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass) ) continue;
+				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass) || !mReasoner.isEquivalentClass( sClass, mpredClass ) ) continue;
 				String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";	
 
 				if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
 					files.add( fileName );
 			}
 			
+			if( files.size() == 0 )
+			{
+				Iterator<OWLDescription> iterSuperClasses = mpredClass.asOWLClass().getSuperClasses( mManager.getOntologies() ).iterator();
+				while( iterSuperClasses.hasNext() )
+				{
+					Iterator<OWLDescription> iterSubClasses = iterSuperClasses.next().asOWLClass().getSubClasses( mManager.getOntologies() ).iterator();
+					while( iterSubClasses.hasNext() )
+					{
+						OWLClass sClass = iterSubClasses.next().asOWLClass();
+						if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) ) continue;
+						String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";	
+
+						if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
+							files.add( fileName );					
+					}
+				}
+			}
 			if( files.size() == 0 ) files.add( prefix + ".pos" );				
 			isFilesAdded = true;
 		}

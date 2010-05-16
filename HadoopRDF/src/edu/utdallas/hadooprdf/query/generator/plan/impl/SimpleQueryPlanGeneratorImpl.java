@@ -224,6 +224,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 
 				//Set a flag to denote that there are no more jobs
 				jp.setHasMoreJobs( false );
+				
+				//Update the variables list
+				newInputVarList.clear(); oldInputVarList.clear();
 			}
 			else
 			{			
@@ -255,6 +258,11 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 						if( checkIfOneTpLeft() ) break;
 						
 						String[] trPatterns = varOrigTpBasedMap.get( vars[i] ).split( "~" );
+						
+						//If there is only a single triple pattern associated with a variable, it is not a variable that can
+						//be joined on
+						if( trPatterns.length == 1 ) continue;
+						
 						for( int j = 0; j < trPatterns.length; j++ )
 						{
 							//Get the triple pattern associated with the current value
@@ -287,7 +295,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							else
 							{
 								tp.setJoiningVariable( "o" );
-								if( tp.getObjectValue().isVariable() ) tp.setSecondVariableValue( tp.getObjectValue().toString() ); 
+								if( tp.getSubjectValue().isVariable() ) tp.setSecondVariableValue( tp.getSubjectValue().toString() ); 
 							}
 							
 							//Get the predicate, i.e. filename
@@ -324,19 +332,18 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Add the Hadoop Job to the JobPlan
 				jp.setHadoopJob( currJob );
 
+				//Update the variables list
+				newInputVarList = updateVariableList( oldInputVarList ); oldInputVarList = newInputVarList;
+				
 				//Set the flag for more jobs to true if there are still more triple patterns
-				if( tpMap.size() > 0 ) jp.setHasMoreJobs( true );
+				if( tpMap.size() > 0 || !newInputVarList.isEmpty() ) jp.setHasMoreJobs( true );
 			}
 			
 			//Add the job plan to the list of job plans
 			jpList.add( jp );
 
 			//Increment the job identifiers
-			jobId++;
-			
-			//Update the variables list
-			if( commonVariable != null ) { newInputVarList.clear(); oldInputVarList.clear(); }
-			else { newInputVarList = updateVariableList( oldInputVarList ); oldInputVarList = newInputVarList; }
+			jobId++;			
 		}
 		
 		//Add the list of job plans to the query plan
@@ -346,6 +353,10 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		return qp;
 	}
 
+	/**
+	 * A method that checks if we are left only a single triple pattern from the original SPARQL query
+	 * @return true iff one original triple pattern is left, false otherwise
+	 */
 	private boolean checkIfOneTpLeft()
 	{
 		boolean isFirstKey = true; int parentTpId = 0, countOfParentTpId = 0;
@@ -751,7 +762,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			//If the variable count hashmap is empty add a new entry based on the current elimination count in the sorted array 
 			//and the variables that have that value
 			//Else get the old variables list from the hashmap and update it
-			if( elimCountVarMap.isEmpty() )
+			if( elimCountVarMap.isEmpty() || elimCountVarMap.get( ( Integer )inArr[i] ) == null )
 				elimCountVarMap.put( ( Integer )inArr[i], varsWithSameElimCount );
 			else
 				elimCountVarMap.put( ( Integer )inArr[i], elimCountVarMap.get( ( Integer )inArr[i] ) + varsWithSameElimCount );

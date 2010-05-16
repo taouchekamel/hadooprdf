@@ -118,6 +118,11 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 				{
 					context.write( new Text( token ), new Text( keyVal ) );
 				}
+				else
+					if( jp.getSelectClauseVarList().contains( tokenSplit[0] ) )
+					{
+						context.write( new Text( keyVal ), new Text( token ) );
+					}
 			}
 		}
 	}
