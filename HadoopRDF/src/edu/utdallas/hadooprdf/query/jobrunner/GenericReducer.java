@@ -184,7 +184,66 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         		}
     			else
     			{
-    				context.write( key, new Text( sValue ) );
+    				String[] splitVal = sValue.split( "\t" );
+    				if( sValue.contains( "m&" ) && splitVal.length > 1 )
+    				{
+         				Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
+        				Map<String,String> vars = new TreeMap<String,String>();
+        				while( iterVars.hasNext() )
+        				{
+        					String variable = iterVars.next();
+        					vars.put( variable, variable + "~" );
+        				}
+
+        				String keyString = key.toString();
+        				String[] splitKeyIntoVars = keyString.split( "~" );
+        				for( int i = 0; i < splitKeyIntoVars.length; i++ )
+        				{
+            				String[] splitKey = splitKeyIntoVars[i].split( "#" );
+            				String varKey = splitKey[0];
+            				String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
+            				String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
+            				if( splitKey.length > 2 ) 
+            					vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[2] + "~" );
+            				else 
+            					vars.put( varKey, vars.get( varKey ) + namespaceKey + splitKey[1] + "~" );
+        				}
+
+        				for( int i = 0; i < splitVal.length; i++ )
+    					{
+    						if( splitVal[i].equalsIgnoreCase( "m&" ) ) continue;
+        					String[] splitValueRes = splitVal[i].split( "#" );
+        					String varValueRes = splitValueRes[0];
+        					String prefixValueRes = ""; if( splitValueRes.length > 2 ) prefixValueRes = splitValueRes[1] + "#";
+        					String namespaceValueRes = prefixTree.matchAndReplaceNamespace( prefixValueRes );
+        					if( splitValueRes.length > 2 ) 
+								vars.put( varValueRes, vars.get( varValueRes ) + namespaceValueRes + splitValueRes[2] + "~" );
+        					else 
+								vars.put( varValueRes, vars.get( varValueRes ) + namespaceValueRes + splitValueRes[1] + "~" );
+    					}
+    					
+						String resultInOrder = "";
+						Iterator<String> iterKeys = vars.keySet().iterator();
+						while( iterKeys.hasNext() )
+						{
+							String keyVarMap = iterKeys.next();
+							if( jp.getJoiningVariablesList().contains( "?" + keyVarMap ) ) continue;
+							String[] splitValue = vars.get( keyVarMap ).split( "~" );
+							for( int i = 1; i < splitValue.length; i++ )
+							{
+								String joinVarValues = "";
+								Iterator<String> iterDuplKeys = vars.keySet().iterator();
+								while( iterDuplKeys.hasNext() )
+								{
+									String duplKeyVarMap = iterDuplKeys.next();
+									if( !jp.getJoiningVariablesList().contains( "?" + duplKeyVarMap ) ) continue;
+									joinVarValues += vars.get( duplKeyVarMap ).split( "~" )[1] + "\t";
+								}
+								resultInOrder += splitValue[i] + "\t" + joinVarValues;
+								context.write( new Text( resultInOrder ), new Text( "" ) );
+							}
+						}
+    				}
     			}
         	}
         }

@@ -107,17 +107,17 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 						String sObject = st.nextToken();
 						if( tp.getJoiningVariableValue().contains( "s" ) )
 						{
-							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject ), 
-									       new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ) );
-							context.write( new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ), 
-								       	   new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject ) );
+							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject + "~" + tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ), 
+									       new Text( "m&" ) );
+							//context.write( new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ), 
+								       	   //new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject ) );
 						}
 						else
 						{
-							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sObject ), 
-								       new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sSubject ) );							
-							context.write( new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sSubject ), 
-							       	   new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sObject ) );
+							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sObject + "~" + tp.getSecondVariableValue().substring( 2 ) + "#" + sSubject ), 
+								       new Text( "m&" ) );							
+							//context.write( new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sSubject ), 
+							       	   //new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sObject ) );
 						}
 					}
 			}
@@ -127,20 +127,44 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			int count = 0;
 			String keyVal = "";
 			
-			while( st.hasMoreTokens() )
+			if( jp.getJoiningVariablesList().size() == 1 )
 			{
-				String token = st.nextToken();
-				if( ++count == 1 ) { keyVal = token; continue; }
-				String[] tokenSplit = token.split( "#" );
-				if( jp.getJoiningVariablesList().contains( "?" + tokenSplit[0] ) )
+				while( st.hasMoreTokens() )
 				{
-					context.write( new Text( token ), new Text( keyVal ) );
+					String token = st.nextToken();
+					if( ++count == 1 ) { keyVal = token; continue; }
+					String[] tokenSplit = token.split( "#" );
+					if( jp.getJoiningVariablesList().contains( "?" + tokenSplit[0] ) )
+						context.write( new Text( token ), new Text( keyVal ) );
+					else
+						if( jp.getSelectClauseVarList().contains( tokenSplit[0] ) )
+							context.write( new Text( keyVal ), new Text( token ) );
 				}
-				else
-					if( jp.getSelectClauseVarList().contains( tokenSplit[0] ) )
+			}
+			else
+			{
+				st = null;
+				String[] splitVar = value.toString().split( "\t" );
+				keyVal = splitVar[0];
+				String firstJoinVarValue = "";
+				String secondJoinVarValue = "";
+				for( int i = 1; i < splitVar.length; i++ )
+				{
+					if( splitVar[i].equalsIgnoreCase( keyVal ) ) continue;
+					if( !splitVar[i].substring( 0, 1 ).equalsIgnoreCase( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
+						secondJoinVarValue += splitVar[i] + "\t";
+					else
+						firstJoinVarValue += splitVar[i] + "\t";
+				}
+				String[] splitFirstVarValue = firstJoinVarValue.split( "\t" );
+				String[] splitSecondVarValue = secondJoinVarValue.split( "\t" );
+				for( int x = 0; x < splitFirstVarValue.length; x++ )
+				{
+					for( int y = 0; y < splitSecondVarValue.length; y++ )
 					{
-						context.write( new Text( keyVal ), new Text( token ) );
+						context.write( new Text( splitFirstVarValue[x] + "~" + splitSecondVarValue[y] ), new Text( keyVal ) );
 					}
+				}
 			}
 		}
 	}
