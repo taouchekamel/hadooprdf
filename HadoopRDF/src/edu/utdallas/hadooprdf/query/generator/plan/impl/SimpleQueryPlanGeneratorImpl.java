@@ -108,9 +108,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//The job identifier
 		int jobId = 1;
 		
-		//Get the total number of triple patterns
-		//int totalTrPatterns = elements.get( 0 ).getTriple().size();
-		
 		//Construct the input maps that will be used
 		constructInputMaps( elements );
 		
@@ -142,8 +139,10 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			
 			//The case where there is a common variable involves only a single job
 			//Else run the "elimination count" algorithm
-			if( commonVariable != null )
+			if( !commonVariable.equalsIgnoreCase( "" ) )
 			{
+				String[] splitCommonVar = commonVariable.split( "~" );
+
 				//Use the configuration to define a Hadoop Job
 				Job currJob = new Job( hadoopConfig, "HeuristicBasedJob" );
 
@@ -166,22 +165,37 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//Add the triple pattern to be removed to the list 
 					tpToBeRemoved.add( tpId );
 					
-					//Reduce the number of total triple patterns by one
-					//totalTrPatterns--;
-
 					//Set the value of the joining variable
-					tp.setJoiningVariableValue( commonVariable );
+					if( splitCommonVar.length == 1 ) 
+					{
+						tp.setJoiningVariableValue( splitCommonVar[0] );
 
-					//Set the value of the joining variable and the second variable (if it exists) for the current triple pattern
-					if( tp.getSubjectValue().toString().equalsIgnoreCase( commonVariable ) )
-					{ 
-						tp.setJoiningVariable( "s" ); 
-						if( tp.getObjectValue().isVariable() ) tp.setSecondVariableValue( tp.getObjectValue().toString() ); 
+						//Set the value of the joining variable and the second variable (if it exists) for the current triple pattern
+						if( tp.getSubjectValue().toString().equalsIgnoreCase( splitCommonVar[0] ) )
+						{ 
+							tp.setJoiningVariable( "s" ); 
+							if( tp.getObjectValue().isVariable() ) tp.setSecondVariableValue( tp.getObjectValue().toString() ); 
+						}
+						else
+						{
+							tp.setJoiningVariable( "o" );
+							if( tp.getSubjectValue().isVariable() ) tp.setSecondVariableValue( tp.getSubjectValue().toString() ); 
+						}
 					}
 					else
 					{
-						tp.setJoiningVariable( "o" );
-						if( tp.getSubjectValue().isVariable() ) tp.setSecondVariableValue( tp.getSubjectValue().toString() ); 
+						tp.setJoiningVariable( "so" );
+						
+						if( tp.getSubjectValue().toString().equalsIgnoreCase( splitCommonVar[0] ) )
+						{
+							tp.setJoiningVariableValue( "s" + splitCommonVar[0] ); 
+							tp.setSecondVariableValue( "o" + splitCommonVar[1] );
+						}
+						else
+						{
+							tp.setJoiningVariableValue( "o" + splitCommonVar[0] ); 
+							tp.setSecondVariableValue( "s" + splitCommonVar[1] );							
+						}
 					}
 					
 					//Get the predicate, i.e. filename
@@ -207,12 +221,26 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToTemp(), "job" + ( jobId - 1 ) + "-op.txt" ) );
 				}
 
-				//Add the joining variable to the job plan
-				jp.addVarToJoiningVariables( commonVariable );
-				
-				//Set the total triple patterns associated with this variable in the job plan
-				jp.setVarTrPatternCount( commonVariable, varTpCountMap.get( commonVariable ) );
+				if( splitCommonVar.length == 1 ) 
+				{ 
+					//Add the joining variable to the job plan
+					jp.addVarToJoiningVariables( splitCommonVar[0] );
+					
+					//Set the total triple patterns associated with this variable in the job plan
+					jp.setVarTrPatternCount( splitCommonVar[0], varTpCountMap.get( splitCommonVar[0] ) );
+				}
+				else
+				{
+					for( int i = 0; i < splitCommonVar.length; i++ )
+					{
+						//Add the joining variable to the job plan
+						jp.addVarToJoiningVariables( splitCommonVar[i] );
 
+						//Set the total triple patterns associated with this variable in the job plan
+						jp.setVarTrPatternCount( splitCommonVar[i], varTpCountMap.get( splitCommonVar[i] ) );					
+					}
+				}
+				
 				//Add the output file to the Job object
 				Path opPath = new Path( dataset.getPathToTemp(), "test" + jobId );
 				FileSystem fs = FileSystem.get( hadoopConfig );
@@ -274,9 +302,6 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							//Remove that triple pattern from the 
 							tpMap.remove( new Integer( trPatterns[j] ) );
 							
-							//Reduce the number of total triple patterns by one
-							//totalTrPatterns--;
-
 							//Set the value of the joining variable
 							tp.setJoiningVariableValue( vars[i] );
 							
@@ -535,6 +560,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//The list of variables
 		List<String> strInputVarsList = new ArrayList<String>();
 		
+		//An arraylist of the parent triple pattern identifiers
+		List<Integer> parentTpIds = new ArrayList<Integer>();
+		
 		//Iterate over the triple patterns from the input SPARQL query
 		Iterator<Integer> iterTpMap = tpMap.keySet().iterator();
 		while( iterTpMap.hasNext() )
@@ -544,6 +572,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			
 			//Get the corresponding triple pattern
 			TriplePattern tp = tpMap.get( tpId );
+			
+			//Get the parent triple pattern identifier
+			Integer parentTpId = tp.getParentTriplePatternId();
+			
+			//If the list contains the parent identifier, then continue else add the id to the list
+			if( parentTpIds.contains( parentTpId ) ) continue;
+			else parentTpIds.add( parentTpId );
 			
 			//The string of associated variables from the current triple pattern
 			String vars = "";
@@ -816,7 +851,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		boolean isAborted = false;
 
 		//The variable that is common to all triple patterns
-		String commonVariable = null;
+		String commonVariable = "";
 
 		//Check if all elements share a common variable
 		Iterator<String> elemIter = elements.iterator();
@@ -863,7 +898,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			while( keyIter.hasNext() )
 			{
 				String key = keyIter.next();
-				if( hm.get( key ).intValue() == elements.size() ) { commonVariable = key; break; }
+				if( hm.get( key ).intValue() == elements.size() ) { commonVariable += key + "~"; }
 			}
 		}
 		return commonVariable;

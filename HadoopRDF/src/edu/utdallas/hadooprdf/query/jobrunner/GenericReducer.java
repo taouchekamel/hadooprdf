@@ -64,8 +64,6 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
             sValue += iter.next().toString() + '\t';
         }
         
-        //TODO: How to find the order of results with the given query, may need rearranging of value here
-        //TODO: Sometimes only the key is the result, sometimes the key and part of the value is the result, how to find this out ??
         //Write the result
         if( !jp.getHasMoreJobs() )
         {
@@ -85,17 +83,17 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	}
         	else
         	{
-        		List<String> listSelectVars = jp.getSelectClauseVarList();
-        		int i = 0;
-        		for( i = 0; i < listSelectVars.size(); i++ )
-        		{
-        			if( sValue.contains( listSelectVars.get( i ) ) ) continue;
-        			else break;
-        		}
-        		if( i == listSelectVars.size() )
-        		{
-        			if( jp.getJoiningVariablesList().size() == 1 )
-        			{
+    			if( jp.getJoiningVariablesList().size() == 1  )
+    			{
+    				List<String> listSelectVars = jp.getSelectClauseVarList();
+    				int i = 0;
+    				for( i = 0; i < listSelectVars.size(); i++ )
+    				{
+    					if( sValue.contains( listSelectVars.get( i ) ) ) continue;
+    					else break;
+    				}
+    				if( i == listSelectVars.size() )
+    				{
         				int countOfTps = jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) );
 
         				Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
@@ -184,6 +182,10 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 						}
         			}
         		}
+    			else
+    			{
+    				context.write( key, new Text( sValue ) );
+    			}
         	}
         }
         else

@@ -64,7 +64,8 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			String sSubject = st.nextToken();
 
 			//Get the joining variable value
-			String joiningVariableValue = tp.getJoiningVariableValue().substring( 1 ) + "#";
+			String joiningVariableValue = null;
+			if( !tp.getJoiningVariable().equalsIgnoreCase( "so" ) ) joiningVariableValue = tp.getJoiningVariableValue().substring( 1 ) + "#";
 			
 			//If file is of a standard predicate such as rdf, rdfs etc, we need to output only the subject since this is all the file contains
 			//Else depending on the number of variables in the triple pattern we output subject-subject, subject-object, object-subject or object-object 
@@ -101,6 +102,24 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 								context.write( new Text( joiningVariableValue + sObject ), new Text( joiningVariableValue + sObject ) );
 						}
 					}
+					else
+					{
+						String sObject = st.nextToken();
+						if( tp.getJoiningVariableValue().contains( "s" ) )
+						{
+							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject ), 
+									       new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ) );
+							context.write( new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ), 
+								       	   new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject ) );
+						}
+						else
+						{
+							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sObject ), 
+								       new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sSubject ) );							
+							context.write( new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sSubject ), 
+							       	   new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sObject ) );
+						}
+					}
 			}
 		}
 		else
@@ -108,7 +127,6 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			int count = 0;
 			String keyVal = "";
 			
-			//TODO: How to handle multiple prefixes in the same line
 			while( st.hasMoreTokens() )
 			{
 				String token = st.nextToken();

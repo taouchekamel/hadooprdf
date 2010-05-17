@@ -85,7 +85,7 @@ class FileListGenerator
 			while( iterAllClasses.hasNext() )
 			{
 				OWLClass sClass = iterAllClasses.next();
-				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass) || !mReasoner.isEquivalentClass( sClass, mpredClass ) ) continue;
+				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass) ) continue;
 				String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";	
 
 				if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
