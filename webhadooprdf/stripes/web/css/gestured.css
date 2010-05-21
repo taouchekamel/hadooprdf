@@ -403,3 +403,12 @@ img.right {
 
 #footer .copyright {
 }
+th.sorted {
+background-color: #EECCAA;
+}
+th.order1 {
+background-image: url(../images/gradient_asc.png);
+}
+th.order2 {
+background-image: url(../images/gradient_desc.png);
+}
