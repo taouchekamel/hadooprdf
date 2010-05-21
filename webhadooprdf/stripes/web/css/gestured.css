@@ -11,7 +11,7 @@ body {
 	background: #000000;
 	text-align: justify;
 	font-family:  Tahoma, Arial, Helvetica, sans-serif;
-	font-size: 11px;
+	font-size: 14px;
 	color: #FFFFFF;
 }
 
@@ -37,11 +37,12 @@ ul {
 
 a {
 	text-decoration: none;
-	color: #2C4449;
+	color:olive;
 }
 
 a:hover {
 	border-bottom: none;
+        color: #FFFFFF;
 }
 
 a img {
@@ -67,7 +68,7 @@ img.right {
 
 #logo {
 	width: 960px;
-	height: 191px;
+	height: 161px;
 	margin: 0 auto;
 	background: url(../images/img02.jpg) no-repeat left top;
 }
@@ -85,7 +86,7 @@ img.right {
 	padding: 25px 0 0 30px;
 	letter-spacing: -1px;
 	font-weight: normal;
-	font-size: 3.8em;
+	font-size: 2.5em;
 }
 
 #logo p {
@@ -180,9 +181,11 @@ img.right {
 }
 
 .post {
+        border-top: 1px #2C4449 solid;
+        padding-top: 15px;
 	padding-bottom: 15px;
 	line-height: 200%;
-	border-bottom: 1px #2C4449 solid;
+/*	border-bottom: 1px #2C4449 solid;*/
 }
 
 .post h1 {
@@ -403,12 +406,15 @@ img.right {
 
 #footer .copyright {
 }
-th.sorted {
-background-color: #EECCAA;
+
+/*th.sorted {
+    background-color: #EECCAA;
 }
+
 th.order1 {
-background-image: url(../images/gradient_asc.png);
+    background-image: url(../images/gradient_asc.png);
 }
+
 th.order2 {
-background-image: url(../images/gradient_desc.png);
-}
+    background-image: url(../images/gradient_desc.png);
+}*/

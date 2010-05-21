@@ -13,11 +13,13 @@ import net.sourceforge.stripes.action.Resolution;
  *
  * @author Asif Mohammed
  */
-public class AddDatasetActionBean extends BaseActionBean{
-    private  static final String view="/WEB-INF/jsp/add_dataset.jsp";
+public class ViewPoliciesActionBean extends BaseActionBean {
 
-    @DefaultHandler
+   public static final String  view="/WEB-INF/jsp/view_policies.jsp";
+
+     @DefaultHandler
     public Resolution defaultView(){
        return new ForwardResolution(view);
     }
+
 }

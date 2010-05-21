@@ -1,12 +1,11 @@
 <%-- 
-    Document   : add_dataset
-    Created on : May 21, 2010, 1:59:24 AM
+    Document   : view_policies
+    Created on : May 21, 2010, 6:15:45 AM
     Author     : hadoop
 --%>
 
-
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp" %>
-<s:layout-render name="/WEB-INF/jsp/common/layout_main.jsp" title="Add Datasets">
+<s:layout-render name="/WEB-INF/jsp/common/layout_main.jsp" title="View Policies">
     <s:layout-component name="body">
        <%-- <table>
             <tr>
@@ -18,7 +17,7 @@
              </tr>
              </c:forEach>
         </table>--%>
-        <%--  <d:table name="${actionBean.datasets}" id="contact" requestURI=""
+       <%--   <d:table name="${actionBean.datasets}" id="contact" requestURI=""
         defaultsort="1" >
             <d:column title="Dataset name" property="name" sortable="true" />
         </d:table>--%>

@@ -13,11 +13,11 @@ import edu.utdallas.hadooprdf.data.metadata.DataSet;
  */
 public class DataSetInfo {
     private String name;
-    private DataSet dataSet;
+    private DataSet dataset;
 
     public DataSetInfo(String key, DataSet ds) {
         name=key;
-        dataSet=ds;
+        dataset=ds;
     }
 
     /**
@@ -28,10 +28,10 @@ public class DataSetInfo {
     }
 
     /**
-     * @return the dataSet
+     * @return the dataset
      */
-    public DataSet getDataSet() {
-        return dataSet;
+    public DataSet getDataset() {
+        return dataset;
     }
 
     /**
@@ -42,9 +42,9 @@ public class DataSetInfo {
     }
 
     /**
-     * @param dataSet the dataSet to set
+     * @param dataset the dataset to set
      */
-    public void setDataSet(DataSet dataSet) {
-        this.dataSet = dataSet;
+    public void setDataset(DataSet dataset) {
+        this.dataset = dataset;
     }
 }
