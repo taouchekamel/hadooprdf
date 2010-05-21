@@ -4,18 +4,10 @@
     Author     : hadoop
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@include file="/WEB-INF/jsp/common/taglibs.jsp" %>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-   "http://www.w3.org/TR/html4/loose.dtd">
-
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <table>
+<s:layout-render name="/WEB-INF/jsp/common/layout_main.jsp" title="Browse Datasets">
+    <s:layout-component name="body">
+       <%-- <table>
             <tr>
                 <th>DataSet Name</th>
            </tr>
@@ -24,6 +16,11 @@
                 <td>${datasetinfo.name}</td>
              </tr>
              </c:forEach>
-        </table>
-    </body>
-</html>
+        </table>--%>
+          <d:table name="${actionBean.datasets}" id="contact" requestURI=""
+        defaultsort="1" >
+            <d:column title="Dataset name" property="name" sortable="true" />
+        </d:table>
+    </s:layout-component>
+</s:layout-render>
+
