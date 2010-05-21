@@ -69,7 +69,7 @@ img.right {
 	width: 960px;
 	height: 191px;
 	margin: 0 auto;
-	background: url(images/img02.jpg) no-repeat left top;
+	background: url(../images/img02.jpg) no-repeat left top;
 }
 
 #logo h1, #logo p {
@@ -82,11 +82,10 @@ img.right {
 }
 
 #logo h1 {
-	padding: 25px 0 0 40px;
+	padding: 25px 0 0 30px;
 	letter-spacing: -1px;
-	text-transform: lowercase;
 	font-weight: normal;
-	font-size: 4.8em;
+	font-size: 3.8em;
 }
 
 #logo p {
@@ -111,7 +110,7 @@ img.right {
 	padding: 0;
 	height: 55px;
 	padding-top: 35px;
-	background: url(images/img01.jpg) repeat-x left top;
+	background: url(../images/img01.jpg) repeat-x left top;
 }
 
 #menu ul {
@@ -129,7 +128,7 @@ img.right {
 	height: 40px;
 	margin: 0;
 	padding: 40px 30px 0 30px;
-	background: url(images/img06.jpg) no-repeat right 15px;
+	background: url(../images/img06.jpg) no-repeat right 15px;
 	text-decoration: none;
 	text-transform: uppercase;
 	font-size: 11px;
@@ -159,7 +158,7 @@ img.right {
 	width: 960px;
 	margin: 0 auto;
 	padding: 0px;
-	background: url(images/img03.jpg) no-repeat left top;
+	background: url(../images/img03.jpg) no-repeat left top;
 }
 
 #page-bg {
@@ -225,7 +224,7 @@ img.right {
 .links {
 	width: 80px;
 	height: 33px;
-	background: url(images/img05.jpg) no-repeat left top;
+	background: url(../images/img05.jpg) no-repeat left top;
 	text-align: right;
 	font-weight: bold;
 }
