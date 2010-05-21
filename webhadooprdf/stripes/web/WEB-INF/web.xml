@@ -21,6 +21,10 @@
       <param-name>ActionResolver.Packages</param-name><!-- (2) -->
       <param-value>edu.utdallas.webhadooprdf.stripes.action</param-value>
     </init-param>
+     <init-param>
+        <param-name>Extension.Packages</param-name>
+        <param-value>org.stripesbook.reload.extensions</param-value>
+  </init-param>
   </filter>
 
   <servlet><!-- (3) -->
