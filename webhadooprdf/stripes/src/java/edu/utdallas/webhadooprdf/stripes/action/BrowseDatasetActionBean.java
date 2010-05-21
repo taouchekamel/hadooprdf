@@ -25,13 +25,13 @@ import net.sourceforge.stripes.action.Resolution;
  */
 public class BrowseDatasetActionBean extends BaseActionBean{
 
-    private  static final String dsview="/WEB-INF/jsp/browse_dataset.jsp";
+    private  static final String view="/WEB-INF/jsp/browse_dataset.jsp";
     private ArrayList<DataSetInfo> dataSets;
     private static HadoopRDF hrdf;
 
     @DefaultHandler
     public Resolution dataSetView(){
-        return new ForwardResolution(dsview);
+          return new ForwardResolution(view);
     }
 
     public List<DataSetInfo> getDatasets(){
@@ -49,6 +49,8 @@ public class BrowseDatasetActionBean extends BaseActionBean{
             Map.Entry<String,DataSet> entry = (Map.Entry<String,DataSet>)iterator.next();
             dataSets.add(new DataSetInfo(entry.getKey(),entry.getValue()));
          }
+        //ADDING DUMMY DATA FOR TESTING
+        dataSets.add(new DataSetInfo("LUBM",null));
 
     } catch (HadoopRDFException ex) {
         Logger.getLogger(BrowseDatasetActionBean.class.getName()).log(Level.SEVERE, null, ex);
