@@ -51,6 +51,9 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 		//Tokenize the value
 		StringTokenizer st = new StringTokenizer( value.toString(), "\t" ); 
 
+		//Count of tokens
+		int countOfTokens = st.countTokens();
+		
 		//First check if the key is an input filename, if it is then do file processing based map
 		//Else this maybe a second job, do a prefix based map
 		String sPredicate = ((FileSplit) context.getInputSplit()).getPath().getName();
@@ -134,10 +137,10 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 					String token = st.nextToken();
 					if( ++count == 1 ) { keyVal = token; continue; }
 					String[] tokenSplit = token.split( "#" );
-					if( jp.getJoiningVariablesList().contains( "?" + tokenSplit[0] ) )
+					if( ( countOfTokens - 1 ) >= jp.getVarTrPatternCount( "?" + tokenSplit[0] ) && jp.getJoiningVariablesList().contains( "?" + tokenSplit[0] ) )
 						context.write( new Text( token ), new Text( keyVal ) );
 					else
-						if( jp.getSelectClauseVarList().contains( tokenSplit[0] ) )
+						if( ( countOfTokens - 1 ) == jp.getVarTrPatternCount( "?" + tokenSplit[0] ) && jp.getSelectClauseVarList().contains( tokenSplit[0] ) )
 							context.write( new Text( keyVal ), new Text( token ) );
 				}
 			}

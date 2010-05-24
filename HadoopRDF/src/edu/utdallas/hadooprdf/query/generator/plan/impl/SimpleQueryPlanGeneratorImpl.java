@@ -221,11 +221,20 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToTemp(), "job" + ( jobId - 1 ) + "-op.txt" ) );
 				}
 
+				//Set the total triple patterns associated with each triple pattern in the job plan
+				Iterator<String> iterKeys = varTpCountMap.keySet().iterator();
+				while( iterKeys.hasNext() )
+				{
+					String key = iterKeys.next();
+					Integer value = varTpCountMap.get( key );
+					jp.setVarTrPatternCount( key, value );
+				}
+
 				if( splitCommonVar.length == 1 ) 
 				{ 
 					//Add the joining variable to the job plan
 					jp.addVarToJoiningVariables( splitCommonVar[0] );
-					
+										
 					//Set the total triple patterns associated with this variable in the job plan
 					jp.setVarTrPatternCount( splitCommonVar[0], varTpCountMap.get( splitCommonVar[0] ) );
 				}
@@ -339,6 +348,15 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 						//Set the total triple patterns associated with this variable in the job plan
 						jp.setVarTrPatternCount( vars[i], varTpCountMap.get( vars[i] ) );
 					}
+				}
+				
+				//Set the total triple patterns associated with each triple pattern in the job plan
+				Iterator<String> iterKeys = varTpCountMap.keySet().iterator();
+				while( iterKeys.hasNext() )
+				{
+					String key = iterKeys.next();
+					Integer value = varTpCountMap.get( key );
+					jp.setVarTrPatternCount( key, value );
 				}
 				
 				//If this is not the first job do the following

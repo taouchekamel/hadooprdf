@@ -109,7 +109,7 @@ public class QueryTester
 		"	?X ub:emailAddress ?Z " +
 		" } ";
 */		
-		//LUBM Query 9
+/*		//LUBM Query 9
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -123,7 +123,7 @@ public class QueryTester
 		"	?Y ub:teacherOf ?Z . " +
 		"	?X ub:takesCourse ?Z " +
 		" } "; 
-		
+*/		
 /*		//LUBM Query 10
 		String queryString =
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -146,19 +146,21 @@ public class QueryTester
 		"	?X ub:subOrganizationOf <http://www.University0.edu> " +
 		" } ";
 */		
-/*		//LUBM Query 12
+		//LUBM Query 12
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
 		" SELECT ?X ?Y " +
 		" WHERE " +
 		" { " +
-		"	?X rdf:type ub:Chair . " +
+//		"	?X rdf:type ub:Chair . " +
+		" 	?X rdf:type ub:Professor . " +
+		"  	?X ub:headOf ?Y . " +
 		"	?Y rdf:type ub:Department . " +
 		"	?X ub:worksFor ?Y . " +
 		"	?Y ub:subOrganizationOf <http://www.University0.edu> " +
 		" } "; 
-*/		
+		
 /*		//LUBM Query 13 - Not supported yet
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
