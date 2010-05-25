@@ -52,6 +52,7 @@ public class QueryRewriter
 			int index1 = classAssociated.lastIndexOf("#");
 			classAssociated = classAssociated.substring (index1, classAssociated.length ());
 			ArrayList<String> files = fetchAssociatedFilesForTriple(triple.getObject().toString(), classAssociated, triple.getPredicate().getURI (), filesGen);
+			if( FileListGenerator.isInverse ) triple = getHadoopTriple( new HadoopElement.HadoopTriple( tripleList.get(indices.get(i)).getObject(), predicate, tripleList.get(indices.get(i)).getSubject() ), prefixTree );
 			triple.addFiles (files);
 			tripleListMap.put(indices.get(i), triple);			
 		}	
@@ -78,6 +79,7 @@ public class QueryRewriter
 		int index1 = classAssociated.lastIndexOf("#");
 		classAssociated = classAssociated.substring (index1, classAssociated.length ());
 		ArrayList<String> files = fetchAssociatedFilesForTriple(triple.getObject().toString(), classAssociated, tTriple.getPredicate().getURI (), filesGen);
+		if( FileListGenerator.isInverse ) triple = getHadoopTriple( new HadoopElement.HadoopTriple( triple.getObject(), predicate, triple.getSubject() ), prefixTree );
 		tTriple.addFiles (files);
 		tripleMap.put(index, tTriple);
 		tTriple = null;
@@ -210,7 +212,7 @@ public class QueryRewriter
 		return (ArrayList<String>) filelistgen.getFilesAssociatedWithTriple(uri, classAssociated, prefix);
 	}
 	
-	public static List<HadoopElement>  rewriteQuery( Query query, PrefixNamespaceTree prefixTree, DataSet dataset ) 
+	public static List<HadoopElement> rewriteQuery( Query query, PrefixNamespaceTree prefixTree, DataSet dataset ) 
 	throws Exception  
 	{			
 		FileListGenerator fileListGenerator = null;

@@ -13,6 +13,8 @@ import org.mindswap.pellet.owlapi.Reasoner;
 import org.semanticweb.owl.apibinding.OWLManager;
 import org.semanticweb.owl.model.OWLClass;
 import org.semanticweb.owl.model.OWLDescription;
+import org.semanticweb.owl.model.OWLObjectProperty;
+import org.semanticweb.owl.model.OWLObjectPropertyExpression;
 import org.semanticweb.owl.model.OWLOntologyCreationException;
 import org.semanticweb.owl.model.OWLOntologyManager;
 
@@ -25,6 +27,7 @@ class FileListGenerator
 	private OWLOntologyManager mManager = OWLManager.createOWLOntologyManager();
 	private Reasoner mReasoner = new Reasoner(mManager);
 	private DataSet dataset = null;
+	public static boolean isInverse = false;
 	
 	public FileListGenerator (edu.utdallas.hadooprdf.query.parser.Query query, DataSet dataset ) throws OWLOntologyCreationException 
 	{
@@ -81,6 +84,36 @@ class FileListGenerator
 			FileSystem fs;
 			fs = FileSystem.get(hadoopConfiguration); 
 
+			//Checking for inverse properties
+			Iterator<OWLObjectProperty> iterAllProp = mReasoner.getObjectProperties().iterator();
+			while( iterAllProp.hasNext() )
+			{
+				OWLObjectProperty sProp = iterAllProp.next();
+				if( sProp.toString().contains( classAssociated.substring( 1 ) ) )
+				{
+					Iterator<OWLObjectPropertyExpression> iterInvProp = sProp.getInverses( mManager.getOntologies() ).iterator();
+					while( iterInvProp.hasNext() )
+					{
+						OWLObjectPropertyExpression invProp = iterInvProp.next();
+						Iterator<OWLObjectPropertyExpression> iterSubProp = invProp.getSubProperties( mManager.getOntologies() ).iterator();  
+						while( iterSubProp.hasNext() )
+						{
+							OWLObjectPropertyExpression prop = iterSubProp.next();
+							FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
+							for (int i = 0; i < fstatus.length; i++) 
+							{
+								if (!fstatus[i].isDir()) 
+								{
+									if( fstatus[i].getPath().getName().toString().contains( prop.toString() ) )
+										files.add( fstatus[i].getPath().getName().toString() );
+									FileListGenerator.isInverse = true;
+								}
+							}							
+						}
+					}
+				}
+			}
+			
 			Iterator<OWLClass> iterAllClasses = mReasoner.getClasses().iterator();
 			while( iterAllClasses.hasNext() )
 			{
