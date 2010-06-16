@@ -15,11 +15,11 @@ import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.serialization.ConversionToNTriplesException;
 import edu.utdallas.hadooprdf.data.preprocessing.serialization.ConvertToNTriples;
-
+import edu.utdallas.hadooprdf.data.preprocessing.*;
 public class ConvertToNTriplesTest {
 
 	@Test
-	public void testDoConversion() {
+	public void testDoConversion() throws PreprocessorException {
 		// Create cluster configuration
 		org.apache.hadoop.conf.Configuration hadoopConfiguration = new Configuration();
 		//String sConfDirectoryPath = "conf/SAIALLabCluster";
@@ -30,12 +30,14 @@ public class ConvertToNTriplesTest {
 		try {
 			// Create application configuration
 			edu.utdallas.hadooprdf.conf.Configuration config =
-				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/farhan/hadooprdf");
+				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/test/hadooprdf");
 			config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
-			DataSet ds = new DataSet("/user/farhan/hadooprdf/data/LUBM1");
+			DataSet ds = new DataSet("/user/test/hadooprdf/data/LUBM1");
 			ds.setOriginalDataFilesExtension("owl");
 			ConvertToNTriples ctn = new ConvertToNTriples(SerializationFormat.RDF_XML, ds);
 			ctn.doConversion();
+			Preprocessor preprocessor = new Preprocessor(ds,SerializationFormat.NTRIPLES);
+			preprocessor.preprocess();
 		} catch (ConversionToNTriplesException e) {
 			System.err.println("ConversionToNTriplesException occurred while testing ConvertToNTriples.doConversion\n" + e.getMessage());
 			e.printStackTrace();

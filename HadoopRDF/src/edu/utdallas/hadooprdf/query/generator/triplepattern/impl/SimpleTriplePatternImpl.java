@@ -37,7 +37,7 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 	private String secondVarValue = null;
 	
 	/** An identifier for the parent triple pattern from the SPARQL query **/
-	private transient int parentTpId = 0;
+	private int parentTpId = 0;
 	
 	/** Constructor **/
 	public SimpleTriplePatternImpl() { }
@@ -47,7 +47,7 @@ public class SimpleTriplePatternImpl implements TriplePattern, Serializable
 	{
 		return tpId + " " + tpNumOfVars + " " + tpJoiningVar + " " + literal +
 		" " + subject.toString() + " " + predicate.toString() + " " + object.toString() + " " + joiningVarValue + 
-		" " + secondVarValue;
+		" " + secondVarValue + " " + parentTpId;
 	}
 	
 	/**

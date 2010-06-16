@@ -35,7 +35,7 @@ public class PredicateSplitterByObjectTypeTest {
 	@Test
 	public void testSplitPredicateByObjectType() {
 		try {
-			DataSet ds = new DataSet("/user/farhan/hadooprdf/LUBM1");
+			DataSet ds = new DataSet("/user/pankil/hadooprdf/LUBM1");
 			ds.setOriginalDataFilesExtension("owl");
 			PredicateSplitterByObjectType psbot = new PredicateSplitterByObjectType(ds);
 			psbot.splitPredicateByObjectType();

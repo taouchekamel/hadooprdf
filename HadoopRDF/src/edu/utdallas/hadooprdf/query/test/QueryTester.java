@@ -64,7 +64,7 @@ public class QueryTester
 		"	?X ub:emailAddress ?Y2 . " +
 		"	?X ub:telephone ?Y3 " +
 		" } "; 
-*/			
+*/
 /*		//LUBM Query 5
 		String queryString =
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -108,7 +108,7 @@ public class QueryTester
 		"	?Y ub:subOrganizationOf <http://www.University0.edu> . " +
 		"	?X ub:emailAddress ?Z " +
 		" } ";
-*/		
+*/	
 /*		//LUBM Query 9
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -135,7 +135,7 @@ public class QueryTester
 		"	?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0> " +
 		" } ";
 */		
-/*		//LUBM Query 11
+		//LUBM Query 11
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -143,9 +143,10 @@ public class QueryTester
 		" WHERE " +
 		" { " +
 		"	?X rdf:type ub:ResearchGroup . " +
-		"	?X ub:subOrganizationOf <http://www.University0.edu> " +
+		"   ?X ub:subOrganizationOf ?Y . " +
+		"	?Y ub:subOrganizationOf <http://www.University0.edu> " +
 		" } ";
-*/		
+		
 /*		//LUBM Query 12
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -160,8 +161,8 @@ public class QueryTester
 		"	?X ub:worksFor ?Y . " +
 		"	?Y ub:subOrganizationOf <http://www.University0.edu> " +
 		" } "; 
-*/		
-		//LUBM Query 13 - Not supported yet
+*/	
+/*		//LUBM Query 13
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -171,7 +172,7 @@ public class QueryTester
 		"	?X rdf:type ub:Person . " +
 		"	<http://www.University0.edu> ub:hasAlumnus ?X " +
 		" } " ; 
-
+*/
 /*		//LUBM Query 14
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -188,10 +189,10 @@ public class QueryTester
 		config.addResource( new Path( JobParameters.configFileDir + "/core-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/mapred-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/hdfs-site.xml" ) );
-		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/farhan/hadooprdf" );
+		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/test/hadooprdf" );
 
 		//Create a QueryExecution object
-		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/farhan/hadooprdf/data/LUBM1"), config ) );
+		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/test/hadooprdf/data/LUBM1"), config ) );
 		
 		//Get the output file
 		BufferedReader resReader = qexec.execSelect();

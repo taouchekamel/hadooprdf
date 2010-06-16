@@ -1,6 +1,7 @@
 package edu.utdallas.hadooprdf.query;
 
 import java.io.BufferedReader;
+import java.util.List;
 
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 
@@ -22,4 +23,10 @@ public interface QueryExecution
 	 * @return the DataSet object used by this QueryExecution object
 	 */
 	public DataSet getDataSet() ;
+	
+	/**
+	 * A method that returns the filenames associated with a query
+	 * @return a list of filenames associated with a given query
+	 */
+	public List<String> getFilenamesForQuery() throws Exception;
 }

@@ -68,14 +68,14 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 
 			//Get the joining variable value
 			String joiningVariableValue = null;
-			if( !tp.getJoiningVariable().equalsIgnoreCase( "so" ) ) joiningVariableValue = tp.getJoiningVariableValue().substring( 1 ) + "#";
+			if( !tp.getJoiningVariable().equalsIgnoreCase( "so" ) ) joiningVariableValue = tp.getJoiningVariableValue().substring( 1 );
 			
 			//If file is of a standard predicate such as rdf, rdfs etc, we need to output only the subject since this is all the file contains
 			//Else depending on the number of variables in the triple pattern we output subject-subject, subject-object, object-subject or object-object 
 			if( sPredicate.startsWith( prefixTree.matchAndReplacePrefix( Constants.RDF_TYPE_URI ) ) )
 			{
 				//context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
-				context.write( new Text( joiningVariableValue + sSubject ), new Text( joiningVariableValue + sSubject ) );
+				context.write( new Text( joiningVariableValue + "#" + sSubject ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sSubject ) );
 			}
 			else
 			{
@@ -83,26 +83,26 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 				if( tp.getJoiningVariable().equalsIgnoreCase( "s" ) )
 				{
 					if( tp.getNumOfVariables() == 2 )
-						context.write( new Text( joiningVariableValue + sSubject ), new Text( tp.getSecondVariableValue().substring( 1 ) + "#" + st.nextToken() ) );
+						context.write( new Text( joiningVariableValue + "#" + sSubject ), new Text( tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" + st.nextToken() ) );
 					else
 					{
 						String sObject = st.nextToken();
 
 						if( sObject.equalsIgnoreCase( tp.getLiteralValue() ) )
-							context.write( new Text( joiningVariableValue + sSubject ), new Text( joiningVariableValue + sSubject ) );
+							context.write( new Text( joiningVariableValue + "#" + sSubject ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sSubject ) );
 					}
 				}
 				else
 					if( tp.getJoiningVariable().equalsIgnoreCase( "o" ) )
 					{
 						if( tp.getNumOfVariables() == 2 )
-							context.write( new Text( joiningVariableValue + st.nextToken() ), new Text( tp.getSecondVariableValue().substring( 1 ) + "#" + sSubject ) );
+							context.write( new Text( joiningVariableValue + "#" + st.nextToken() ), new Text( tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" + sSubject ) );
 						else
 						{
 							String sObject = st.nextToken();
 
 							if( sSubject.equalsIgnoreCase( tp.getLiteralValue() ) )
-								context.write( new Text( joiningVariableValue + sObject ), new Text( joiningVariableValue + sObject ) );
+								context.write( new Text( joiningVariableValue + "#" + sObject ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sObject ) );
 						}
 					}
 					else
@@ -112,15 +112,11 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 						{
 							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject + "~" + tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ), 
 									       new Text( "m&" ) );
-							//context.write( new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ), 
-								       	   //new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject ) );
 						}
 						else
 						{
 							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sObject + "~" + tp.getSecondVariableValue().substring( 2 ) + "#" + sSubject ), 
 								       new Text( "m&" ) );							
-							//context.write( new Text( tp.getSecondVariableValue().substring( 2 ) + "#" + sSubject ), 
-							       	   //new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sObject ) );
 						}
 					}
 			}
@@ -137,10 +133,16 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 					String token = st.nextToken();
 					if( ++count == 1 ) { keyVal = token; continue; }
 					String[] tokenSplit = token.split( "#" );
-					if( ( countOfTokens - 1 ) >= jp.getVarTrPatternCount( "?" + tokenSplit[0] ) && jp.getJoiningVariablesList().contains( "?" + tokenSplit[0] ) )
-						context.write( new Text( token ), new Text( keyVal ) );
+					if( ( countOfTokens - 1 ) >= jp.getVarTrPatternCount( "?" + tokenSplit[0].split( "~" )[0] ) && jp.getJoiningVariablesList().contains( "?" + tokenSplit[0].split( "~" )[0] ) )
+					{
+						String remToken = "";
+						for( int i = 1; i < tokenSplit.length; i++ )
+							remToken += tokenSplit[i] + "#";
+						remToken = remToken.substring( 0, remToken.length() - 1 );
+						context.write( new Text( tokenSplit[0].split( "~" )[0] + "#" + remToken ), new Text( keyVal ) );
+					}
 					else
-						if( ( countOfTokens - 1 ) == jp.getVarTrPatternCount( "?" + tokenSplit[0] ) && jp.getSelectClauseVarList().contains( tokenSplit[0] ) )
+						if( ( countOfTokens - 1 ) == jp.getVarTrPatternCount( "?" + tokenSplit[0].split( "~" )[0] ) && jp.getSelectClauseVarList().contains( tokenSplit[0].split( "~" )[0] ) )
 							context.write( new Text( keyVal ), new Text( token ) );
 				}
 			}
@@ -154,7 +156,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 				for( int i = 1; i < splitVar.length; i++ )
 				{
 					if( splitVar[i].equalsIgnoreCase( keyVal ) ) continue;
-					if( !splitVar[i].substring( 0, 1 ).equalsIgnoreCase( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
+					if( !splitVar[i].split( "#" )[0].split( "~" )[0].equalsIgnoreCase( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
 						secondJoinVarValue += splitVar[i] + "\t";
 					else
 						firstJoinVarValue += splitVar[i] + "\t";
@@ -163,9 +165,25 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 				String[] splitSecondVarValue = secondJoinVarValue.split( "\t" );
 				for( int x = 0; x < splitFirstVarValue.length; x++ )
 				{
+					String remFirstVarValue = "";
+					String[] splitFirstVarValHash = splitFirstVarValue[x].split( "#" );
+					for( int a = 1; a < splitFirstVarValHash.length; a++ )
+					{ 
+						if( a == splitFirstVarValHash.length ) remFirstVarValue += splitFirstVarValHash[a];
+						else remFirstVarValue += splitFirstVarValHash[a] + "#";
+					}
+					//remFirstVarValue = remFirstVarValue.substring( 0, remFirstVarValue.length() - 1 );
 					for( int y = 0; y < splitSecondVarValue.length; y++ )
 					{
-						context.write( new Text( splitFirstVarValue[x] + "~" + splitSecondVarValue[y] ), new Text( keyVal ) );
+						String remSecondVarValue = "";
+						String[] splitSecondVarValHash = splitSecondVarValue[y].split( "#" );
+						for( int b = 1; b < splitSecondVarValHash.length; b++ ) 
+						{
+							if( b == splitSecondVarValue.length ) remSecondVarValue += splitSecondVarValHash[b];
+							else remSecondVarValue += splitSecondVarValHash[b] + "#";
+						}
+						//remSecondVarValue = remSecondVarValue.substring( 0, remSecondVarValue.length() - 1 );
+						context.write( new Text( splitFirstVarValHash[0].split( "~" )[0] + "#" + remFirstVarValue + "~" + splitSecondVarValHash[0].split( "~" )[0] + "#" + remSecondVarValue ), new Text( keyVal ) );
 					}
 				}
 			}

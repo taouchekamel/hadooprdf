@@ -1,6 +1,7 @@
 package edu.utdallas.hadooprdf.controller;
 
 import java.io.BufferedReader;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
@@ -39,16 +40,61 @@ public class HadoopRDF
 			throw new HadoopRDFException("Framework could not initializied because\n" + e.getMessage());
 		}
 	}
+	
 	/**
 	 * Get the data sets in the storage
 	 * @return
 	 * @throws HadoopRDFException
 	 */
-	public Map<String, DataSet> getDataSetMap() throws HadoopRDFException {
-		try {
+	public Map<String, DataSet> getDataSetMap() throws HadoopRDFException 
+	{
+		try 
+		{
 			return edu.utdallas.hadooprdf.conf.Configuration.getInstance().getDataStore().getDataSetMap();
-		} catch (ConfigurationNotInitializedException e) {
+		} 
+		catch (ConfigurationNotInitializedException e) 
+		{
 			throw new HadoopRDFException("Framework could not list data sets because\n" + e.getMessage());
+		}
+	}
+	
+	/**
+	 * A method that creates a QueryExecution object given a query and dataset
+	 * @param queryString - the input SPARQL query as a string
+	 * @param dataset - the DataSet object
+	 * @return a QueryExecution object
+	 * @throws HadoopRDFException
+	 */
+	public QueryExecution createQueryExecution( String queryString, DataSet dataset ) throws HadoopRDFException
+	{
+		QueryExecution qexec = null;
+		try
+		{
+			//Create a QueryExecution object
+			qexec = QueryExecutionFactory.create( queryString, dataset );			
+		}
+		catch( Exception e )
+		{
+			throw new HadoopRDFException( "QueryExecution object could not be created because\n" + e.getMessage() );			
+		}
+		return qexec;
+	}
+	
+	/**
+	 * A method that returns the filenames associated with a query
+	 * @param qexec - the QueryExecution object for the associated query
+	 * @return a list of filenames for the assoicated query
+	 * @throws HadoopRDFException
+	 */
+	public List<String> getFilenamesForQuery( QueryExecution qexec ) throws HadoopRDFException
+	{
+		try
+		{
+			return qexec.getFilenamesForQuery();
+		}
+		catch( Exception e )
+		{
+			throw new HadoopRDFException( "Filenames associated with a query could not be retrieved because\n" + e.getMessage() );						
 		}
 	}
 	
@@ -59,13 +105,10 @@ public class HadoopRDF
 	 * @return a BufferedReader containing the results
 	 * @throws HadoopRDFException 
 	 */
-	public BufferedReader executeQuery( String queryString, DataSet dataset ) throws HadoopRDFException
+	public BufferedReader executeQuery( QueryExecution qexec ) throws HadoopRDFException
 	{
 		try
-		{
-			//Create a QueryExecution object
-			QueryExecution qexec = QueryExecutionFactory.create( queryString, dataset );
-		
+		{		
 			//Get the output stream reader
 			return qexec.execSelect();
 		}

@@ -1,6 +1,7 @@
 package edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.mapred;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,35 +41,59 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 			org.apache.hadoop.mapreduce.Reducer<Text, Text, Text, Text>.Context context)
 			throws IOException, InterruptedException {
 		String sKey = key.toString();
-		String sType = null;
+		List<String> sType = new ArrayList<String>();
+		
 		m_lstSubjectPredicatePair.clear();
 		Iterator<Text> iter = values.iterator();
-		while (iter.hasNext()) {
+		
+		while (iter.hasNext()) 
+		{
 			String sValue = iter.next().toString();
 			String sSplits [] = sValue.split("\\s");
 			if (sSplits[0].startsWith("T#"))
-				sType = sSplits[0].substring(2);	// Get the type
-			else {
+				sType.add( sSplits[0].substring(2) );
+			else 
+			{
 				SubjectPredicatePair spp = new SubjectPredicatePair();
 				spp.sSubject = sSplits[0].substring(2);
 				spp.sPredicate = sSplits[1];
 				m_lstSubjectPredicatePair.add(spp);
 			}
 		}
-		String sTypeInfo = "";
-		if (null != sType) {
-			sTypeInfo = "_" + sType;
-			// Output to the type file
-			m_txtKey.set(m_sRDFTypeFilenameWithoutExtension + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + sType + '.' + Constants.POS_EXTENSION);
-			m_txtValue.set(sKey);
-			context.write(m_txtKey, m_txtValue);
+		
+		if( sType.size() > 0 )
+		{
+			for( int i = 0; i < sType.size(); i++ )
+			{
+				String sTypeInfo = "";
+				if ( null != sType.get( i ) ) 
+				{
+					sTypeInfo = "_" + sType.get( i );
+					// Output to the type file
+					m_txtKey.set(m_sRDFTypeFilenameWithoutExtension + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + sType.get( i ) + '.' + Constants.POS_EXTENSION);
+					m_txtValue.set(sKey);
+					context.write(m_txtKey, m_txtValue);
+				}
+				Iterator<SubjectPredicatePair> iter1 = m_lstSubjectPredicatePair.iterator();
+				while (iter1.hasNext()) 
+				{
+					SubjectPredicatePair spp = iter1.next();
+					m_txtKey.set(spp.sPredicate + sTypeInfo + '.' + Constants.POS_EXTENSION);	// Output filename
+					m_txtValue.set(spp.sSubject + '\t' + sKey);	// Subject and Object
+					context.write(m_txtKey, m_txtValue);
+				}
+			}
 		}
-		Iterator<SubjectPredicatePair> iter1 = m_lstSubjectPredicatePair.iterator();
-		while (iter1.hasNext()) {
-			SubjectPredicatePair spp = iter1.next();
-			m_txtKey.set(spp.sPredicate + sTypeInfo + '.' + Constants.POS_EXTENSION);	// Output filename
-			m_txtValue.set(spp.sSubject + '\t' + sKey);	// Subject and Object
-			context.write(m_txtKey, m_txtValue);
+		else
+		{
+			Iterator<SubjectPredicatePair> iter1 = m_lstSubjectPredicatePair.iterator();
+			while (iter1.hasNext()) 
+			{
+				SubjectPredicatePair spp = iter1.next();
+				m_txtKey.set(spp.sPredicate + '.' + Constants.POS_EXTENSION);	// Output filename
+				m_txtValue.set(spp.sSubject + '\t' + sKey);	// Subject and Object
+				context.write(m_txtKey, m_txtValue);
+			}			
 		}
 	}
 	/* (non-Javadoc)

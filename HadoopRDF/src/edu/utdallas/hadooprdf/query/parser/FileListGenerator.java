@@ -44,6 +44,18 @@ class FileListGenerator
 		mReasoner.getKB().realize();
 	}
 	
+	public boolean isPredicateTransitive( String predicate )
+	{
+		Iterator<OWLObjectProperty> iterAllProp = mReasoner.getObjectProperties().iterator();
+		while( iterAllProp.hasNext() )
+		{
+			OWLObjectProperty sProp = iterAllProp.next();
+			if( sProp.toString().contains( predicate ) && sProp.isTransitive( mManager.getOntologies() ) )
+				return true;
+		}	
+		return false;
+	}
+	
 	public List<String> getFilesAssociatedWithTriple (String uri, String classAssociated, String prefix)
 	{
 		ArrayList<String> files = new ArrayList<String> ();
@@ -84,7 +96,7 @@ class FileListGenerator
 			FileSystem fs;
 			fs = FileSystem.get(hadoopConfiguration); 
 
-			//Checking for inverse properties
+			//Checking for inverse sub-properties
 			Iterator<OWLObjectProperty> iterAllProp = mReasoner.getObjectProperties().iterator();
 			while( iterAllProp.hasNext() )
 			{
@@ -114,17 +126,49 @@ class FileListGenerator
 				}
 			}
 			
+			//Checking for sub properties of a given property
+			iterAllProp = mReasoner.getObjectProperties().iterator();
+			while( iterAllProp.hasNext() )
+			{
+				OWLObjectProperty sProp = iterAllProp.next();
+				if( sProp.toString().contains( classAssociated.substring( 1 ) ) )
+				{
+					Iterator<OWLObjectPropertyExpression> iterSubProp = sProp.getSubProperties( mManager.getOntologies() ).iterator();
+					while( iterSubProp.hasNext() )
+					{
+						OWLObjectPropertyExpression subProp = iterSubProp.next();
+						FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
+						for (int i = 0; i < fstatus.length; i++) 
+						{
+							if (!fstatus[i].isDir()) 
+							{
+								if( fstatus[i].getPath().getName().toString().contains( subProp.toString() ) )
+									files.add( fstatus[i].getPath().getName().toString() );
+							}
+						}													
+					}
+				}
+			}
+			
+			//Ancestor classes for given class
+			//Set<Set<OWLClass>> ancestorClasses = mReasoner.getAncestorClasses( mpredClass );
+			
+			//Sub classes
 			Iterator<OWLClass> iterAllClasses = mReasoner.getClasses().iterator();
 			while( iterAllClasses.hasNext() )
 			{
 				OWLClass sClass = iterAllClasses.next();
-				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass) ) continue;
+				//Set<Set<OWLClass>> sClassAncestor = mReasoner.getAncestorClasses( sClass );
+				//if( sClassAncestor.size() == 1 ) continue;
+				//if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || ( !mReasoner.isSubClassOf( sClass, mpredClass ) && ( !ancestorClasses.containsAll( sClassAncestor ) && ancestorClasses.size() > 1 && sClassAncestor.size() > 1 ) ) ) continue;
+				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass ) ) continue;
 				String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";	
 
 				if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
 					files.add( fileName );
 			}
 			
+			//Super classes
 			if( files.size() == 0 )
 			{
 				Iterator<OWLDescription> iterSuperClasses = mpredClass.asOWLClass().getSuperClasses( mManager.getOntologies() ).iterator();

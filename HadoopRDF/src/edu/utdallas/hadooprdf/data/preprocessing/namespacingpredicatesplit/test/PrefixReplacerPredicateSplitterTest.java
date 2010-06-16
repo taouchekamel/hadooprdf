@@ -25,7 +25,7 @@ public class PrefixReplacerPredicateSplitterTest {
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
 		// Create application configuration
-		config = edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/farhan/hadooprdf");
+		config = edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/pankil/hadooprdf");
 		config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
 	}
 

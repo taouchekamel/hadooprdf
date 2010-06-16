@@ -182,7 +182,11 @@ public class QueryRewriter
 						catch ( Exception e ) { throw e; }
 					}					
 				} 
-				else 
+				//else if( filesGen.isPredicateTransitive( triple.getPredicate().getLocalName() ) )
+				//{
+					
+				//}
+				else
 				{
 					String tURI = prefixTree.matchAndReplacePrefix(triple.getPredicate().getURI());
 					String classAssociated =  triple.getPredicate().getURI();

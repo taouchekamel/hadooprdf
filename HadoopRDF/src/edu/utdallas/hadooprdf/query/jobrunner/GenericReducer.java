@@ -2,6 +2,7 @@ package edu.utdallas.hadooprdf.query.jobrunner;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -54,15 +55,43 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 	{
 		int count = 0;
         String sValue = "";
+        List<String> trPatternNos = new ArrayList<String>();
         
         //Iterate over all values for a particular key
         Iterator<Text> iter = value.iterator();
         while ( iter.hasNext() ) 
         {
+        	String val = "";
         	if( !jp.getHasMoreJobs() )
-        		count++;
-            sValue += iter.next().toString() + '\t';
+        	{
+        		String remVal = "";
+            	String[] valSplit = iter.next().toString().split( "#" );
+            	for( int i = 1; i < valSplit.length; i++ ) 
+            	{
+            		if( i == valSplit.length ) remVal += valSplit[i];
+            		else remVal += valSplit[i] + "#";
+            	}
+            	//remVal = remVal.substring( 0, remVal.length() - 1 );
+            	val = valSplit[0].split( "~" )[0] + "#" + remVal;
+            	if( jp.getJobId() == 1 && !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
+            	else
+            		if( jp.getJobId() > 1 && !sValue.contains( val ) ) count++;
+        	}
+        	else val = iter.next().toString();
+            sValue += val + '\t';
         }
+        
+		//Check if all values are same
+		boolean isValueSame = false; String sameVal = ""; int c = 0;
+		String[] valSplit = sValue.split( "\t" );
+		for( c = 0; c < valSplit.length; c++ )
+		{
+			String var = valSplit[c].split( "#" )[0];
+			if( c == 0 ) sameVal = var;
+			else if( sameVal.equalsIgnoreCase( var ) ) continue;
+			else break;
+		}
+		if( c == valSplit.length ) isValueSame = true;
         
         //Write the result
         if( !jp.getHasMoreJobs() )
@@ -70,7 +99,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	//Single variable in the query, e.g. ?X
         	//or multiple variables e.g. ?X ?Y
         	if( jp.getTotalVariables() == 1 ) 
-        	{
+        	{        		
         		if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
         		{
         			String keyString = key.toString();
@@ -80,6 +109,35 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         			if( splitKey.length > 2 ) context.write( new Text( namespaceKey + splitKey[2] ), new Text( "" ) );
         			else context.write( new Text( namespaceKey + splitKey[1] ), new Text( "" ) );
         		}
+        		else
+        			if( count > jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
+        			{
+        				if( isValueSame )
+        				{
+                			String keyString = key.toString();
+                			String[] splitKey = keyString.split( "#" );
+                			String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
+                			String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
+                			if( splitKey.length > 2 ) context.write( new Text( namespaceKey + splitKey[2] ), new Text( "" ) );
+                			else context.write( new Text( namespaceKey + splitKey[1] ), new Text( "" ) );        					
+        				}
+        				else
+        				if( key.toString().contains( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
+        				{
+        					String[] valueSplit = sValue.split( "\t" );
+        					for( int i = 0; i < valueSplit.length; i++ )
+        					{
+        						if( !valueSplit[i].contains( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
+        						{
+        		        			String[] splitVal = valueSplit[i].split( "#" );
+        		        			String prefixVal = ""; if( splitVal.length > 2 ) prefixVal = splitVal[1] + "#";
+        		        			String namespaceVal = prefixTree.matchAndReplaceNamespace( prefixVal );
+        		        			if( splitVal.length > 2 ) context.write( new Text( namespaceVal + splitVal[2] ), new Text( "" ) );
+        		        			else context.write( new Text( namespaceVal + splitVal[1] ), new Text( "" ) );
+        						}
+        					}
+        				}
+        			}
         	}
         	else
         	{
@@ -167,8 +225,9 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 						}
 						else
 						if( count > countOfTps )
-						{
+						{	
 							int length = vars.values().iterator().next().split( "~" ).length;
+							String result = null;
 							for( int j = 1; j < length; j++ )
 							{
 								String resultInOrder = "";
@@ -177,7 +236,8 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 								{
 									resultInOrder += vars.get( iterKeys.next() ).split( "~" )[j] + "\t";
 								}
-		        				context.write( new Text( resultInOrder ), new Text( "" ) );								
+								if( j == 1 ) result = resultInOrder;
+		        				if( j == 1 || !result.equalsIgnoreCase( resultInOrder ) ) context.write( new Text( resultInOrder ), new Text( "" ) );
 							}
 						}
         			}

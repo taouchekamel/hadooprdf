@@ -29,6 +29,7 @@ import edu.utdallas.hadooprdf.query.parser.Query;
 import edu.utdallas.hadooprdf.query.parser.QueryParser;
 import edu.utdallas.hadooprdf.query.parser.QueryRewriter;
 import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
+import edu.utdallas.hadooprdf.query.parser.HadoopElement.HadoopTriple;
 
 /**
  * A simple implementation of the QueryExecution interface
@@ -42,6 +43,12 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 	
 	/** The DataSet object used by the current QueryExecution object **/
 	private DataSet dataset = null;
+	
+	/** A list of HadoopElement objects that represent the individual triple patterns in the query **/
+	private List<HadoopElement> queryElements = new ArrayList<HadoopElement>();
+	
+	/** A list of the input filenames associated with a given query **/
+	private List<String> inputFilenames = new ArrayList<String>();
 	
 	/**
 	 * Constructor
@@ -60,10 +67,36 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 		PrefixNamespaceTree prefixTree = getPrefixNamespaceTree();
 		
 		//Get the list of triple patterns as HadoopElements based on the Query and PrefixNamespaceTree
-		ArrayList<HadoopElement> list = rewriteQuery( q, prefixTree, this.dataset );
+		this.queryElements = rewriteQuery( q, prefixTree, this.dataset );
 		
 		//Create a QueryPlan
-		this.queryPlan = createPlan( list );		
+		this.queryPlan = createPlan( queryElements );		
+	}
+
+	/**
+	 * A method that returns the input filenames to be used with the given query
+	 * @return A list of the input filenames that will be used by this query
+	 * @throws Exception
+	 */
+	public List<String> getFilenamesForQuery() throws Exception
+	{
+		//Iterate over all HadoopElements
+		Iterator<HadoopElement> iterQElements = queryElements.iterator();
+		while( iterQElements.hasNext() )
+		{
+			HadoopElement trPattern = iterQElements.next();
+			
+			//Get the triple patterns associated with a HadoopElement
+			Iterator<HadoopTriple> iterTriples = trPattern.getTriple().iterator();
+			while( iterTriples.hasNext() )
+			{
+				HadoopTriple triple = iterTriples.next();
+				
+				//Add all the files associated with a triple pattern to the list
+				inputFilenames.addAll( triple.getAssociatedFiles() );
+			}
+		}
+		return inputFilenames;
 	}
 	
 	/**
@@ -157,7 +190,7 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 				{
 					fs.moveToLocalFile( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) + "/part-r-00000" ), new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ) );
 					fs.moveFromLocalFile( new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ), dataset.getPathToTemp() );
-					fs.delete( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) ), true );
+					//fs.delete( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) ), true );
 				}
 				
 				fs.delete( new Path( dataset.getPathToTemp(), "job.txt" ), true );
