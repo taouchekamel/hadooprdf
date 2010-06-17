@@ -133,7 +133,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 					String token = st.nextToken();
 					if( ++count == 1 ) { keyVal = token; continue; }
 					String[] tokenSplit = token.split( "#" );
-					if( ( countOfTokens - 1 ) > jp.getVarTrPatternCount( "?" + tokenSplit[0].split( "~" )[0] ) && jp.getJoiningVariablesList().contains( "?" + tokenSplit[0].split( "~" )[0] ) )
+					if( ( countOfTokens - 1 ) >= jp.getVarTrPatternCount( "?" + tokenSplit[0].split( "~" )[0] ) && jp.getJoiningVariablesList().contains( "?" + tokenSplit[0].split( "~" )[0] ) )
 					{
 						String remToken = "";
 						for( int i = 1; i < tokenSplit.length; i++ )
@@ -146,7 +146,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 					else
 						if( ( countOfTokens - 1 ) == jp.getVarTrPatternCount( "?" + tokenSplit[0].split( "~" )[0] ) && jp.getSelectClauseVarList().contains( tokenSplit[0].split( "~" )[0] ) )
 							context.write( new Text( keyVal ), new Text( token ) );
-						else if( ( countOfTokens - 1 ) < jp.getVarTrPatternCount( "?" + keyVal.split( "#" )[0] ) && jp.getSelectClauseVarList().contains( tokenSplit[0].split( "~" )[0] ) )
+						else if( ( countOfTokens - 1 ) <= jp.getVarTrPatternCount( "?" + keyVal.split( "#" )[0] ) && jp.getSelectClauseVarList().contains( tokenSplit[0].split( "~" )[0] ) )
 							context.write( new Text( keyVal ), new Text( token ) );
 				}
 			}

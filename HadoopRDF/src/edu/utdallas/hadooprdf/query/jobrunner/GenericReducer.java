@@ -98,7 +98,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	//Single variable in the query, e.g. ?X
         	//or multiple variables e.g. ?X ?Y
         	if( jp.getTotalVariables() == 1 ) 
-        	{        		
+        	{    
         		if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
         		{
         			String keyString = key.toString();
@@ -113,15 +113,18 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         			{
         				if( isValueSame )
         				{
-                			String keyString = key.toString();
-                			String[] splitKey = keyString.split( "#" );
-                			String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
-                			String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
-                			if( splitKey.length > 2 ) context.write( new Text( namespaceKey + splitKey[2] ), new Text( "" ) );
-                			else context.write( new Text( namespaceKey + splitKey[1] ), new Text( "" ) );        					
+        					if( jp.getSelectClauseVarList().contains( key.toString().split( "#" )[0] ) )
+        					{
+        						String keyString = key.toString();
+        						String[] splitKey = keyString.split( "#" );
+        						String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
+        						String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
+        						if( splitKey.length > 2 ) context.write( new Text( namespaceKey + splitKey[2] ), new Text( "" ) );
+        						else context.write( new Text( namespaceKey + splitKey[1] ), new Text( "" ) );
+        					}
         				}
         				else
-        				if( key.toString().contains( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
+        				if( key.toString().split( "#" )[0].equalsIgnoreCase( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
         				{
         					String[] valueSplit = sValue.split( "\t" );
         					for( int i = 0; i < valueSplit.length; i++ )
@@ -226,13 +229,15 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 						{	
 							int length = vars.values().iterator().next().split( "~" ).length;
 							String result = null;
-							for( int j = 1; j < length; j++ )
+					loop:	for( int j = 1; j < length; j++ )
 							{
 								String resultInOrder = "";
 								Iterator<String> iterKeys = vars.keySet().iterator();
 								while( iterKeys.hasNext() )
 								{
-									resultInOrder += vars.get( iterKeys.next() ).split( "~" )[j] + "\t";
+									String[] splitResFromMap = vars.get( iterKeys.next() ).split( "~" );
+									if( splitResFromMap.length < ( j + 1 ) ) continue loop;
+									else resultInOrder += splitResFromMap[j] + "\t";
 								}
 								if( j == 1 ) result = resultInOrder;
 		        				if( j == 1 || !result.equalsIgnoreCase( resultInOrder ) ) context.write( new Text( resultInOrder ), new Text( "" ) );

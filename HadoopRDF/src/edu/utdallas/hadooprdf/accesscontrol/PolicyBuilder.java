@@ -10,6 +10,7 @@ import com.sun.xacml.Policy;
 import com.sun.xacml.Rule;
 import com.sun.xacml.Target;
 import com.sun.xacml.TargetMatch;
+import com.sun.xacml.UnknownIdentifierException;
 
 import com.sun.xacml.attr.AnyURIAttribute;
 import com.sun.xacml.attr.AttributeDesignator;
@@ -26,6 +27,7 @@ import com.sun.xacml.cond.FunctionFactory;
 
 import com.sun.xacml.ctx.Result;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -38,6 +40,9 @@ import java.util.List;
  */
 public class PolicyBuilder {
 
+	public PolicyBuilder(){
+	
+	}
 	/**
 	 * Simple helper routine that creates a TargetMatch instance.
 	 * 
@@ -292,6 +297,76 @@ public class PolicyBuilder {
 
 		policy.encode(System.out, new Indenter());
 		policy.encode(out, new Indenter());
+	}
+	
+	public void run(String pFileName, String[] pGroupName){
+		// define the identifier for the policy
+		// System.out.println("gets in!!!!!");
+
+		if (pFileName == null || pGroupName ==null) {
+			System.out.println("Usage: fileName groupName [groupNames]");
+			System.exit(1);
+		}
+
+		String[] groupNames = pGroupName;
+		int groupNamesLength = groupNames.length;
+		
+		String pID = pFileName;
+		URI policyId;
+		try {
+			policyId = new URI(pID + "Policy");
+			// get the combining algorithm for the policy
+			URI combiningAlgId = new URI(OrderedPermitOverridesRuleAlg.algId);
+			CombiningAlgFactory factory = CombiningAlgFactory.getInstance();
+			RuleCombiningAlgorithm combiningAlg;
+			combiningAlg = (RuleCombiningAlgorithm) (factory
+						.createAlgorithm(combiningAlgId));
+			
+			// add a description for the policy
+			String description = "There is a "
+					+ "final fall-through rule that always returns Deny.";
+
+			// create the target for the policy
+			Target policyTarget = createPolicyTarget(pID);
+
+			// create a list for the rules and add our rules in order
+			List<Rule> ruleList = new ArrayList<Rule>();
+
+			// create the rules
+			for (int i = 1; i < groupNamesLength+1; i++) {
+				Rule aRule = createRule(groupNames[i - 1]);
+				ruleList.add(aRule);
+			}
+
+			// create the default, fall-through rule
+			Rule defaultRule = new Rule(new URI("FinalRule"), Result.DECISION_DENY,
+					null, null, null);
+
+			ruleList.add(defaultRule);
+
+			// create the policy
+			Policy policy = new Policy(policyId, combiningAlg, description,
+					policyTarget, ruleList);
+			// finally, encode the policy and print it to standard out
+			String policyOutFile = pID + "Policy.xml";
+			FileOutputStream out;
+			out = new FileOutputStream(policyOutFile);
+			policy.encode(System.out, new Indenter());
+			policy.encode(out, new Indenter());
+
+
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnknownIdentifierException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		
 	}
 
 }
