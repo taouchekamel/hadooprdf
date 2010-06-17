@@ -68,14 +68,13 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
             	String[] valSplit = iter.next().toString().split( "#" );
             	for( int i = 1; i < valSplit.length; i++ ) 
             	{
-            		if( i == valSplit.length ) remVal += valSplit[i];
+            		if( i == ( valSplit.length - 1 ) ) remVal += valSplit[i];
             		else remVal += valSplit[i] + "#";
             	}
-            	//remVal = remVal.substring( 0, remVal.length() - 1 );
-            	val = valSplit[0].split( "~" )[0] + "#" + remVal;
+            	val = valSplit[0].split( "~" )[0] + "#" + remVal; 
             	if( jp.getJobId() == 1 && !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
             	else
-            		if( jp.getJobId() > 1 && !sValue.contains( val ) ) count++;
+            		if( jp.getJobId() > 1 ) count++;
         	}
         	else val = iter.next().toString();
             sValue += val + '\t';
@@ -153,7 +152,6 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
     				if( i == listSelectVars.size() )
     				{
         				int countOfTps = jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) );
-
         				Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
         				Map<String,String> vars = new TreeMap<String,String>();
         				while( iterVars.hasNext() )
@@ -271,7 +269,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 
         				for( int i = 0; i < splitVal.length; i++ )
     					{
-    						if( splitVal[i].equalsIgnoreCase( "m&" ) ) continue;
+    						if( splitVal[i].equalsIgnoreCase( "m&#" ) ) continue;
         					String[] splitValueRes = splitVal[i].split( "#" );
         					String varValueRes = splitValueRes[0];
         					String prefixValueRes = ""; if( splitValueRes.length > 2 ) prefixValueRes = splitValueRes[1] + "#";

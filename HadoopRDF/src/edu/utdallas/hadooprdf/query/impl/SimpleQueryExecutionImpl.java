@@ -188,7 +188,7 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 
 				if( jobId > 1 )
 				{
-					fs.moveToLocalFile( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) + "/part-r-00000" ), new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ) );
+					fs.copyToLocalFile( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) + "/part-r-00000" ), new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ) );
 					fs.moveFromLocalFile( new Path( "/home/hadoop/job" + ( jobId - 1 ) + "-op.txt" ), dataset.getPathToTemp() );
 					//fs.delete( new Path( dataset.getPathToTemp(), "test" + ( jobId - 1 ) ), true );
 				}

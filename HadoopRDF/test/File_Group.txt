@@ -1,0 +1,41 @@
+0_1#_0_3#AssistantProfessor.pos	Admin G3 G1
+0_1#_0_3#AssociateProfessor.pos	Admin G3 G1
+0_1#_0_3#Course.pos	Admin G1
+0_1#_0_3#Department.pos	Admin G1
+0_1#_0_3#FullProfessor.pos	Admin G3 G1
+0_1#_0_3#GraduateCourse.pos	Admin G3 G1
+0_1#_0_3#GraduateStudent.pos	Admin G3 G1
+0_1#_0_3#Lecturer.pos	Admin G3 G1
+0_1#_0_3#Publication.pos	Admin G2 G1
+0_1#_0_3#ResearchAssistant.pos	Admin G3 G1
+0_1#_0_3#ResearchGroup.pos	Admin G1
+0_1#_0_3#TeachingAssistant.pos	Admin G3 G1
+0_1#_0_3#UndergraduateStudent.pos	Admin G3 G1
+0_1#_0_3#University.pos	Admin G1
+0_3#advisor_0_3#AssistantProfessor.pos	Admin G1
+0_3#advisor_0_3#AssociateProfessor.pos	Admin G1
+0_3#advisor_0_3#FullProfessor.pos	Admin G1
+0_3#doctoralDegreeFrom_0_3#University.pos	Admin G1
+0_3#emailAddress.pos	Admin G3
+0_3#headOf_0_3#Department.pos	Admin G1
+0_3#mastersDegreeFrom_0_3#University.pos	Admin G1
+0_3#memberOf_0_3#Department.pos	Admin G1
+0_3#name.pos	Admin G3
+0_3#publicationAuthor_0_3#AssistantProfessor.pos	Admin G2 G1
+0_3#publicationAuthor_0_3#AssociateProfessor.pos	Admin G2 G1
+0_3#publicationAuthor_0_3#FullProfessor.pos	Admin G2 G1
+0_3#publicationAuthor_0_3#GraduateStudent.pos	Admin G2 G1
+0_3#publicationAuthor_0_3#Lecturer.pos	Admin G2 G1
+0_3#publicationAuthor_0_3#ResearchAssistant.pos	Admin G2 G1
+0_3#publicationAuthor_0_3#TeachingAssistant.pos	Admin G2 G1
+0_3#researchInterest.pos	Admin G1
+0_3#subOrganizationOf_0_3#Department.pos	Admin G1
+0_3#subOrganizationOf_0_3#University.pos	Admin G1
+0_3#takesCourse_0_3#Course.pos	Admin G3 G1
+0_3#takesCourse_0_3#GraduateCourse.pos	Admin G3 G1
+0_3#teacherOf_0_3#Course.pos	Admin G1
+0_3#teacherOf_0_3#GraduateCourse.pos	Admin G1
+0_3#teachingAssistantOf_0_3#Course.pos	Admin G1
+0_3#telephone.pos	Admin G3
+0_3#undergraduateDegreeFrom_0_3#University.pos	Admin G1
+0_3#worksFor_0_3#Department.pos	Admin G3 G1

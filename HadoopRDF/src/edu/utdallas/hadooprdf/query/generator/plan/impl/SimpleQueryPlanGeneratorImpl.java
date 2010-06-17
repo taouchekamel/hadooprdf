@@ -276,6 +276,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				//Get the elimination count based treemap
 				Map<Integer,String> elimCountVarMap = constructElimCountMap( newInputVarList );
 
+				//A map of triple patterns and parent identifiers for the triple patterns that will be removed
+				Map<Integer,Integer> tpParentIdsMap = new HashMap<Integer,Integer>();
+				
 				//Iterate over each key
 				Iterator<Integer> iterElimCount = elimCountVarMap.keySet().iterator();
 				while( iterElimCount.hasNext() )
@@ -310,6 +313,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							
 							//Remove that triple pattern from the 
 							tpMap.remove( new Integer( trPatterns[j] ) );
+							
+							//Add the parent id
+							tpParentIdsMap.put( tp.getTriplePatternId(), tp.getParentTriplePatternId() );
 							
 							//Set the value of the joining variable
 							tp.setJoiningVariableValue( vars[i] );
@@ -376,7 +382,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				jp.setHadoopJob( currJob );
 
 				//Update the variables list
-				newInputVarList = updateVariableList( oldInputVarList ); oldInputVarList = newInputVarList;
+				newInputVarList = updateVariableList( oldInputVarList, tpParentIdsMap ); oldInputVarList = newInputVarList;
 				
 				//Set the flag for more jobs to true if there are still more triple patterns
 				if( tpMap.size() > 0 || !newInputVarList.isEmpty() ) jp.setHasMoreJobs( true );
@@ -440,9 +446,10 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	 * A method that returns an updated variable list based on actual triple patterns for a variable and the triple patterns
 	 * that are used for a variable in a job
 	 * @param oldInputVarList - the old input variable list based on triple patterns
+	 * @param tpParentIdsMap - the map of triple patterns and parent triple pattern ids
 	 * @return an updated variable list based on original triple patterns for a variable and the triple patterns used in a job 
 	 */
-	private List<String> updateVariableList( List<String> oldInputVarList )
+	private List<String> updateVariableList( List<String> oldInputVarList, Map<Integer,Integer> tpParentIdsMap )
 	{
 		//The new list that will be returned
 		List<String> newInputVarList = new ArrayList<String>();
@@ -521,11 +528,11 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//or the used triple patterns list contains the original triple pattern simply continue
 					//Else if the remaining triple patterns list does not contain this triple pattern, add it to that list
 					if( origTp.equalsIgnoreCase( usedTp ) || valueUsedMap.contains( origTp ) ) continue;
-					else if( !remainingTps.contains( origTp ) ) remainingTps += origTp; 
+					else if( !remainingTps.contains( origTp ) ) remainingTps += origTp + "~"; 
 				}
 				
 				//Get the variables for the used triple pattern from the old variables list
-				String varsInEachTp = oldInputVarList.get( new Integer( usedTp ).intValue() - 1 );
+				String varsInEachTp = oldInputVarList.get( tpParentIdsMap.get( new Integer( usedTp ) ) - 1 );
 				
 				//If the variables list does not contain the current variable simply continue				
 				if( !varsInEachTp.contains( variable ) ) continue;
@@ -537,7 +544,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					//If the variable == to the current variable simply continue
 					//Else add the variable to the remaining variables
 					if( vars[k].equalsIgnoreCase( variable ) ) continue;
-					else remainingVars += vars[k] + "~";
+					else if( !remainingVars.contains( vars[k] ) ) remainingVars += vars[k] + "~";
 				}
 			}
 			
@@ -547,13 +554,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 			for( int x = 0; x < splitRemainingTps.length; x++ )
 			{
 				//Get the list of remaining variables for the triple pattern from the old input variable list and iterate over this list
-				String[] remainingVarsFromTps = oldInputVarList.get( new Integer( splitRemainingTps[x] ).intValue() - 1 ).split( "~" );
+				String[] remainingVarsFromTps = oldInputVarList.get( tpParentIdsMap.get( new Integer( splitRemainingTps[x] ) ) - 1 ).split( "~" );
 				for( int y = 0; y < remainingVarsFromTps.length; y++ )
 				{
 					//If the list contains a variable that is already eliminated simply continue
 					//Else add the variable to the list of remaining variables
 					if( eliminatedVars.contains( remainingVarsFromTps[y] ) ) continue;
-					else remainingVars += remainingVarsFromTps[y] + "~";
+					else if( !remainingVars.contains( remainingVarsFromTps[y] ) ) remainingVars += remainingVarsFromTps[y] + "~";
 				}
 			}
 			
@@ -851,6 +858,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//if( countOfJobs < 2 ) currJob.setMapperClass( edu.utdallas.hadooprdf.query.jobrunner.GenericMapper.class );
 		//if( countOfJobs < 2 ) currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class );
 		currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class );
+		//else currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.IdentityReducer.class );
 		
 		//Set the number of reducers
 		currJob.setNumReduceTasks( JobParameters.numOfReducers );

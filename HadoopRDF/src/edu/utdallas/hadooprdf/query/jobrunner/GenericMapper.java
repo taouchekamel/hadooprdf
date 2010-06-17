@@ -133,16 +133,20 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 					String token = st.nextToken();
 					if( ++count == 1 ) { keyVal = token; continue; }
 					String[] tokenSplit = token.split( "#" );
-					if( ( countOfTokens - 1 ) >= jp.getVarTrPatternCount( "?" + tokenSplit[0].split( "~" )[0] ) && jp.getJoiningVariablesList().contains( "?" + tokenSplit[0].split( "~" )[0] ) )
+					if( ( countOfTokens - 1 ) > jp.getVarTrPatternCount( "?" + tokenSplit[0].split( "~" )[0] ) && jp.getJoiningVariablesList().contains( "?" + tokenSplit[0].split( "~" )[0] ) )
 					{
 						String remToken = "";
 						for( int i = 1; i < tokenSplit.length; i++ )
-							remToken += tokenSplit[i] + "#";
-						remToken = remToken.substring( 0, remToken.length() - 1 );
+						{
+							if( i == ( tokenSplit.length - 1 ) ) remToken += tokenSplit[i];
+							else remToken += tokenSplit[i] + "#";
+						}
 						context.write( new Text( tokenSplit[0].split( "~" )[0] + "#" + remToken ), new Text( keyVal ) );
 					}
 					else
 						if( ( countOfTokens - 1 ) == jp.getVarTrPatternCount( "?" + tokenSplit[0].split( "~" )[0] ) && jp.getSelectClauseVarList().contains( tokenSplit[0].split( "~" )[0] ) )
+							context.write( new Text( keyVal ), new Text( token ) );
+						else if( ( countOfTokens - 1 ) < jp.getVarTrPatternCount( "?" + keyVal.split( "#" )[0] ) && jp.getSelectClauseVarList().contains( tokenSplit[0].split( "~" )[0] ) )
 							context.write( new Text( keyVal ), new Text( token ) );
 				}
 			}
@@ -155,37 +159,29 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 				String secondJoinVarValue = "";
 				for( int i = 1; i < splitVar.length; i++ )
 				{
-					if( splitVar[i].equalsIgnoreCase( keyVal ) ) continue;
-					if( !splitVar[i].split( "#" )[0].split( "~" )[0].equalsIgnoreCase( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
-						secondJoinVarValue += splitVar[i] + "\t";
-					else
-						firstJoinVarValue += splitVar[i] + "\t";
-				}
-				String[] splitFirstVarValue = firstJoinVarValue.split( "\t" );
-				String[] splitSecondVarValue = secondJoinVarValue.split( "\t" );
-				for( int x = 0; x < splitFirstVarValue.length; x++ )
-				{
-					String remFirstVarValue = "";
-					String[] splitFirstVarValHash = splitFirstVarValue[x].split( "#" );
-					for( int a = 1; a < splitFirstVarValHash.length; a++ )
-					{ 
-						if( a == splitFirstVarValHash.length ) remFirstVarValue += splitFirstVarValHash[a];
-						else remFirstVarValue += splitFirstVarValHash[a] + "#";
-					}
-					//remFirstVarValue = remFirstVarValue.substring( 0, remFirstVarValue.length() - 1 );
-					for( int y = 0; y < splitSecondVarValue.length; y++ )
+					String remVarValue = "";
+					String[] splitVarValue = splitVar[i].split( "#" );
+					for( int j = 1; j < splitVarValue.length; j++ )
 					{
-						String remSecondVarValue = "";
-						String[] splitSecondVarValHash = splitSecondVarValue[y].split( "#" );
-						for( int b = 1; b < splitSecondVarValHash.length; b++ ) 
-						{
-							if( b == splitSecondVarValue.length ) remSecondVarValue += splitSecondVarValHash[b];
-							else remSecondVarValue += splitSecondVarValHash[b] + "#";
-						}
-						//remSecondVarValue = remSecondVarValue.substring( 0, remSecondVarValue.length() - 1 );
-						context.write( new Text( splitFirstVarValHash[0].split( "~" )[0] + "#" + remFirstVarValue + "~" + splitSecondVarValHash[0].split( "~" )[0] + "#" + remSecondVarValue ), new Text( keyVal ) );
+						if( j == ( splitVarValue.length - 1 ) ) remVarValue += splitVarValue[j];
+						else remVarValue += splitVarValue[j] + "#";
 					}
+					String newSplitVarValue = splitVarValue[0].split( "~" )[0] + "#" + remVarValue;
+					if( splitVar[i].equalsIgnoreCase( keyVal ) ) continue;
+					if( !newSplitVarValue.split( "#" )[0].equalsIgnoreCase( jp.getJoiningVariablesList().get( 0 ).substring( 1 ) ) )
+						secondJoinVarValue += newSplitVarValue + "\t";
+					else
+						firstJoinVarValue += newSplitVarValue + "\t";
 				}
+                String[] splitFirstVarValue = firstJoinVarValue.split( "\t" );
+                String[] splitSecondVarValue = secondJoinVarValue.split( "\t" );
+                for( int x = 0; x < splitFirstVarValue.length; x++ )
+                {
+                        for( int y = 0; y < splitSecondVarValue.length; y++ )
+                        {
+                                context.write( new Text( splitFirstVarValue[x] + "~" + splitSecondVarValue[y] ), new Text( keyVal ) );
+                        }
+                }
 			}
 		}
 	}

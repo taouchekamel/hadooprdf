@@ -95,7 +95,7 @@ public class QueryTester
 		" 	<http://www.Department0.University0.edu/AssociateProfessor0> ub:teacherOf ?Y " +
 		" } "; 
 */
-/*		//LUBM Query 8
+		//LUBM Query 8
 		String queryString =
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -108,7 +108,7 @@ public class QueryTester
 		"	?Y ub:subOrganizationOf <http://www.University0.edu> . " +
 		"	?X ub:emailAddress ?Z " +
 		" } ";
-*/	
+	
 /*		//LUBM Query 9
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -135,7 +135,7 @@ public class QueryTester
 		"	?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0> " +
 		" } ";
 */		
-		//LUBM Query 11
+/*		//LUBM Query 11
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -146,7 +146,7 @@ public class QueryTester
 		"   ?X ub:subOrganizationOf ?Y . " +
 		"	?Y ub:subOrganizationOf <http://www.University0.edu> " +
 		" } ";
-		
+*/		
 /*		//LUBM Query 12
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
