@@ -78,4 +78,17 @@ public class Utility
 		if (!FileSystem.get(hadoopConfiguration).exists(path))
 			createDirectory(hadoopConfiguration, path);
 	}
+	/**
+	 * A static method to remove "#" from given String and replace it with "$"
+	 * @param pFileName input String containing #
+	 * @return String replaced with $
+	 */
+	public static String replaceHash(String pFileName) 
+	{
+		if(pFileName != null){
+			return pFileName.replace("#", "$");
+		} else {
+			return null;
+		}
+	}
 }

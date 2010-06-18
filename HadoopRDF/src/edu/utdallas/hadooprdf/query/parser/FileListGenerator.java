@@ -28,7 +28,7 @@ class FileListGenerator
 	private Reasoner mReasoner = new Reasoner(mManager);
 	private DataSet dataset = null;
 	public static boolean isInverse = false;
-	
+
 	public FileListGenerator (edu.utdallas.hadooprdf.query.parser.Query query, DataSet dataset ) throws OWLOntologyCreationException 
 	{
 		this.dataset = dataset;
@@ -43,7 +43,7 @@ class FileListGenerator
 		}	
 		mReasoner.getKB().realize();
 	}
-	
+
 	public boolean isPredicateTransitive( String predicate )
 	{
 		Iterator<OWLObjectProperty> iterAllProp = mReasoner.getObjectProperties().iterator();
@@ -55,21 +55,34 @@ class FileListGenerator
 		}	
 		return false;
 	}
-	
+
 	public List<String> getFilesAssociatedWithTriple (String uri, String classAssociated, String prefix)
 	{
 		ArrayList<String> files = new ArrayList<String> ();
-		
-		//if (uri.contains(".owl") == false) 
-		//{
-			try
-			{ 
-				edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
-				org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
-			
-				FileSystem fs;
-				fs = FileSystem.get(hadoopConfiguration); 
-				
+
+		edu.utdallas.hadooprdf.conf.Configuration config = null;
+		org.apache.hadoop.conf.Configuration hadoopConfiguration = null;
+		FileSystem fs = null;
+		try
+		{
+			config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+			hadoopConfiguration = new org.apache.hadoop.conf.Configuration( config.getHadoopConfiguration() );
+			fs = FileSystem.get( hadoopConfiguration ); 			
+
+			if ( uri.contains(".owl") ) 
+			{
+				FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
+				for (int i = 0; i < fstatus.length; i++) 
+				{
+					if (!fstatus[i].isDir()) 
+					{
+						if( fstatus[i].getPath().getName().toString().equalsIgnoreCase( prefix + ".pos" ) )
+							files.add( fstatus[i].getPath().getName().toString() );
+					}
+				}
+			}
+			else
+			{
 				FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
 				for (int i = 0; i < fstatus.length; i++) 
 				{
@@ -78,24 +91,11 @@ class FileListGenerator
 						if( fstatus[i].getPath().getName().toString().contains( classAssociated ) )
 							files.add( fstatus[i].getPath().getName().toString() );
 					}
-				}
+				}			
 			}
-			catch( Exception e ) { e.printStackTrace(); }
-			//if( files.sreturn files;
-		//}
-		
-		OWLDescription mpredClass;
-		mpredClass = mManager.getOWLDataFactory().getOWLClass(URI.create(uri));		
-		boolean isFilesAdded = false;
 
-		try
-		{ 
-			edu.utdallas.hadooprdf.conf.Configuration config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
-			org.apache.hadoop.conf.Configuration hadoopConfiguration = new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
-		
-			FileSystem fs;
-			fs = FileSystem.get(hadoopConfiguration); 
-
+			OWLDescription mpredClass = mManager.getOWLDataFactory().getOWLClass( URI.create( uri ) );		
+			
 			//Checking for inverse sub-properties
 			Iterator<OWLObjectProperty> iterAllProp = mReasoner.getObjectProperties().iterator();
 			while( iterAllProp.hasNext() )
@@ -125,7 +125,7 @@ class FileListGenerator
 					}
 				}
 			}
-			
+
 			//Checking for sub properties of a given property
 			iterAllProp = mReasoner.getObjectProperties().iterator();
 			while( iterAllProp.hasNext() )
@@ -149,25 +149,19 @@ class FileListGenerator
 					}
 				}
 			}
-			
-			//Ancestor classes for given class
-			//Set<Set<OWLClass>> ancestorClasses = mReasoner.getAncestorClasses( mpredClass );
-			
+
 			//Sub classes
 			Iterator<OWLClass> iterAllClasses = mReasoner.getClasses().iterator();
 			while( iterAllClasses.hasNext() )
 			{
 				OWLClass sClass = iterAllClasses.next();
-				//Set<Set<OWLClass>> sClassAncestor = mReasoner.getAncestorClasses( sClass );
-				//if( sClassAncestor.size() == 1 ) continue;
-				//if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || ( !mReasoner.isSubClassOf( sClass, mpredClass ) && ( !ancestorClasses.containsAll( sClassAncestor ) && ancestorClasses.size() > 1 && sClassAncestor.size() > 1 ) ) ) continue;
 				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass ) ) continue;
 				String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";	
 
 				if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
 					files.add( fileName );
 			}
-			
+
 			//Super classes
 			if( files.size() == 0 )
 			{
@@ -187,11 +181,8 @@ class FileListGenerator
 				}
 			}
 			if( files.size() == 0 ) files.add( prefix + ".pos" );				
-			isFilesAdded = true;
 		}
-		catch( Exception e ) { e.printStackTrace(); }
-			
-		if (isFilesAdded == false) files.add(prefix + ".pos");
+		catch( Exception e ) { e.printStackTrace(); }				
 		return files;
 	}
 }

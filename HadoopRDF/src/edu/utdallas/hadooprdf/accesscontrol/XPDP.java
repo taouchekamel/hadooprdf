@@ -163,9 +163,9 @@ public class XPDP {
 		r.run(XMLGroupFile, user, resource, outNames);
 		Date Ts = new Date();
 		String rs = Double.toString(Ts.getTime());
-
+		permit[0] = false;
 		for (int i = 0; i < outNames.size() && !permit[0]; i++) {
-			// System.out.println(outNames.get(i));
+			 System.out.println(outNames.get(i));
 			ResponseCtx response = pdp.evaluate(outNames.get(i));
 			String responseOutFile = resource + rs + "Response.xml";
 			FileOutputStream out = new FileOutputStream(responseOutFile);
@@ -180,9 +180,11 @@ public class XPDP {
 			while ((record = br.readLine()) != null && !permit[0]) {
 				m = p.matcher(record);
 				while (m.find()) {
-					if (m.group(1).toString().equals("permit"))
-						;
-					permit[0] = true;
+					if (m.group(1).toString().equals("Permit")){
+						permit[0] = true;
+					} else if(m.group(1).toString().equals("Deny")){
+						permit[0] =false;
+					}
 				}
 			}
 

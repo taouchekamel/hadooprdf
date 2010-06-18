@@ -13,7 +13,7 @@ public class IdentityReducer extends Reducer<Text, Text, Text, Text>
 	public void reduce( Text key, Iterable<Text> value, Context context ) throws IOException, InterruptedException
 	{
         String sValue = "";
-        //List<String> trPatternNos = new ArrayList<String>();
+        List<String> trPatternNos = new ArrayList<String>();
         int count = 0;
         
         //Iterate over all values for a particular key
@@ -29,8 +29,7 @@ public class IdentityReducer extends Reducer<Text, Text, Text, Text>
            		else remVal += valSplit[i] + "#";
            	}
            	val = valSplit[0].split( "~" )[0] + "#" + remVal;
-            //if( !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
-           	count++;
+            if( !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
             sValue += val + '\t';
         }
     	context.write( key, new Text( sValue + "count = " + count ) );		

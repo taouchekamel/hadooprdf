@@ -198,7 +198,7 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 				serializationFile.delete();
 				
 				//Run the current job
-				job.waitForCompletion( true );
+				job.waitForCompletion( false );
 				
 				//TODO: Get the output path differently
 				if( !jp.getHasMoreJobs() ) 

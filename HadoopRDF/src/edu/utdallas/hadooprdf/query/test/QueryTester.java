@@ -14,7 +14,7 @@ public class QueryTester
 {
 	public static void main (String [] args) throws Exception 
 	{	
-		//LUBM Query 1
+/*		//LUBM Query 1
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -24,7 +24,7 @@ public class QueryTester
 		" 	?X rdf:type ub:GraduateStudent . " +
 		"	?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0> " +
 		" } ";
-		
+*/		
 /*		//LUBM Query 2
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -173,7 +173,7 @@ public class QueryTester
 		"	<http://www.University0.edu> ub:hasAlumnus ?X " +
 		" } " ; 
 */
-/*		//LUBM Query 14
+		//LUBM Query 14
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -182,7 +182,7 @@ public class QueryTester
 		" { " +
 		"	?X rdf:type ub:UndergraduateStudent " +
 		" } "; 
-*/	
+	
 		//Create the Hadoop configuration to be used
 		//TODO: This should be moved to the QueryExecution ??
 		Configuration config = new Configuration();
