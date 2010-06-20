@@ -29,4 +29,10 @@ public interface QueryExecution
 	 * @return a list of filenames associated with a given query
 	 */
 	public List<String> getFilenamesForQuery() throws Exception;
+	
+	/**
+	 * A method that returns the variables in the SELECT clause of the given SPARQL query
+	 * @return a list of variables in the SELECT clause of the given query
+	 */
+	public List<String> getSelectVarsInQuery() throws Exception;
 }

@@ -81,6 +81,25 @@ public class HadoopRDF
 	}
 	
 	/**
+	 * A method that retrieves the variables in the SELECT clause of the given SPARQL query.
+	 * This method can only be called once the query is executed.
+	 * @param qexec - the QueryExecution object associated with the query
+	 * @return a list of variables in the SELECT clause
+	 * @throws HadoopRDFException
+	 */
+	public List<String> getSelectVarsInQuery( QueryExecution qexec ) throws HadoopRDFException
+	{
+		try
+		{
+			return qexec.getSelectVarsInQuery();
+		}
+		catch( Exception e )
+		{
+			throw new HadoopRDFException( "Variables in the SELECT clause could not be retrieved because\n" + e.getMessage() );						
+		}
+	}
+	
+	/**
 	 * A method that returns the filenames associated with a query
 	 * @param qexec - the QueryExecution object for the associated query
 	 * @return a list of filenames for the assoicated query

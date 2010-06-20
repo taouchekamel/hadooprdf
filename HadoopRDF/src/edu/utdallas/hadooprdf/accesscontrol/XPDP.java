@@ -165,7 +165,6 @@ public class XPDP {
 		String rs = Double.toString(Ts.getTime());
 		permit[0] = false;
 		for (int i = 0; i < outNames.size() && !permit[0]; i++) {
-			 System.out.println(outNames.get(i));
 			ResponseCtx response = pdp.evaluate(outNames.get(i));
 			String responseOutFile = resource + rs + "Response.xml";
 			FileOutputStream out = new FileOutputStream(responseOutFile);
@@ -225,7 +224,6 @@ public class XPDP {
 		boolean[] permit = new boolean[1];
 
 		simplePDP.run("groups.xml", resource, simplePDP, user, permit);
-		System.out.println(permit[0]);
 	}
 
 }

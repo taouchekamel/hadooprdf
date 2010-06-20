@@ -65,7 +65,7 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 		
 		//Generate the prefixes used
 		PrefixNamespaceTree prefixTree = getPrefixNamespaceTree();
-		
+
 		//Get the list of triple patterns as HadoopElements based on the Query and PrefixNamespaceTree
 		this.queryElements = rewriteQuery( q, prefixTree, this.dataset );
 		
@@ -73,6 +73,17 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 		this.queryPlan = createPlan( queryElements );		
 	}
 
+	/**
+	 * A method that returns the variables in the SELECT clause of the query.
+	 * This method can only be called after the query is parsed.
+	 * @return A list of variables in the SELECT clause
+	 * @throws Exception
+	 */
+	public List<String> getSelectVarsInQuery() throws Exception
+	{
+		return QueryParser.getVars();
+	}
+	
 	/**
 	 * A method that returns the input filenames to be used with the given query
 	 * @return A list of the input filenames that will be used by this query
