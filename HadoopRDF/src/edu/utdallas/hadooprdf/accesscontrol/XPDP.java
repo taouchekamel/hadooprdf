@@ -187,7 +187,7 @@ public class XPDP {
 				}
 			}
 
-			response.encode(System.out, new Indenter());
+			//response.encode(System.out, new Indenter());
 			File f = new File(responseOutFile);
 			if (f.exists())
 				f.delete();

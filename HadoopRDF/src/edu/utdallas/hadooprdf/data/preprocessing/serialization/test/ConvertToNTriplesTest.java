@@ -30,19 +30,19 @@ public class ConvertToNTriplesTest {
 		try {
 			// Create application configuration
 			edu.utdallas.hadooprdf.conf.Configuration config =
-				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/test/hadooprdf");
+				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/pankil/hadooprdf");
 			config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
-			DataSet ds = new DataSet("/user/test/hadooprdf/data/LUBM1");
-			ds.setOriginalDataFilesExtension("owl");
+			DataSet ds = new DataSet("/user/pankil/hadooprdf/data/DBPEDIA");
+			ds.setOriginalDataFilesExtension("nt");
 			ConvertToNTriples ctn = new ConvertToNTriples(SerializationFormat.RDF_XML, ds);
-			ctn.doConversion();
+			//ctn.doConversion();
 			Preprocessor preprocessor = new Preprocessor(ds,SerializationFormat.NTRIPLES);
 			preprocessor.preprocess();
-		} catch (ConversionToNTriplesException e) {
+		}/* catch (ConversionToNTriplesException e) {
 			System.err.println("ConversionToNTriplesException occurred while testing ConvertToNTriples.doConversion\n" + e.getMessage());
 			e.printStackTrace();
 			fail(e.getMessage());
-		} catch (ConfigurationNotInitializedException e) {
+		}*/ catch (ConfigurationNotInitializedException e) {
 			System.err.println("ConfigurationNotInitializedException occurred while testing ConvertToNTriples.doConversion\n" + e.getMessage());
 			e.printStackTrace();
 			fail(e.getMessage());

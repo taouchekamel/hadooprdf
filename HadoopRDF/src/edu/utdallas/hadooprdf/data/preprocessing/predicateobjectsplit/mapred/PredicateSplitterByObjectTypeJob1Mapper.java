@@ -34,7 +34,7 @@ public class PredicateSplitterByObjectTypeJob1Mapper extends
 			org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, Text>.Context context)
 			throws IOException, InterruptedException {
 		String sInputFileName = ((FileSplit) context.getInputSplit()).getPath().getName();
-		String sSplits [] = value.toString().split("\\s");
+		String sSplits [] = value.toString().split("\\t");
 		if (sInputFileName.equals(m_sRDFTypeFilename)) {	// Input file is the rdf:type file
 			m_txtKey.set(sSplits[0]);	// Set the subject as the key
 			m_txtValue.set("T#" + sSplits[1]);

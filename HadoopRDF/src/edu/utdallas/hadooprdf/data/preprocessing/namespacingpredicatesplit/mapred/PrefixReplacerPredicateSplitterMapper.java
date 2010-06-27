@@ -40,9 +40,37 @@ public class PrefixReplacerPredicateSplitterMapper extends
 		//String sInputFileName = ((FileSplit) context.getInputSplit()).getPath().getName();
 		// Split the value
 		String sValue = value.toString();
-		String [] sElements = sValue.split("\\s");
-		if (4 != sElements.length)	// Invalid triple, I should find a way to generate an error.
-			return;				//I could not throw any exception other that the two specified in the method signature.
+		
+		//An array that contains the sub, pred and obj
+		String[] sElements = new String[3];
+		
+		//Get the sub and pred by splitting on space
+		String[] splitSpace = sValue.split( "\\s" );
+		sElements[0] = splitSpace[0];
+		sElements[1] = splitSpace[1];
+		
+		//If the N-Triple contains '"' then we need to process differently
+		//Else use the earlier method
+		if( sValue.contains( "\"" ) )
+		{
+			String object = "\"";
+			String[] splitQuote = sValue.split( "\"" );
+			for( int i = 1; i < splitQuote.length; i++ )
+			{
+				if( i+1 == splitQuote.length )
+				{
+					String[] splitLastSpace = splitQuote[i].split( "\\s" );
+					if( splitLastSpace.length > 1 ) object += splitLastSpace[0];
+				}
+				else object += splitQuote[i] + "\"";
+			}
+			sElements[2] = object;
+		}
+		else
+			sElements[2] = splitSpace[2];
+		
+		//if (4 != sElements.length)	// Invalid triple, I should find a way to generate an error.
+			//return;				//I could not throw any exception other that the two specified in the method signature.
 		StringBuffer sbValue = new StringBuffer();
 		// Subject
 		sbValue.append(matchAndReplacePrefix(sElements[0]));

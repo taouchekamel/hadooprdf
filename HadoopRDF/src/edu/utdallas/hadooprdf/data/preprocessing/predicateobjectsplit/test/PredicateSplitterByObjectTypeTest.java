@@ -28,14 +28,14 @@ public class PredicateSplitterByObjectTypeTest {
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
 		// Create application configuration
-		config = edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/farhan/hadooprdf");
+		config = edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/pankil/hadooprdf");
 		config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
 	}
 
 	@Test
 	public void testSplitPredicateByObjectType() {
 		try {
-			DataSet ds = new DataSet("/user/pankil/hadooprdf/LUBM1");
+			DataSet ds = new DataSet("/user/pankil/hadooprdf/DBPEDIA");
 			ds.setOriginalDataFilesExtension("owl");
 			PredicateSplitterByObjectType psbot = new PredicateSplitterByObjectType(ds);
 			psbot.splitPredicateByObjectType();

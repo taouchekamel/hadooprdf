@@ -173,7 +173,7 @@ public class QueryTester
 		"	<http://www.University0.edu> ub:hasAlumnus ?X " +
 		" } " ; 
 */
-		//LUBM Query 14
+/*		//LUBM Query 14
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
@@ -182,17 +182,26 @@ public class QueryTester
 		" { " +
 		"	?X rdf:type ub:UndergraduateStudent " +
 		" } "; 
-	
+*/
+		//DBPEDIA SAMPLE
+		String queryString =
+		" PREFIX foaf: <http://xmlns.com/foaf/0.1/#> " +
+		" SELECT ?X ?Y " +
+		" WHERE " +
+		" { " +
+		"	?X foaf:name ?Y " +
+		" } "; 
+
 		//Create the Hadoop configuration to be used
 		//TODO: This should be moved to the QueryExecution ??
 		Configuration config = new Configuration();
 		config.addResource( new Path( JobParameters.configFileDir + "/core-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/mapred-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/hdfs-site.xml" ) );
-		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/test/hadooprdf" );
+		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/pankil/hadooprdf" );
 
 		//Create a QueryExecution object
-		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/test/hadooprdf/data/LUBM1"), config ) );
+		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/pankil/hadooprdf/data/DBPEDIA"), config ) );
 		
 		//Get the output file
 		BufferedReader resReader = qexec.execSelect();

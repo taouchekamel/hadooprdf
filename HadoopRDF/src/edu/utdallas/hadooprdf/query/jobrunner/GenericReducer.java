@@ -65,14 +65,16 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	if( !jp.getHasMoreJobs() )
         	{
         		String remVal = "";
-            	String[] valSplit = iter.next().toString().split( "#" );
+        		String inpVal = iter.next().toString();
+            	String[] valSplit = inpVal.split( "#" );
             	for( int i = 1; i < valSplit.length; i++ ) 
             	{
             		if( i == ( valSplit.length - 1 ) ) remVal += valSplit[i];
             		else remVal += valSplit[i] + "#";
             	}
+            	System.out.println("logging"+ valSplit[0]);
             	val = valSplit[0].split( "~" )[0] + "#" + remVal; 
-            	if( jp.getJobId() == 1 && !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
+            	if( jp.getJobId() == 1 && !inpVal.contains( "m&" ) && !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
             	else
             		if( jp.getJobId() > 1 ) count++;
         	}
@@ -306,6 +308,22 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 								context.write( new Text( resultInOrder ), new Text( "" ) );
 							}
 						}
+    				}
+    				else
+    				{
+    					String[] keySplit = key.toString().split( "~" );
+    					String result = "";
+    					for( int i = 0; i < keySplit.length; i++ )
+    					{
+            				String[] splitKey = keySplit[i].split( "#" );
+            				String prefixKey = ""; if( splitKey.length > 2 ) prefixKey = splitKey[1] + "#";
+            				String namespaceKey = prefixTree.matchAndReplaceNamespace( prefixKey );
+            				if( splitKey.length > 2 )
+            					result += namespaceKey + splitKey[2] + "\t";
+            				else 
+            					result += namespaceKey + splitKey[1] + "\t";
+    					}
+    					context.write( new Text( result ), new Text( "" ) );
     				}
     			}
         	}

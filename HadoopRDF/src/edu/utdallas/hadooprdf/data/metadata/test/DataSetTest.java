@@ -23,7 +23,7 @@ public class DataSetTest {
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/core-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
-		m_DataSet = new DataSet(new Path("/user/pankil/hadooprdf/data/LUBM1"), hadoopConfiguration);
+		m_DataSet = new DataSet(new Path("/user/pankil/hadooprdf/data/DBPEDIA"), hadoopConfiguration);
 	}
 
 	@Test

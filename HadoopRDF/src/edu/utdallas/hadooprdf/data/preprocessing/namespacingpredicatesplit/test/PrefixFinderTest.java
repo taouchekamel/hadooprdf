@@ -29,9 +29,9 @@ public class PrefixFinderTest {
 		try {
 			// Create application configuration
 			edu.utdallas.hadooprdf.conf.Configuration config =
-				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/farhan/hadooprdf");
+				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/pankil/hadooprdf");
 			config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
-			DataSet ds = new DataSet("/user/pankil/hadooprdf/LUBM1");
+			DataSet ds = new DataSet("/user/pankil/hadooprdf/data/LUBM1");
 			ds.setOriginalDataFilesExtension("owl");
 			PrefixFinder pf = new PrefixFinder(ds);
 			pf.findPrefixes();
