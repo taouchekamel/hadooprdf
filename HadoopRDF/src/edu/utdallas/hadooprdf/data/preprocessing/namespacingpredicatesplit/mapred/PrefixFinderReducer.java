@@ -39,10 +39,13 @@ public class PrefixFinderReducer extends
 		Iterator<Text> iter = values.iterator();
 		while (iter.hasNext()) {
 			String sValue = iter.next().toString();
-			NamespacePrefixParser npp = new NamespacePrefixParser(sValue);
-			NamespacePrefixParser.NamespacePrefix [] np = npp.getNamespacePrefixes();
-			for (int i = 0; i < np.length; i++)
-				m_URIPrefixConsolidator.addPrefixAndReplacementString(np[i].getPrefix(), np[i].getNamespace());
+			System.out.println("Prefix Parser : " + sValue);
+			if(!sValue.equals("{}")){
+				NamespacePrefixParser npp = new NamespacePrefixParser(sValue);
+				NamespacePrefixParser.NamespacePrefix [] np = npp.getNamespacePrefixes();
+				for (int i = 0; i < np.length; i++)
+					m_URIPrefixConsolidator.addPrefixAndReplacementString(np[i].getPrefix(), np[i].getNamespace());
+			}
 		}
 	}
 	/* (non-Javadoc)

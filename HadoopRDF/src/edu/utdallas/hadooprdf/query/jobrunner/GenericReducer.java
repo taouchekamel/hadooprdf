@@ -58,9 +58,12 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         List<String> trPatternNos = new ArrayList<String>();
         
         //Iterate over all values for a particular key
+        //int cnt = 0;
         Iterator<Text> iter = value.iterator();
         while ( iter.hasNext() ) 
-        {
+        {	
+        	//cnt++;
+        	//if( cnt > 1 ) System.out.println( "multiple: " + key.toString() + " " + value.toString() );
         	String val = "";
         	if( !jp.getHasMoreJobs() )
         	{
@@ -72,7 +75,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
             		if( i == ( valSplit.length - 1 ) ) remVal += valSplit[i];
             		else remVal += valSplit[i] + "#";
             	}
-            	System.out.println("logging"+ valSplit[0]);
+            	//System.out.println("logging"+ valSplit[0]);
             	val = valSplit[0].split( "~" )[0] + "#" + remVal; 
             	if( jp.getJobId() == 1 && !inpVal.contains( "m&" ) && !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
             	else
@@ -147,15 +150,15 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         	{
     			if( jp.getJoiningVariablesList().size() == 1  )
     			{
-    				List<String> listSelectVars = jp.getSelectClauseVarList();
-    				int i = 0;
-    				for( i = 0; i < listSelectVars.size(); i++ )
-    				{
-    					if( sValue.contains( listSelectVars.get( i ) ) ) continue;
-    					else break;
-    				}
-    				if( i == listSelectVars.size() )
-    				{
+    				//List<String> listSelectVars = jp.getSelectClauseVarList();
+    				//int i = 0;
+    				//for( i = 0; i < listSelectVars.size(); i++ )
+    				//{
+    				//	if( sValue.contains( listSelectVars.get( i ) ) ) continue;
+    				//	else break;
+    				//}
+    				//if( i == listSelectVars.size() )
+    				//{
         				int countOfTps = jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) );
         				Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
         				Map<String,String> vars = new TreeMap<String,String>();
@@ -195,7 +198,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         					if( splitValueRes.length > 2 ) 
         					{
         						if( count == countOfTps )
-        							vars.put( varValueRes, namespaceValueRes + splitValueRes[2] );
+        							vars.put( varValueRes, vars.get( varValueRes ) + "\t" + namespaceValueRes + splitValueRes[2] );
         						else
         							if( count > countOfTps )
         							{
@@ -206,7 +209,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
         					else 
         					{
         						if( count == jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) ) )
-        							vars.put( varValueRes, namespaceValueRes + splitValueRes[1] );
+        							vars.put( varValueRes, vars.get( varValueRes ) + "\t" + namespaceValueRes + splitValueRes[1] );
         						else
         							if( count > countOfTps )
         							{
@@ -245,12 +248,14 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 		        				if( j == 1 || !result.equalsIgnoreCase( resultInOrder ) ) context.write( new Text( resultInOrder ), new Text( "" ) );
 							}
 						}
-        			}
+        			//}
         		}
     			else
     			{
     				String[] splitVal = sValue.split( "\t" );
-    				if( sValue.contains( "m&" ) && splitVal.length > 1 )
+    				
+    				//if( sValue.contains( "m&" ) && splitVal.length > 1 )
+    				if( !isValueSame )
     				{
          				Iterator<String> iterVars = jp.getSelectClauseVarList().iterator();
         				Map<String,String> vars = new TreeMap<String,String>();
@@ -323,7 +328,8 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
             				else 
             					result += namespaceKey + splitKey[1] + "\t";
     					}
-    					context.write( new Text( result ), new Text( "" ) );
+    					for( int j = 0; j < valSplit.length; j++ )
+    						context.write( new Text( result ), new Text( "" ) );
     				}
     			}
         	}

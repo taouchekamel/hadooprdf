@@ -185,11 +185,13 @@ public class QueryTester
 */
 		//DBPEDIA SAMPLE
 		String queryString =
-		" PREFIX foaf: <http://xmlns.com/foaf/0.1/#> " +
-		" SELECT ?X ?Y " +
+		" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" SELECT ?X ?Y ?Z" +
 		" WHERE " +
 		" { " +
-		"	?X foaf:name ?Y " +
+		"	?X foaf:name ?Y . "+
+		"	?X foaf:homepage ?Z "+
 		" } "; 
 
 		//Create the Hadoop configuration to be used

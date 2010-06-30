@@ -190,7 +190,9 @@ public class QueryRewriter
 				{
 					String tURI = prefixTree.matchAndReplacePrefix(triple.getPredicate().getURI());
 					String classAssociated =  triple.getPredicate().getURI();
-					int index1 = classAssociated.lastIndexOf("#");
+					
+					//TODO: should be done on # or /
+					int index1 = classAssociated.lastIndexOf("/");
 					classAssociated = classAssociated.substring (index1, classAssociated.length ());
 					ArrayList<String> files = fetchAssociatedFilesForTriple(triple.getObject().toString(), classAssociated, tURI, filesGen);
 

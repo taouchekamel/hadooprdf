@@ -44,7 +44,8 @@ public class PrefixFinderMapper extends
 		String [] sElements = value.toString().split("\\s");
 		if (4 != sElements.length)	// Invalid triple, I should find a way to generate an error.
 			return;				//I could not throw any exception other that the two specified in the method signature.
-		for (int i = 0; i < 3; i++) {
+		//Running PreFixfinder only on Subjects and Predicates and so loop is till count = 2.
+		for (int i = 0; i < 2; i++) {
 			String sElement = sElements[i];
 			int iLength = sElement.length();
 			if (sElement.charAt(0) == '<' && sElement.charAt(iLength - 1) == '>') {	// Check if it is a URI

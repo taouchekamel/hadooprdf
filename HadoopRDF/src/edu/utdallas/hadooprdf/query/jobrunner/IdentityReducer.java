@@ -32,6 +32,6 @@ public class IdentityReducer extends Reducer<Text, Text, Text, Text>
             if( !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
             sValue += val + '\t';
         }
-    	context.write( key, new Text( sValue + "count = " + count ) );		
+    	if( count >= 2 ) context.write( key, new Text( sValue + "count = " + count ) );		
 	}
 }
