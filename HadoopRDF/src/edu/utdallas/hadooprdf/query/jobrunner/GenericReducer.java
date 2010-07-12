@@ -140,6 +140,8 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 					}
 				}
 				else
+					if( valSplit[0].split( "~" ).length == 1 ) count++;
+				else
 					if( jp.getJobId() > 1 ) count++;
 				//            	if( jp.getJobId() == 1 && !inpVal.contains( "m&" ) && !trPatternNos.contains( valSplit[0].split( "~" )[1] ) ) { count++; trPatternNos.add( valSplit[0].split( "~" )[1] ); }
 				//          	else
@@ -504,6 +506,9 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 					}
 					else
 					{
+						//Get the expected number of triple patterns for the joining variable
+						int countOfTps = jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) );
+
 						//If all values are same and equal to m&
 						if( splitVal.length >= 1 && sameVal.contains( "m&" ) )
 						{
@@ -511,7 +516,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 							String[] keySplit = key.toString().split( "~" );
 							
 							//Only if all output variables are in the key continue
-							if( jp.getSelectClauseVarList().size() == keySplit.length )
+							if( jp.getSelectClauseVarList().size() == keySplit.length && count == countOfTps )
 							{
 								String result = "";
 								for( int i = 0; i < keySplit.length; i++ )
@@ -533,8 +538,16 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 								}
 							
 								//Output the same result for the number of times m&# is present in the value 
-								for( int j = 0; j < valSplit.length; j++ )
+								if( count == 1 )
+								{
+									for( int j = 0; j < valSplit.length; j++ )
+										context.write( new Text( result ), new Text( "" ) );
+								}
+								else
+								{
 									context.write( new Text( result ), new Text( "" ) );
+								}
+									
 							}
 						}
 					}

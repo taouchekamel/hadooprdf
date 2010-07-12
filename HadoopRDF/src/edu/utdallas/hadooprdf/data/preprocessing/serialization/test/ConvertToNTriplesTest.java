@@ -22,8 +22,8 @@ public class ConvertToNTriplesTest {
 	public void testDoConversion() throws PreprocessorException {
 		// Create cluster configuration
 		org.apache.hadoop.conf.Configuration hadoopConfiguration = new Configuration();
-		//String sConfDirectoryPath = "conf/SAIALLabCluster";
-		String sConfDirectoryPath = "conf/SemanticWebLabCluster";
+		String sConfDirectoryPath = "conf/SAIALLabCluster";
+		//String sConfDirectoryPath = "conf/SemanticWebLabCluster";
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/core-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
@@ -31,8 +31,8 @@ public class ConvertToNTriplesTest {
 			// Create application configuration
 			edu.utdallas.hadooprdf.conf.Configuration config =
 				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/pankil/hadooprdf");
-			config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
-			DataSet ds = new DataSet("/user/pankil/hadooprdf/data/DBPEDIA");
+			config.setNumberOfTaskTrackersInCluster(10); // 5 for semantic web lab, 10 for SAIAL lab
+			DataSet ds = new DataSet("/user/test/hadooprdf/data/DBPEDIA");
 			ds.setOriginalDataFilesExtension("nt");
 			ConvertToNTriples ctn = new ConvertToNTriples(SerializationFormat.RDF_XML, ds);
 			//ctn.doConversion();

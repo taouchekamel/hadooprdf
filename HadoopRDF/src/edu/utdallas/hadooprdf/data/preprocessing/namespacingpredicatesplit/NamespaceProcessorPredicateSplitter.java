@@ -36,14 +36,14 @@ public class NamespaceProcessorPredicateSplitter {
 	public void processDataForNamespacePredicateSplit() throws ConfigurationNotInitializedException, NamespaceProcessorPredicateSplitterException {
 		try {
 			PrefixFinder pf = new PrefixFinder(m_DataSet);
-			pf.findPrefixes();
+			//pf.findPrefixes();
 			PrefixReplacerPredicateSplitter pr = new PrefixReplacerPredicateSplitter(m_DataSet);
 			pr.replacePrefixesAndSplitByPredicate();
 		} catch (DataFileExtensionNotSetException e) {
 			throw new NamespaceProcessorPredicateSplitterException("Namespace could not be processed because of the data file extension\n" + e.getMessage());
-		} catch (PrefixFinderException e) {
+		} /*catch (PrefixFinderException e) {
 			throw new NamespaceProcessorPredicateSplitterException("Namespace could not be processed\n" + e.getMessage());
-		} catch (PrefixReplacerPredicateSplitterException e) {
+		} */catch (PrefixReplacerPredicateSplitterException e) {
 			throw new NamespaceProcessorPredicateSplitterException("Namespace could not be processed\n" + e.getMessage());
 		}
 	}

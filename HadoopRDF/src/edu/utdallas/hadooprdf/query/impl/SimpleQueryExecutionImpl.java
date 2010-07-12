@@ -71,6 +71,8 @@ public class SimpleQueryExecutionImpl implements QueryExecution
 		
 		//Create a QueryPlan
 		this.queryPlan = createPlan( queryElements );		
+		
+		System.out.println( "Finished creating query plan" );
 	}
 
 	/**

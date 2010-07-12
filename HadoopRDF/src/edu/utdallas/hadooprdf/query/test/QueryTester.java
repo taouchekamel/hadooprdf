@@ -183,37 +183,42 @@ public class QueryTester
 		"	?X rdf:type ub:UndergraduateStudent " +
 		" } "; 
 */
-		/*//DBPEDIA SAMPLE
+	/*	//DBPEDIA SAMPLE
 		String queryString =
 		" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
-		" SELECT ?X ?Y ?Z " +
+		" SELECT ?X ?Y ?Z ?P ?Q" +
 		" WHERE " +
 		" { " +
 		"	?X foaf:name ?Y . "+
-		"	?X foaf:homepage ?Z "+
-		" } ";*/
-		
+		"	?X foaf:homepage ?Z ."+
+		"	?X <http://dbpedia.org/property_birthPlace> ?P ."+
+		"	?X <http://dbpedia.org/property_deathPlace> ?P ."+
+		"	?X <http://purl.org/dc/elements/1.1/description> ?Q "+
+		" } ";*/ 
+
+		//DBPEDIA SAMPLE - having same birth and death place
 		String queryString =
-			" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
-			" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
-			" SELECT ?P ?Q" +
-			" WHERE " +
-			" { " +
-			"	<http://dbpedia.org/resource/Dar_Robinson> <http://dbpedia.org/property_birthPlace> ?P ."+
-			"	<http://dbpedia.org/resource/Dar_Robinson> <http://dbpedia.org/property_deathPlace> ?Q ."+
-			" } ";
-		
+		" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
+		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+		" SELECT ?X ?P" +
+		" WHERE " +
+		" { " +
+		"	?X <http://dbpedia.org/property_birthPlace> ?P ."+
+		"	?X <http://dbpedia.org/property_deathPlace> ?P ."+
+		" } "; 
+
+
 		//Create the Hadoop configuration to be used
 		//TODO: This should be moved to the QueryExecution ??
 		Configuration config = new Configuration();
 		config.addResource( new Path( JobParameters.configFileDir + "/core-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/mapred-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/hdfs-site.xml" ) );
-		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/pankil/hadooprdf" );
+		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/test/hadooprdf" );
 
 		//Create a QueryExecution object
-		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/pankil/hadooprdf/data/DBPEDIA"), config ) );
+		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/test/hadooprdf/data/DBPEDIA"), config ) );
 		
 		//Get the output file
 		BufferedReader resReader = qexec.execSelect();

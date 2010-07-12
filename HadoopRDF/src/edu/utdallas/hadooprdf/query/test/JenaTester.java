@@ -26,18 +26,26 @@ public class JenaTester
 		try
 		{
 			m.read( new BufferedReader( new InputStreamReader(  new FileInputStream( new File( "/home/hadoop/dbpedia/persondata_en.nt" ) ) ) ), null, "N-TRIPLE" );
-			m.read( new BufferedReader( new InputStreamReader(  new FileInputStream( new File( "/home/hadoop/dbpedia/homepages_en.nt" ) ) ) ), null, "N-TRIPLE" );
+			//m.read( new BufferedReader( new InputStreamReader(  new FileInputStream( new File( "/home/hadoop/dbpedia/homepages_en.nt" ) ) ) ), null, "N-TRIPLE" );
 
 			System.out.println( m.size() );
 			String queryString = 
-				" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
+				/*" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
 				" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 				" SELECT ?X ?Y ?Z " +
 				" WHERE " +
 				" { " +
 				"	?X foaf:name ?Y . "+
 				"	?X foaf:homepage ?Z . "+
-				" } "; 
+				" } ";*/
+				" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
+				" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+				" SELECT ?P ?X" +
+				" WHERE " +
+				" { " +
+				"	?X <http://dbpedia.org/property/birthPlace> ?P ."+
+				"	?X <http://dbpedia.org/property/deathPlace> ?P"+
+				" } ORDER BY ?P";
 
 			QueryExecution qe = QueryExecutionFactory.create( queryString, m );
 			ResultSet rs = qe.execSelect();
@@ -47,9 +55,8 @@ public class JenaTester
 			{
 				QuerySolution qs = rs.nextSolution();
 				Resource sub = qs.getResource( "?X" );
-				RDFNode obj1 = qs.getLiteral( "?Y" );
-				Resource obj2 = qs.getResource( "?Z" );
-				writer.write( sub.toString() + "\t" + "\"" + obj1.asNode().getLiteralValue() + "\"" + "@en" + "\t" + "<" + obj2 + ">" + "\n" ); writer.flush();
+				RDFNode obj1 = qs.getLiteral( "?P" );
+				writer.write("\"" +obj1.toString()+"\"@en" + "\t" + sub.toString() + "\n"  ); writer.flush();
 			}
 			writer.close();
 		}

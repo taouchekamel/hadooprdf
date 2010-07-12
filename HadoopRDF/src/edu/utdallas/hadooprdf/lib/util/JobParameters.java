@@ -12,7 +12,8 @@ public class JobParameters
 {
 	/** The directory that stores the various hadoop configuration files **/
 	//public static final String configFileDir = "conf/SemanticWebLabCluster";
-	public static final String configFileDir = "/home/hadoop/workspace-hadooprdf/HadoopRDF/conf/SemanticWebLabCluster";
+	public static final String configFileDir = "/home/hadoop/workspace-hadooprdf/HadoopRDF/conf/SAIALLabCluster";
+	//public static final String configFileDir = "/home/hadoop/workspace-hadooprdf/HadoopRDF/conf/SemanticWebLabCluster";
 	
 	/** The location of the jar file that will be used in a Hadoop Job **/
 	public static final String jarFile = "/home/hadoop/HadoopRDF.jar";

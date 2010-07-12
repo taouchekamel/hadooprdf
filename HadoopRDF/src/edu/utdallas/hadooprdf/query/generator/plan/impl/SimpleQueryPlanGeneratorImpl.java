@@ -117,7 +117,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		
 		//Initialize both input lists
 		oldInputVarList = newInputVarList = constructVarList();
-
+		
+		//A list of literals to run the heuristic
+		List<String> inputLiteralList = new ArrayList<String>();
+		
+		//Initialize the list of literals
+		inputLiteralList = constructLiteralsList();
+		
 		while( tpMap.size() > 0 || !newInputVarList.isEmpty() )
 		{				
 			countOfJobs++;
@@ -573,6 +579,48 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		
 		//Return the new input variables list
 		return newInputVarList;
+	}
+	
+	private List<String> constructLiteralsList()
+	{
+		//The list of literals
+		List<String> inputLiteralsList = new ArrayList<String>(); 
+		
+		//An arraylist of the parent triple pattern identifiers
+		List<Integer> parentTpIds = new ArrayList<Integer>();
+		
+		//Iterate over the triple patterns from the input SPARQL query
+		Iterator<Integer> iterTpMap = tpMap.keySet().iterator();
+		while( iterTpMap.hasNext() )
+		{
+			//Get the triple pattern identifier
+			Integer tpId = iterTpMap.next();
+			
+			//Get the corresponding triple pattern
+			TriplePattern tp = tpMap.get( tpId );
+			
+			//Get the parent triple pattern identifier
+			Integer parentTpId = tp.getParentTriplePatternId();
+			
+			//If the list contains the parent identifier, then continue else add the id to the list
+			if( parentTpIds.contains( parentTpId ) ) continue;
+			else parentTpIds.add( parentTpId );
+			
+			//The string of associated variables from the current triple pattern
+			String literals = "";
+			
+			//Check if the subject and/or object of each triple pattern are variables.
+			//If they are simply add them to the variables
+			Node sub = tp.getSubjectValue(), obj = tp.getObjectValue();
+			if( sub.isLiteral() ) literals += sub.toString() + "~";
+			if( obj.isLiteral() ) literals += obj.toString() + "~";
+			
+			//Add the variables string to the list of variables
+			inputLiteralsList.add( literals );
+		}
+		
+		//Return the list of variables
+		return inputLiteralsList;
 	}
 	
 	/**

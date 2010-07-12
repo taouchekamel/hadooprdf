@@ -225,9 +225,12 @@ public class QueryRewriter
 		try { fileListGenerator = new FileListGenerator ( query, dataset );	} 
 		catch (Exception e) { throw e; }
 		
+		System.out.println("Finished Realization");
+		
 		ArrayList<HadoopElement> tQueryElementList = (ArrayList<HadoopElement>)query.getElements();
 		try { tQueryElementList = rewriteBasicElement (tQueryElementList, prefixTree, fileListGenerator); } 
 		catch (Exception e) { throw e;}
+		System.out.println("Finished Query Rewriting");
 		return tQueryElementList;
 	}		
 }
