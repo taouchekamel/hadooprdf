@@ -183,17 +183,27 @@ public class QueryTester
 		"	?X rdf:type ub:UndergraduateStudent " +
 		" } "; 
 */
-		//DBPEDIA SAMPLE
+		/*//DBPEDIA SAMPLE
 		String queryString =
 		" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
-		" SELECT ?X ?Y ?Z" +
+		" SELECT ?X ?Y ?Z " +
 		" WHERE " +
 		" { " +
 		"	?X foaf:name ?Y . "+
 		"	?X foaf:homepage ?Z "+
-		" } "; 
-
+		" } ";*/
+		
+		String queryString =
+			" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
+			" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+			" SELECT ?P ?Q" +
+			" WHERE " +
+			" { " +
+			"	<http://dbpedia.org/resource/Dar_Robinson> <http://dbpedia.org/property_birthPlace> ?P ."+
+			"	<http://dbpedia.org/resource/Dar_Robinson> <http://dbpedia.org/property_deathPlace> ?Q ."+
+			" } ";
+		
 		//Create the Hadoop configuration to be used
 		//TODO: This should be moved to the QueryExecution ??
 		Configuration config = new Configuration();

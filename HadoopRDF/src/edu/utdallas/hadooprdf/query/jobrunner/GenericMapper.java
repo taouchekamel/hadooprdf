@@ -83,7 +83,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 				if( tp.getJoiningVariable().equalsIgnoreCase( "s" ) )
 				{
 					if( tp.getNumOfVariables() == 2 )
-						context.write( new Text( joiningVariableValue + "#" + sSubject ), new Text( tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" + st.nextToken() ) );
+						context.write( new Text( joiningVariableValue + "#" + sSubject ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sSubject + "\t" + tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" + st.nextToken() ) );
 					else
 					{
 						String sObject = st.nextToken();
@@ -96,7 +96,7 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 					if( tp.getJoiningVariable().equalsIgnoreCase( "o" ) )
 					{
 						if( tp.getNumOfVariables() == 2 )
-							context.write( new Text( joiningVariableValue + "#" + st.nextToken() ), new Text( tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" + sSubject ) );
+							context.write( new Text( joiningVariableValue + "#" + st.nextToken() ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sSubject + "\t" + tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" + sSubject ) );
 						else
 						{
 							String sObject = st.nextToken();

@@ -855,6 +855,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		
 		//Set the mapper and reducer classes to be used
 		currJob.setMapperClass( edu.utdallas.hadooprdf.query.jobrunner.GenericMapper.class );
+		//currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.SimpleGenericReducer.class );
 		//if( countOfJobs < 2 ) currJob.setMapperClass( edu.utdallas.hadooprdf.query.jobrunner.GenericMapper.class );
 		//if( countOfJobs < 2 ) currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class );
 		currJob.setReducerClass( edu.utdallas.hadooprdf.query.jobrunner.GenericReducer.class );
