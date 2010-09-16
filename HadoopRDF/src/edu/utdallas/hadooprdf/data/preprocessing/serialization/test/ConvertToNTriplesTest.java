@@ -22,27 +22,25 @@ public class ConvertToNTriplesTest {
 	public void testDoConversion() throws PreprocessorException {
 		// Create cluster configuration
 		org.apache.hadoop.conf.Configuration hadoopConfiguration = new Configuration();
-		String sConfDirectoryPath = "conf/SAIALLabCluster";
-		//String sConfDirectoryPath = "conf/SemanticWebLabCluster";
+		//String sConfDirectoryPath = "conf/SAIALLabCluster";
+		String sConfDirectoryPath = "conf/SemanticWebLabCluster";
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/core-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
 		try {
 			// Create application configuration
 			edu.utdallas.hadooprdf.conf.Configuration config =
-				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/pankil/hadooprdf");
+				edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/farhan/hadooprdf");
 			config.setNumberOfTaskTrackersInCluster(10); // 5 for semantic web lab, 10 for SAIAL lab
-			DataSet ds = new DataSet("/user/test/hadooprdf/data/DBPEDIA");
-			ds.setOriginalDataFilesExtension("nt");
+			DataSet ds = new DataSet("/user/farhan/hadooprdf/LUBM1");
+			ds.setOriginalDataFilesExtension("owl");
 			ConvertToNTriples ctn = new ConvertToNTriples(SerializationFormat.RDF_XML, ds);
-			//ctn.doConversion();
-			Preprocessor preprocessor = new Preprocessor(ds,SerializationFormat.NTRIPLES);
-			preprocessor.preprocess();
-		}/* catch (ConversionToNTriplesException e) {
+			ctn.doConversion();
+		} catch (ConversionToNTriplesException e) {
 			System.err.println("ConversionToNTriplesException occurred while testing ConvertToNTriples.doConversion\n" + e.getMessage());
 			e.printStackTrace();
 			fail(e.getMessage());
-		}*/ catch (ConfigurationNotInitializedException e) {
+		} catch (ConfigurationNotInitializedException e) {
 			System.err.println("ConfigurationNotInitializedException occurred while testing ConvertToNTriples.doConversion\n" + e.getMessage());
 			e.printStackTrace();
 			fail(e.getMessage());

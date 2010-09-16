@@ -10,8 +10,6 @@ import org.apache.hadoop.fs.Path;
 
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.commons.Constants;
-import edu.utdallas.hadooprdf.data.preprocessing.lib.NamespacePrefixParser.NamespacePrefix;
-import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 import edu.utdallas.hadooprdf.lib.util.Utility;
 
@@ -29,6 +27,10 @@ public class DataSet {
 	 * The root path of the data set
 	 */
 	private Path m_DataSetRoot;
+	/**
+	 * Path to the data directory
+	 */
+	private Path m_PathToDataDirectory;
 	/**
 	 * Path to the original data, which can be in any format
 	 */
@@ -50,17 +52,13 @@ public class DataSet {
 	 */
 	private Path m_PathToMetaData;
 	/**
+	 * Path to Dictionary
+	 */
+	private Path m_PathToDictionary;
+	/**
 	 * Path to temporary directory
 	 */
 	private Path m_PathToTemp;
-	/**
-	 * Path to prefix file
-	 */
-	private Path m_PathToPrefixFile;
-	/**
-	 * PrefixNamespaceTree for the data set
-	 */
-	private PrefixNamespaceTree m_PrefixNamespaceTree;
 	/**
 	 * The predicate collection of the data set
 	 */
@@ -98,15 +96,15 @@ public class DataSet {
 		m_HadoopConfiguration = hadoopConfiguration;
 		m_sOriginalDataFilesExtension = null;
 		m_DataSetRoot = dataSetRoot;
-		m_PathToOriginalData = new Path(m_DataSetRoot, "Original");
-		m_PathToNTriplesData = new Path(m_DataSetRoot, "NTriples");
-		m_PathToPSData = new Path(m_DataSetRoot, "PS");
-		m_PathToPOSData = new Path(m_DataSetRoot, "POS");
+		m_PathToDataDirectory = new Path(m_DataSetRoot, "data");
+		m_PathToOriginalData = new Path(m_PathToDataDirectory, "Original");
+		m_PathToNTriplesData = new Path(m_PathToDataDirectory, "NTriples");
+		m_PathToPSData = new Path(m_PathToDataDirectory, "PS");
+		m_PathToPOSData = new Path(m_PathToDataDirectory, "POS");
 		m_PathToMetaData = new Path(m_DataSetRoot, "metadata");
 		Utility.createDirectory(hadoopConfiguration, m_PathToMetaData);
-		m_PathToPrefixFile = new Path(m_PathToMetaData, "prefixes");
+		m_PathToDictionary = new Path(m_PathToMetaData, "dictionary");
 		m_PathToTemp = new Path(m_DataSetRoot, "tmp");
-		m_PrefixNamespaceTree = null;
 		m_PredicateCollection = createPredicateCollection(hadoopConfiguration);
 	}
 	/**
@@ -131,28 +129,6 @@ public class DataSet {
 				predicateCollection.add(sFilename.substring(0, secondIndex));
 		}
 		return predicateCollection;
-	}
-	/**
-	 * Returns the prefix namespace tree for the data set
-	 * @return the prefix namespace tree for the data set
-	 * @throws DataSetException 
-	 */
-	public PrefixNamespaceTree getPrefixNamespaceTree() throws DataSetException {
-		try {
-			if (null == m_PrefixNamespaceTree && FileSystem.get(m_HadoopConfiguration).exists(m_PathToPrefixFile))
-					m_PrefixNamespaceTree = Utility.getPrefixNamespaceTreeForDataSet(m_HadoopConfiguration, m_PathToPrefixFile);
-		} catch (IOException e) {
-			throw new DataSetException("PrefixNamespaceTree could not be built because\n" + e.getMessage());
-		}
-		return m_PrefixNamespaceTree;
-	}
-	/**
-	 * Gets an array of namespace-prefix pairs
-	 * @return an array of namespace-prefix pairs
-	 * @throws DataSetException 
-	 */
-	public NamespacePrefix [] getNamespacePrefixes() throws DataSetException {
-		return getPrefixNamespaceTree().getNamespacePrefixes();
 	}
 	/**
 	 * @return the m_DataSetRoot
@@ -199,10 +175,10 @@ public class DataSet {
 		return m_PathToTemp;
 	}
 	/**
-	 * @return the m_PathToPrefixFile
+	 * @return the m_PathToDictionary
 	 */
-	public Path getPathToPrefixFile() {
-		return m_PathToPrefixFile;
+	public Path getPathToDictionary() {
+		return m_PathToDictionary;
 	}
 	/**
 	 * @param sDataFilesExtension the extension of the original data files
