@@ -28,7 +28,7 @@ public class DictionaryCreatorMapper extends
 	protected void map(LongWritable key, Text value,
 			org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, IntWritable>.Context context)
 			throws IOException, InterruptedException {
-		String [] splits = value.toString().split(" \t");
+		String [] splits = value.toString().split("\\s");
 		if (splits.length != 4)
 			return;
 		for (int i = 0; i < 3; i++) {

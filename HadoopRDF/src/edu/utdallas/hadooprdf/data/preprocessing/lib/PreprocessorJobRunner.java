@@ -52,4 +52,16 @@ public abstract class PreprocessorJobRunner {
 	public void setNumberOfReducers(int iNumberOfReducers) {
 		m_iNumberOfReducers = iNumberOfReducers;
 	}
+	/**
+	 * @return the m_sInputFilesExtension
+	 */
+	public String getInputFilesExtension() {
+		return m_sInputFilesExtension;
+	}
+	/**
+	 * @param mSInputFilesExtension the m_sInputFilesExtension to set
+	 */
+	public void setInputFilesExtension(String inputFilesExtension) {
+		m_sInputFilesExtension = inputFilesExtension;
+	}
 }

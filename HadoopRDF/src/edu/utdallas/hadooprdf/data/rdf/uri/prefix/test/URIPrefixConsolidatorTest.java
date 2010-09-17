@@ -20,7 +20,7 @@ import edu.utdallas.hadooprdf.data.rdf.uri.prefix.URIPrefixConsolidator;
 public class URIPrefixConsolidatorTest {
 
 	/**
-	 * Test method for {@link edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixTree#getLongestCommonPrefixes()}.
+	 * Test method for {@link edu.utdallas.hadooprdf.lib.util.prefixtree.rdf.uri.prefix.PrefixTree#getLongestCommonPrefixes()}.
 	 */
 	@Test
 	public void testGetLongestCommonPrefixes() {

@@ -4,6 +4,7 @@
 package edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -46,7 +47,11 @@ public class DictionaryCreatorReducer extends
 	protected void reduce(Text key, Iterable<IntWritable> values,
 			org.apache.hadoop.mapreduce.Reducer<Text, IntWritable, Text, LongWritable>.Context context)
 			throws IOException, InterruptedException {
-		dictionary.addString(key.toString());
+		Iterator<IntWritable> iter = values.iterator();
+		int frequency = 0;
+		while (iter.hasNext())
+			frequency += iter.next().get();
+		dictionary.addString(key.toString(), frequency);
 	}
 
 	/* (non-Javadoc)

@@ -12,7 +12,7 @@ public class PrefixTreeNode extends PrefixNode implements Serializable {
 	/**
 	 * Count of the words which end at this node
 	 */
-	private int m_iWordEndsHere;
+	protected int m_iWordEndsHere;
 	
 	/**
 	 * The class constructor

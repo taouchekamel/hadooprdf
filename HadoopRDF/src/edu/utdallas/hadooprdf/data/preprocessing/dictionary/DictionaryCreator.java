@@ -18,7 +18,6 @@ import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
-import edu.utdallas.hadooprdf.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
 
 /**
  * A class which creates dictionary from NTriples data
@@ -73,7 +72,6 @@ public class DictionaryCreator extends PreprocessorJobRunner {
 			if (bInputPathEmpty)
 				throw new DictionaryCreatorException("No file to create dictionary from!");
 			// Specify output parameters
-			job.setOutputFormatClass(FilenameByKeyMultipleTextOutputFormat.class);
 			job.setOutputKeyClass(Text.class);
 			job.setOutputValueClass(LongWritable.class);
 			job.setMapOutputKeyClass(Text.class);
