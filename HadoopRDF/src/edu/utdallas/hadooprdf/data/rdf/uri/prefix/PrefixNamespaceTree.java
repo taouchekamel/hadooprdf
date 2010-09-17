@@ -5,6 +5,7 @@ import java.util.Map;
 
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.NamespacePrefixParser.NamespacePrefix;
+import edu.utdallas.hadooprdf.lib.util.prefixtree.PrefixNode;
 
 /**
  * @author Mohammad Farhan Husain

@@ -2,6 +2,10 @@ package edu.utdallas.hadooprdf.data.rdf.uri.prefix;
 
 import java.io.Serializable;
 
+import edu.utdallas.hadooprdf.lib.util.prefixtree.PrefixNode;
+import edu.utdallas.hadooprdf.lib.util.prefixtree.PrefixTree;
+import edu.utdallas.hadooprdf.lib.util.prefixtree.PrefixTreeNode;
+
 /**
  * This class is a prefix tree for URIs ({@link http://tools.ietf.org/html/rfc3305})
  * 
@@ -18,7 +22,7 @@ public class URIPrefixTree extends PrefixTree implements Serializable {
 		super(sPrefixPrefix);
 	}
 	/**
-	 * @see edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixTree#generateLongestCommonPrefixes(edu.utdallas.hadooprdf.rdf.uri.prefix.PrefixNode, java.lang.StringBuffer) 
+	 * @see edu.utdallas.hadooprdf.lib.util.prefixtree.rdf.uri.prefix.PrefixTree#generateLongestCommonPrefixes(edu.utdallas.hadooprdf.lib.util.prefixtree.rdf.uri.prefix.PrefixNode, java.lang.StringBuffer) 
 	 */
 	@Override
 	protected void generateLongestCommonPrefixes(PrefixNode node, StringBuffer sbPrefix) {

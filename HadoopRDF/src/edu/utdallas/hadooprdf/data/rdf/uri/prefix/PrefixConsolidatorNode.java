@@ -1,5 +1,7 @@
 package edu.utdallas.hadooprdf.data.rdf.uri.prefix;
 
+import edu.utdallas.hadooprdf.lib.util.prefixtree.PrefixNode;
+
 public class PrefixConsolidatorNode extends PrefixNode {
 	/**
 	 * The replacement prefix, if the node has any
