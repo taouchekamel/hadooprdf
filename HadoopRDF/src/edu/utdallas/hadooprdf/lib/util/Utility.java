@@ -91,4 +91,24 @@ public class Utility
 			return null;
 		}
 	}
+	/**
+	 * The method determines the number of bits required to store
+	 * any number less than or equal to <i>n</i> in binary
+	 * @param n the maximum value for which number of bits needs to be determined
+	 * @return number of bits requred to store
+	 */
+	public static int getMaxBitsRequiredToStore(int n) {
+		int i;
+		for (i = 0; n != 0; n >>= 1, i++);
+		return i;
+	}
+	
+	/**
+	 * Checks if a string is empty
+	 * @param s the string to check
+	 * @return true if it is null or has zero length, otherwise false
+	 */
+	public static boolean isEmpty(String s) {
+		return s == null || s.length() == 0;
+	}
 }
