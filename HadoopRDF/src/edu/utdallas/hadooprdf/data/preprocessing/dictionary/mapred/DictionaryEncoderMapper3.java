@@ -16,17 +16,18 @@ import edu.utdallas.hadooprdf.data.commons.Tags;
  * @author Mohammad Farhan Husain
  *
  */
-public class DictionaryEncoderMapper1 extends
+public class DictionaryEncoderMapper3 extends
 		Mapper<LongWritable, Text, Text, Text> {
 	private String pathToDictionary;
 	private Text outputKey;
 	private Text outputValue;
 	
-	public DictionaryEncoderMapper1() {
+	public DictionaryEncoderMapper3() {
 		pathToDictionary = "";
 		outputKey = new Text("");
 		outputValue = new Text("");
 	}
+
 
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.mapreduce.Mapper#map(java.lang.Object, java.lang.Object, org.apache.hadoop.mapreduce.Mapper.Context)
@@ -40,16 +41,17 @@ public class DictionaryEncoderMapper1 extends
 		if (splits.length < 3)	// Something wrong, is there a way to communicate this error other than throwing an IOException
 			return;
 		String pathToParent = ((FileSplit) context.getInputSplit()).getPath().getParent().toString();
-		outputKey.set(splits[0]);	// Set the subject/string as the key
 		if (pathToParent.endsWith(pathToDictionary)) {
 			// Process dictionary data here
+			outputKey.set(splits[0]);	// Set the string as the key
 			outputValue.set("I\t" + splits[2]);	// The long id
 		} else {
 			// Process N-Triples data here
+			outputKey.set(splits[2]);	// Set the object as the key
 			StringBuffer sb = new StringBuffer("T\t");
-			sb.append(splits[1]);
+			sb.append(splits[0]);		// The subject
 			sb.append('\t');
-			sb.append(splits[2]);
+			sb.append(splits[1]);		// The predicate
 			outputValue.set(sb.toString());
 		}
 		context.write(outputKey, outputValue);

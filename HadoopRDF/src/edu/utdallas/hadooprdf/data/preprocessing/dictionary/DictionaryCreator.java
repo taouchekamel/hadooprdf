@@ -35,8 +35,8 @@ public class DictionaryCreator extends PreprocessorJobRunner {
 	public DictionaryCreator(DataSet dataSet)
 			throws DataFileExtensionNotSetException, IOException {
 		super(dataSet);
-		m_InputDirectoryPath = m_DataSet.getPathToNTriplesData();
-		m_OutputDirectoryPath = m_DataSet.getPathToDictionary();
+		inputDirectoryPath = dataSet.getPathToNTriplesData();
+		outputDirectoryPath = dataSet.getPathToDictionary();
 	}
 	
 	public void createDictionary() throws DictionaryCreatorException, ConfigurationNotInitializedException {
@@ -49,18 +49,18 @@ public class DictionaryCreator extends PreprocessorJobRunner {
 			FileSystem fs;
 			fs = FileSystem.get(hadoopConfiguration);
 			// Delete output directory
-			fs.delete(m_OutputDirectoryPath, true);
+			fs.delete(outputDirectoryPath, true);
 			// Create the job
-			String sJobName = "Dictionary creator for " + m_InputDirectoryPath.getParent() + '/' + m_InputDirectoryPath.getName();
+			String sJobName = "Dictionary creator for " + inputDirectoryPath.getParent() + '/' + inputDirectoryPath.getName();
 			Job job = new Job(hadoopConfiguration, sJobName);
 			// Specify input parameters
 			job.setInputFormatClass(TextInputFormat.class);
 			boolean bInputPathEmpty = true;
 			// Get input file names
-			FileStatus [] fstatus = fs.listStatus(m_InputDirectoryPath, new PathFilter() {
+			FileStatus [] fstatus = fs.listStatus(inputDirectoryPath, new PathFilter() {
 				@Override
 				public boolean accept(Path path) {
-					return path.getName().toLowerCase().endsWith(m_sInputFilesExtension);
+					return path.getName().toLowerCase().endsWith(inputFilesExtension);
 				}
 			});
 			for (int i = 0; i < fstatus.length; i++) {
@@ -76,7 +76,7 @@ public class DictionaryCreator extends PreprocessorJobRunner {
 			job.setOutputValueClass(LongWritable.class);
 			job.setMapOutputKeyClass(Text.class);
 			job.setMapOutputValueClass(IntWritable.class);
-			FileOutputFormat.setOutputPath(job, m_OutputDirectoryPath);
+			FileOutputFormat.setOutputPath(job, outputDirectoryPath);
 			// Set the mapper and reducer classes
 			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.DictionaryCreatorMapper.class);
 			job.setReducerClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.DictionaryCreatorReducer.class);

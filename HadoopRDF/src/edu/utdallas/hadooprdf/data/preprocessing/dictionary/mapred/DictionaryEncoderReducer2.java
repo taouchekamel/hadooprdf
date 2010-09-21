@@ -15,13 +15,11 @@ import org.apache.hadoop.mapreduce.Reducer;
  * @author Mohammad Farhan Husain
  *
  */
-public class DictionaryEncoderReducer1 extends
+public class DictionaryEncoderReducer2 extends
 		Reducer<Text, Text, Text, Text> {
-	private Text outputKey;
 	private Text outputValue;
 	
-	public DictionaryEncoderReducer1() {
-		outputKey = new Text("");
+	public DictionaryEncoderReducer2() {
 		outputValue = new Text("");
 	}
 
@@ -42,10 +40,17 @@ public class DictionaryEncoderReducer1 extends
 			else
 				triples.add(value.substring(2));
 		}
-		outputKey.set(id);
+		StringBuffer sb = new StringBuffer();
 		for (String triple : triples) {
-			outputValue.set(triple);
-			context.write(outputKey, outputValue);
+			String [] splits = triple.split("\\s");
+			sb.setLength(0);
+			sb.append(splits[0]); 	// The subject
+			sb.append('\t');
+			sb.append(id);			// The predicate
+			sb.append('\t');
+			sb.append(splits[1]); 	// The object
+			outputValue.set(sb.toString());
+			context.write(null, outputValue);
 		}
 	}
 
