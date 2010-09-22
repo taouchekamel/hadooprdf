@@ -9,7 +9,6 @@ import org.junit.Test;
 
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.metadata.DataSetException;
-import edu.utdallas.hadooprdf.data.preprocessing.lib.NamespacePrefixParser.NamespacePrefix;
 
 public class DataSetTest {
 	private DataSet m_DataSet;
@@ -24,14 +23,6 @@ public class DataSetTest {
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
 		m_DataSet = new DataSet(new Path("/user/pankil/hadooprdf/data/DBPEDIA"), hadoopConfiguration);
-	}
-
-	@Test
-	public void testGetNamespacePrefixes() throws DataSetException {
-		NamespacePrefix [] np = m_DataSet.getNamespacePrefixes();
-		System.out.println("Number of namespace-prefix pairs: " + np.length);
-		for (int i = 0; i < np.length; i++)
-			System.out.println("Pair [" + (i + 1) + "]: " + np[i].getNamespace() + '\t' + np[i].getPrefix());
 	}
 
 	@Test

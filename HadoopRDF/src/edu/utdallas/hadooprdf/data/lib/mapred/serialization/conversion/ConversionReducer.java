@@ -55,7 +55,7 @@ public class ConversionReducer extends Reducer<Text, Text, Text, Text> {
 			lineMap.put(iLineNumber, sValue.substring(index + 1));
 		}
 		// Create a string buffer
-		StringBuffer inputFileContent = new StringBuffer();
+		StringBuilder inputFileContent = new StringBuilder();
 		// Iterate over all the values in the TreeMap and append to string buffer to reconstruct the content
 		// This values should be provided in the ascending order by their corresponding keys as TreeMap
 		// implements SortedMap interface

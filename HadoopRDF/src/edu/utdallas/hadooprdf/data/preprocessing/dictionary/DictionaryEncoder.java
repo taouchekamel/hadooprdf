@@ -15,7 +15,9 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
+import edu.utdallas.hadooprdf.data.SubjectObjectPair;
 import edu.utdallas.hadooprdf.data.commons.Tags;
+import edu.utdallas.hadooprdf.data.io.output.PSOutputFormat;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
@@ -42,16 +44,75 @@ public class DictionaryEncoder extends PreprocessorJobRunner {
 		pathToSubjectEncodingOutput = new Path(dataSet.getPathToTemp(), "encoder1");
 		pathToPredicateEncodingOutput = new Path(dataSet.getPathToTemp(), "encoder2");
 		pathToObjectEncodingOutput = new Path(dataSet.getPathToTemp(), "encoder3");
+		outputDirectoryPath = dataSet.getPathToPSData();
 	}
 
 	public void dictionaryEncode() throws DictionaryEncoderException {
 		encodeSubject();
 		encodePredicate();
 		encodeObject();
+		convertToBinaryAndPredicateSplit();
+	}
+	
+	private void convertToBinaryAndPredicateSplit() throws DictionaryEncoderException {
+		edu.utdallas.hadooprdf.conf.Configuration config;
+		try {
+			config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+			org.apache.hadoop.conf.Configuration hadoopConfiguration =
+				new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
+			// that the original one does not get cluttered with job specific key-value pairs
+			FileSystem fs;
+			fs = FileSystem.get(hadoopConfiguration);
+			// Delete output directory
+			fs.delete(outputDirectoryPath, true);
+			// Create the job
+			String sJobName = "Binary encoding and predicate splitting for " + inputDirectoryPath.toString();
+			Job job = new Job(hadoopConfiguration, sJobName);
+			// Specify input parameters
+			job.setInputFormatClass(TextInputFormat.class);
+			boolean bInputPathEmpty = true;
+			// Get input file names from previous phase output
+			FileStatus [] fstatus = fs.listStatus(pathToObjectEncodingOutput);
+			for (int i = 0; i < fstatus.length; i++) {
+				if (!fstatus[i].isDir()) {
+					FileInputFormat.addInputPath(job, fstatus[i].getPath());
+					bInputPathEmpty = false;
+				}
+			}
+			if (bInputPathEmpty)
+				throw new DictionaryEncoderException("No file to binary encode and predicate split from encoder phase 3 output!");
+			// Specify output parameters
+			job.setOutputKeyClass(Text.class);
+			job.setOutputValueClass(SubjectObjectPair.class);
+			job.setMapOutputKeyClass(Text.class);
+			job.setMapOutputValueClass(Text.class);
+			job.setOutputFormatClass(PSOutputFormat.class);
+			FileOutputFormat.setOutputPath(job, outputDirectoryPath);
+			// Set the mapper and reducer classes
+			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.BinaryEncoderPredicateSplitterMapper.class);
+			job.setReducerClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.BinaryEncoderPredicateSplitterReducer.class);
+			// Set the number of reducers
+			if (-1 != getNumberOfReducers())	// Use the number set by the client, if any
+				job.setNumReduceTasks(getNumberOfReducers());
+			else if (-1 != config.getNumberOfTaskTrackersInCluster())	// Use one reducer per TastTracker, if the number of TaskTrackers is available
+				job.setNumReduceTasks(5 * config.getNumberOfTaskTrackersInCluster()); // 5 reducers per node
+			// Set the jar file
+			job.setJarByClass(this.getClass());
+			// Run the job
+			job.waitForCompletion(true);
+			//fs.delete(pathToObjectEncodingOutput, true);
+		} catch (ConfigurationNotInitializedException e) {
+			throw new DictionaryEncoderException("ConfigurationNotInitializedException occurred:\n" + e.getMessage());
+		} catch (IOException e) {
+			throw new DictionaryEncoderException("IOException occurred:\n" + e.getMessage());
+		} catch (InterruptedException e) {
+			throw new DictionaryEncoderException("InterruptedException occurred:\n" + e.getMessage());
+		} catch (ClassNotFoundException e) {
+			throw new DictionaryEncoderException("ClassNotFoundException occurred:\n" + e.getMessage());
+		}
 	}
 	
 	private void encodeObject() throws DictionaryEncoderException {
-		
 		edu.utdallas.hadooprdf.conf.Configuration config;
 		try {
 			config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();

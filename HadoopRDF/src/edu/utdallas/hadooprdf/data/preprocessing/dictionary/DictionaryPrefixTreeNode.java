@@ -82,7 +82,7 @@ public class DictionaryPrefixTreeNode extends PrefixTreeNode {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public void writeTreeToReducerContext(org.apache.hadoop.mapreduce.Reducer<Text, IntWritable, Text, LongWritable>.Context context, StringBuffer sb, int index) throws IOException, InterruptedException {
+	public void writeTreeToReducerContext(org.apache.hadoop.mapreduce.Reducer<Text, IntWritable, Text, LongWritable>.Context context, StringBuilder sb, int index) throws IOException, InterruptedException {
 		sb.append(m_Character);
 		if (isEndOfWord())
 			context.write(new Text(sb.toString() + '\t' + frequency), new LongWritable(id));

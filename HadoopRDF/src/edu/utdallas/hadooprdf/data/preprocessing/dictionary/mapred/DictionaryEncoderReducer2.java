@@ -40,7 +40,7 @@ public class DictionaryEncoderReducer2 extends
 			else
 				triples.add(value.substring(2));
 		}
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (String triple : triples) {
 			String [] splits = triple.split("\\s");
 			sb.setLength(0);

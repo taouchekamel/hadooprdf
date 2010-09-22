@@ -46,7 +46,7 @@ public class DictionaryEncoderMapper1 extends
 			outputValue.set("I\t" + splits[2]);	// The long id
 		} else {
 			// Process N-Triples data here
-			StringBuffer sb = new StringBuffer("T\t");
+			StringBuilder sb = new StringBuilder("T\t");
 			sb.append(splits[1]);
 			sb.append('\t');
 			sb.append(splits[2]);

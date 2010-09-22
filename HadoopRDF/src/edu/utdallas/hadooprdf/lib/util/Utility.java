@@ -41,7 +41,7 @@ public class Utility
 		for (int i = 0; i < chPredicateFilename.length; i++)
 			if (!(Character.isLetterOrDigit(chPredicateFilename[i]) || '#' == chPredicateFilename[i]))
 				chPredicateFilename[i] = '_';
-		StringBuffer sbReturn = new StringBuffer();
+		StringBuilder sbReturn = new StringBuilder();
 		sbReturn.append(chPredicateFilename);
 		sbReturn.append('.');
 		sbReturn.append(sExtension);

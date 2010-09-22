@@ -48,7 +48,7 @@ public class DictionaryEncoderMapper2 extends
 		} else {
 			// Process N-Triples data here
 			outputKey.set(splits[1]);	// Set the predicate as the key
-			StringBuffer sb = new StringBuffer("T\t");
+			StringBuilder sb = new StringBuilder("T\t");
 			sb.append(splits[0]);		// The subject
 			sb.append('\t');
 			sb.append(splits[2]);		// The object

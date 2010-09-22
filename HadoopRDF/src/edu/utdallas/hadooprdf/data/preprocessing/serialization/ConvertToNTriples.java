@@ -49,8 +49,8 @@ public class ConvertToNTriples extends PreprocessorJobRunner {
 	public ConvertToNTriples(SerializationFormat inputFormat, DataSet dataSet) throws DataFileExtensionNotSetException, IOException {
 		super(dataSet);
 		m_InputFormat = inputFormat;
-		m_InputDirectoryPath = m_DataSet.getPathToOriginalData();
-		m_OutputDirectoryPath = m_DataSet.getPathToNTriplesData();
+		inputDirectoryPath = dataSet.getPathToOriginalData();
+		outputDirectoryPath = dataSet.getPathToNTriplesData();
 	}
 
 	/**
@@ -72,22 +72,22 @@ public class ConvertToNTriples extends PreprocessorJobRunner {
 			FileSystem fs;
 			fs = FileSystem.get(hadoopConfiguration);
 			// Delete output directory
-			fs.delete(m_OutputDirectoryPath, true);
+			fs.delete(outputDirectoryPath, true);
 			String sInputFormat = SerializationFormat.getSerializationFormatName(m_InputFormat);
 			// Must set all the job parameters before creating the job
 			hadoopConfiguration.set(Tags.INPUT_SERIALIZATION_FORMAT, sInputFormat);
 			hadoopConfiguration.set(Tags.OUTPUT_SERIALIZATION_FORMAT, SerializationFormat.getSerializationFormatName(SerializationFormat.NTRIPLES));
 			// Create the job
-			String sJobName = sInputFormat + " to NTriples Converter for " + m_InputDirectoryPath.getParent() + '/' + m_InputDirectoryPath.getName();
+			String sJobName = sInputFormat + " to NTriples Converter for " + inputDirectoryPath.getParent() + '/' + inputDirectoryPath.getName();
 			Job job = new Job(hadoopConfiguration, sJobName);
 			// Specify input parameters
 			job.setInputFormatClass(TextInputFormat.class);
 			boolean bInputPathEmpty = true;
 			// Get input file names
-			FileStatus [] fstatus = fs.listStatus(m_InputDirectoryPath, new PathFilter() {
+			FileStatus [] fstatus = fs.listStatus(inputDirectoryPath, new PathFilter() {
 				@Override
 				public boolean accept(Path path) {
-					return path.getName().toLowerCase().endsWith(m_sInputFilesExtension);
+					return path.getName().toLowerCase().endsWith(inputFilesExtension);
 				}
 			});
 			for (int i = 0; i < fstatus.length; i++) {
@@ -104,7 +104,7 @@ public class ConvertToNTriples extends PreprocessorJobRunner {
 			job.setOutputValueClass(Text.class);
 			job.setMapOutputKeyClass(Text.class);
 			job.setMapOutputValueClass(Text.class);
-			FileOutputFormat.setOutputPath(job, m_OutputDirectoryPath);
+			FileOutputFormat.setOutputPath(job, outputDirectoryPath);
 			// Set the mapper and reducer classes
 			job.setMapperClass(edu.utdallas.hadooprdf.data.lib.mapred.serialization.conversion.ConversionMapper.class);
 			job.setReducerClass(edu.utdallas.hadooprdf.data.lib.mapred.serialization.conversion.ConversionReducer.class);

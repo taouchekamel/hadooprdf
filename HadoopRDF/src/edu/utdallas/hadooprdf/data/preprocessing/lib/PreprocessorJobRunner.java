@@ -13,55 +13,55 @@ public abstract class PreprocessorJobRunner {
 	/**
 	 * The data set to work on
 	 */
-	protected DataSet m_DataSet;
+	protected DataSet dataSet;
 	/**
 	 * The input directory path, all the files of this directory will be read.
 	 */
-	protected Path m_InputDirectoryPath;
+	protected Path inputDirectoryPath;
 	/**
 	 * Input files extension in lower case
 	 */
-	protected String m_sInputFilesExtension;
+	protected String inputFilesExtension;
 	/**
 	 * The output directory path
 	 */
-	protected Path m_OutputDirectoryPath;
+	protected Path outputDirectoryPath;
 	/**
 	 * The number of reducers to be used for the job
 	 */
-	protected int m_iNumberOfReducers;
+	protected int numberOfReducers;
 	/**
 	 * The class constructor
 	 * @param dataSet the m_DataSet to set
 	 * @throws DataFileExtensionNotSetException
 	 */
 	public PreprocessorJobRunner(DataSet dataSet) throws DataFileExtensionNotSetException {
-		m_DataSet = dataSet;
-		m_sInputFilesExtension = dataSet.getOriginalDataFilesExtension();
+		this.dataSet = dataSet;
+		inputFilesExtension = dataSet.getOriginalDataFilesExtension();
 		setNumberOfReducers(-1);
 	}
 	/**
 	 * @return the m_iNumberOfReducers
 	 */
 	public int getNumberOfReducers() {
-		return m_iNumberOfReducers;
+		return numberOfReducers;
 	}
 	/**
-	 * @param iNumberOfReducers the m_iNumberOfReducers to set
+	 * @param iNumberOfReducers the numberOfReducers to set
 	 */
 	public void setNumberOfReducers(int iNumberOfReducers) {
-		m_iNumberOfReducers = iNumberOfReducers;
+		this.numberOfReducers = iNumberOfReducers;
 	}
 	/**
-	 * @return the m_sInputFilesExtension
+	 * @return the inputFilesExtension
 	 */
 	public String getInputFilesExtension() {
-		return m_sInputFilesExtension;
+		return inputFilesExtension;
 	}
 	/**
-	 * @param mSInputFilesExtension the m_sInputFilesExtension to set
+	 * @param mSInputFilesExtension the inputFilesExtension to set
 	 */
 	public void setInputFilesExtension(String inputFilesExtension) {
-		m_sInputFilesExtension = inputFilesExtension;
+		this.inputFilesExtension = inputFilesExtension;
 	}
 }

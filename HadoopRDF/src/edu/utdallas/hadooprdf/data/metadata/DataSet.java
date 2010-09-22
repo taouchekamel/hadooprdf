@@ -40,6 +40,10 @@ public class DataSet {
 	 */
 	private Path m_PathToNTriplesData;
 	/**
+	 * Path to encoded data
+	 */
+	private Path m_PathToEncodedData;
+	/**
 	 * Path to PS data
 	 */
 	private Path m_PathToPSData;
@@ -99,6 +103,7 @@ public class DataSet {
 		m_PathToDataDirectory = new Path(m_DataSetRoot, "data");
 		m_PathToOriginalData = new Path(m_PathToDataDirectory, "Original");
 		m_PathToNTriplesData = new Path(m_PathToDataDirectory, "NTriples");
+		m_PathToEncodedData = new Path(m_PathToDataDirectory, "Encoded");
 		m_PathToPSData = new Path(m_PathToDataDirectory, "PS");
 		m_PathToPOSData = new Path(m_PathToDataDirectory, "POS");
 		m_PathToMetaData = new Path(m_DataSetRoot, "metadata");
@@ -206,5 +211,17 @@ public class DataSet {
 			throw new DataSetException("PredicateCollection could not be built because\n" + e.getMessage());
 		}
 		return m_PredicateCollection;
+	}
+	/**
+	 * @return the m_PathToEncodedData
+	 */
+	public Path getPathToEncodedData() {
+		return m_PathToEncodedData;
+	}
+	/**
+	 * @param mPathToEncodedData the m_PathToEncodedData to set
+	 */
+	public void setPathToEncodedData(Path mPathToEncodedData) {
+		m_PathToEncodedData = mPathToEncodedData;
 	}
 }

@@ -68,6 +68,6 @@ public class DictionaryPrefixTree {
 	public void writeTreeToReducerContext(org.apache.hadoop.mapreduce.Reducer<Text, IntWritable, Text, LongWritable>.Context context) throws IOException, InterruptedException {
 		// Recursively write the dictionary here
 		for (PrefixNode node : m_TreeRoots.values())
-			((DictionaryPrefixTreeNode) node).writeTreeToReducerContext(context, new StringBuffer(""), 0);
+			((DictionaryPrefixTreeNode) node).writeTreeToReducerContext(context, new StringBuilder(""), 0);
 	}
 }

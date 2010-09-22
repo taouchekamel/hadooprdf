@@ -39,7 +39,7 @@ public class DictionaryEncoderReducer3 extends Reducer<Text, Text, Text, Text> {
 			else
 				triples.add(value.substring(2));
 		}
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (String triple : triples) {
 			String [] splits = triple.split("\\s");
 			sb.setLength(0);

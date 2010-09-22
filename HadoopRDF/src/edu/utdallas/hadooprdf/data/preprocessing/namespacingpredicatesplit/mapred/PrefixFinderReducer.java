@@ -43,8 +43,10 @@ public class PrefixFinderReducer extends
 			if(!sValue.equals("{}")){
 				NamespacePrefixParser npp = new NamespacePrefixParser(sValue);
 				NamespacePrefixParser.NamespacePrefix [] np = npp.getNamespacePrefixes();
-				for (int i = 0; i < np.length; i++)
-					m_URIPrefixConsolidator.addPrefixAndReplacementString(np[i].getPrefix(), np[i].getNamespace());
+				for (int i = 0; i < np.length; i++) {
+					String namespace = np[i].getNamespace().substring(np[i].getNamespace().indexOf('_') + 1);
+					m_URIPrefixConsolidator.addPrefixAndReplacementString(np[i].getPrefix(), namespace);
+				}
 			}
 		}
 	}

@@ -7,6 +7,8 @@ edu.utdallas.hadooprdf.data.lib.mapred.serialization.conversion
 edu.utdallas.hadooprdf.data.metadata
 edu.utdallas.hadooprdf.data.metadata.test
 edu.utdallas.hadooprdf.data.preprocessing
+edu.utdallas.hadooprdf.data.preprocessing.dictionary
+edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred
 edu.utdallas.hadooprdf.data.preprocessing.lib
 edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit
 edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.mapred
@@ -21,6 +23,7 @@ edu.utdallas.hadooprdf.data.rdf.uri.prefix.test
 edu.utdallas.hadooprdf.lib.mapred
 edu.utdallas.hadooprdf.lib.mapred.io.output
 edu.utdallas.hadooprdf.lib.util
+edu.utdallas.hadooprdf.lib.util.prefixtree
 edu.utdallas.hadooprdf.query
 edu.utdallas.hadooprdf.query.generator.job
 edu.utdallas.hadooprdf.query.generator.job.impl
@@ -31,3 +34,4 @@ edu.utdallas.hadooprdf.query.generator.triplepattern.impl
 edu.utdallas.hadooprdf.query.impl
 edu.utdallas.hadooprdf.query.jobrunner
 edu.utdallas.hadooprdf.query.parser
+edu.utdallas.hadooprdf.query.test

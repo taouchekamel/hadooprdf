@@ -25,4 +25,12 @@ public class Tags {
 	 * rdf:type filename
 	 */
 	public static final String RDF_TYPE_FILENAME = "RDFTypeFilename";
+	/**
+	 * Path to dictionary
+	 */
+	public static final String PATH_TO_DICTIONARY = "PathToDictionary";
+	/**
+	 * Input file extension
+	 */
+	public static final String INPUT_FILE_EXTENSION = "InputFileExtension";
 }
