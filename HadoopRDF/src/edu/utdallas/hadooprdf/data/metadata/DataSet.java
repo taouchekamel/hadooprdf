@@ -241,4 +241,10 @@ public class DataSet {
 	public void setPathToPredicateList(Path mPathToPredicateList) {
 		m_PathToPredicateList = mPathToPredicateList;
 	}
+	/**
+	 * @return the m_HadoopConfiguration
+	 */
+	public org.apache.hadoop.conf.Configuration getHadoopConfiguration() {
+		return m_HadoopConfiguration;
+	}
 }
