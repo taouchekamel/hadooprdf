@@ -88,7 +88,8 @@ public class DictionaryCreator extends PreprocessorJobRunner {
 			// Set the jar file
 			job.setJarByClass(this.getClass());
 			// Run the job
-			job.waitForCompletion(true);
+			if (!job.waitForCompletion(true))
+				throw new DictionaryCreatorException("" + sJobName + " failed");
 		} catch (IOException e) {
 			throw new DictionaryCreatorException("IOException occurred:\n" + e.getMessage());
 		} catch (InterruptedException e) {

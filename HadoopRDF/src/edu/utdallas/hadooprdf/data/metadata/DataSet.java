@@ -56,6 +56,10 @@ public class DataSet {
 	 */
 	private Path m_PathToMetaData;
 	/**
+	 * Path to predicate list
+	 */
+	private Path m_PathToPredicateList;
+	/**
 	 * Path to Dictionary
 	 */
 	private Path m_PathToDictionary;
@@ -108,6 +112,7 @@ public class DataSet {
 		m_PathToPOSData = new Path(m_PathToDataDirectory, "POS");
 		m_PathToMetaData = new Path(m_DataSetRoot, "metadata");
 		Utility.createDirectory(hadoopConfiguration, m_PathToMetaData);
+		m_PathToPredicateList = new Path(m_PathToMetaData, "predicates");
 		m_PathToDictionary = new Path(m_PathToMetaData, "dictionary");
 		m_PathToTemp = new Path(m_DataSetRoot, "tmp");
 		m_PredicateCollection = createPredicateCollection(hadoopConfiguration);
@@ -223,5 +228,17 @@ public class DataSet {
 	 */
 	public void setPathToEncodedData(Path mPathToEncodedData) {
 		m_PathToEncodedData = mPathToEncodedData;
+	}
+	/**
+	 * @return the m_PathToPredicateList
+	 */
+	public Path getPathToPredicateList() {
+		return m_PathToPredicateList;
+	}
+	/**
+	 * @param mPathToPredicateList the m_PathToPredicateList to set
+	 */
+	public void setPathToPredicateList(Path mPathToPredicateList) {
+		m_PathToPredicateList = mPathToPredicateList;
 	}
 }

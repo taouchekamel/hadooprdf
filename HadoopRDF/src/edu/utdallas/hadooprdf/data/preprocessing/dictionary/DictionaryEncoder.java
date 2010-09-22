@@ -3,7 +3,10 @@
  */
 package edu.utdallas.hadooprdf.data.preprocessing.dictionary;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -52,6 +55,86 @@ public class DictionaryEncoder extends PreprocessorJobRunner {
 		encodePredicate();
 		encodeObject();
 		convertToBinaryAndPredicateSplit();
+		listPredicates();
+	}
+	
+	private void listPredicates() throws DictionaryEncoderException {
+		edu.utdallas.hadooprdf.conf.Configuration config;
+		try {
+			config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+			org.apache.hadoop.conf.Configuration hadoopConfiguration =
+				new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
+			// that the original one does not get cluttered with job specific key-value pairs
+			// Must set all the job parameters before creating the job
+			hadoopConfiguration.set(Tags.PATH_TO_DICTIONARY, pathToDictionary.toString());
+			FileSystem fs;
+			fs = FileSystem.get(hadoopConfiguration);
+			// Create the job
+			String sJobName = "Listing predicates for " + outputDirectoryPath.toString();
+			Job job = new Job(hadoopConfiguration, sJobName);
+			// Specify input parameters
+			job.setInputFormatClass(TextInputFormat.class);
+			// Get input file names from previous phase output
+			FileStatus [] fstatus = fs.listStatus(outputDirectoryPath);
+			List<String> predicates = new LinkedList<String> ();
+			String filename;
+			for (int i = 0; i < fstatus.length; i++) {
+				if (!fstatus[i].isDir()) {
+					filename = fstatus[i].getPath().getName();
+					predicates.add(filename.substring(0, filename.indexOf('.')));
+				}
+			}
+			Path inputPath = new Path(dataSet.getPathToTemp(), "predicateInput");
+			fs.delete(inputPath, true);
+			DataOutputStream dos = fs.create(new Path(inputPath, "predicates"), true);
+			for (String predicate : predicates)
+				dos.writeBytes(predicate + '\n');
+			dos.close();
+			FileInputFormat.addInputPath(job, inputPath);
+			// Get input file names from dictionary directory
+			boolean bInputPathEmpty = true;
+			fstatus = fs.listStatus(pathToDictionary);
+			for (int i = 0; i < fstatus.length; i++) {
+				if (!fstatus[i].isDir()) {
+					FileInputFormat.addInputPath(job, fstatus[i].getPath());
+					bInputPathEmpty = false;
+				}
+			}
+			if (bInputPathEmpty)
+				throw new DictionaryEncoderException("No dictionary file to use for listing predicates!");
+			// Specify output parameters
+			job.setOutputKeyClass(Text.class);
+			job.setOutputValueClass(Text.class);
+			job.setMapOutputKeyClass(Text.class);
+			job.setMapOutputValueClass(Text.class);
+			// Delete output directory
+			Path tmpOutputPath = new Path(dataSet.getPathToTemp(), "predicatesOutput");
+			fs.delete(tmpOutputPath, true);
+			FileOutputFormat.setOutputPath(job, tmpOutputPath);
+			// Set the mapper and reducer classes
+			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.PredicateListerMapper.class);
+			job.setReducerClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.PredicateListerReducer.class);
+			// Set the number of reducers
+			job.setNumReduceTasks(1);
+			// Set the jar file
+			job.setJarByClass(this.getClass());
+			// Run the job
+			if (job.waitForCompletion(true)) {
+				fs.delete(inputPath, true);
+				fs.delete(dataSet.getPathToPredicateList(), false);
+				fs.rename(new Path(tmpOutputPath, "part-r-00000"), dataSet.getPathToPredicateList());
+				fs.delete(tmpOutputPath, true);
+			} else
+				throw new DictionaryEncoderException("" + sJobName + " failed");
+		} catch (ConfigurationNotInitializedException e) {
+			throw new DictionaryEncoderException("ConfigurationNotInitializedException occurred:\n" + e.getMessage());
+		} catch (IOException e) {
+			throw new DictionaryEncoderException("IOException occurred:\n" + e.getMessage());
+		} catch (InterruptedException e) {
+			throw new DictionaryEncoderException("InterruptedException occurred:\n" + e.getMessage());
+		} catch (ClassNotFoundException e) {
+			throw new DictionaryEncoderException("ClassNotFoundException occurred:\n" + e.getMessage());
+		}
 	}
 	
 	private void convertToBinaryAndPredicateSplit() throws DictionaryEncoderException {
@@ -99,8 +182,10 @@ public class DictionaryEncoder extends PreprocessorJobRunner {
 			// Set the jar file
 			job.setJarByClass(this.getClass());
 			// Run the job
-			job.waitForCompletion(true);
-			//fs.delete(pathToObjectEncodingOutput, true);
+			if (job.waitForCompletion(true)) {
+				fs.delete(pathToObjectEncodingOutput, true);
+			} else
+				throw new DictionaryEncoderException("" + sJobName + " failed");
 		} catch (ConfigurationNotInitializedException e) {
 			throw new DictionaryEncoderException("ConfigurationNotInitializedException occurred:\n" + e.getMessage());
 		} catch (IOException e) {
@@ -169,8 +254,10 @@ public class DictionaryEncoder extends PreprocessorJobRunner {
 			// Set the jar file
 			job.setJarByClass(this.getClass());
 			// Run the job
-			job.waitForCompletion(true);
-			//fs.delete(pathToPredicateEncodingOutput, true);
+			if (job.waitForCompletion(true)) {
+				fs.delete(pathToPredicateEncodingOutput, true);
+			} else
+				throw new DictionaryEncoderException("" + sJobName + " failed");
 		} catch (ConfigurationNotInitializedException e) {
 			throw new DictionaryEncoderException("ConfigurationNotInitializedException occurred:\n" + e.getMessage());
 		} catch (IOException e) {
@@ -240,8 +327,10 @@ public class DictionaryEncoder extends PreprocessorJobRunner {
 			// Set the jar file
 			job.setJarByClass(this.getClass());
 			// Run the job
-			job.waitForCompletion(true);
-			//fs.delete(pathToSubjectEncodingOutput, true);
+			if (job.waitForCompletion(true)) {
+				fs.delete(pathToSubjectEncodingOutput, true);
+			} else
+				throw new DictionaryEncoderException("" + sJobName + " failed");
 		} catch (ConfigurationNotInitializedException e) {
 			throw new DictionaryEncoderException("ConfigurationNotInitializedException occurred:\n" + e.getMessage());
 		} catch (IOException e) {
@@ -310,8 +399,10 @@ public class DictionaryEncoder extends PreprocessorJobRunner {
 			// Set the jar file
 			job.setJarByClass(this.getClass());
 			// Run the job
-			job.waitForCompletion(true);
-			//fs.delete(inputDirectoryPath, true);
+			if (job.waitForCompletion(true)) {
+				fs.delete(inputDirectoryPath, true);
+			} else
+				throw new DictionaryEncoderException("" + sJobName + " failed");
 		} catch (ConfigurationNotInitializedException e) {
 			throw new DictionaryEncoderException("ConfigurationNotInitializedException occurred:\n" + e.getMessage());
 		} catch (IOException e) {
