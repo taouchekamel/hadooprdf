@@ -33,4 +33,8 @@ public class Tags {
 	 * Input file extension
 	 */
 	public static final String INPUT_FILE_EXTENSION = "InputFileExtension";
+	/**
+	 * RDF type predicate
+	 */
+	public static final String RDF_TYPE_PREDICATE = "RDFTypePredicate";
 }

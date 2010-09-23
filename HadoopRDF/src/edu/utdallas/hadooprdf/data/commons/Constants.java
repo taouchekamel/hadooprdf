@@ -45,6 +45,10 @@ public class Constants {
 	 */
 	public static final String RDF_TYPE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 	/**
+	 * RDF Type URI with Angle Braces
+	 */
+	public static final String RDF_TYPE_URI_NTRIPLES_STRING = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+	/**
 	 * The character which separates predicate and object type in pos filenames
 	 */
 	public static final char PREDICATE_OBJECT_TYPE_SEPARATOR = '_';
