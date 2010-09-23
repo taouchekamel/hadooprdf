@@ -1,111 +1,91 @@
 package edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.mapred;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import edu.utdallas.hadooprdf.data.SubjectObjectPair;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.commons.Tags;
+import edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.PredicateSplitterByObjectType;
+import edu.utdallas.hadooprdf.lib.mapred.io.ByteLongLongWritable;
+import edu.utdallas.hadooprdf.lib.util.Pair;
 
 /**
  * @author Mohammad Farhan Husain
  *
  */
 public class PredicateSplitterByObjectTypeJob1Reducer extends
-		Reducer<Text, Text, Text, Text> {
-	private class SubjectPredicatePair {
-		public String sSubject;
-		public String sPredicate;
-	}
-	private Text m_txtKey;
-	private Text m_txtValue;
-	private String m_sRDFTypeFilenameWithoutExtension;
-	private List<SubjectPredicatePair> m_lstSubjectPredicatePair;
+		Reducer<LongWritable, ByteLongLongWritable, Text, SubjectObjectPair> {
+	private Text outputKey;
+	private SubjectObjectPair outputValue;
+	private List<Long> typeList;
+	private List<Pair<Long, Long>> subjectPredicateList;
+	private String rdfTypePredicate;
 
 	public PredicateSplitterByObjectTypeJob1Reducer() {
-		m_txtKey = new Text();
-		m_txtValue = new Text();
-		m_sRDFTypeFilenameWithoutExtension = null;
-		m_lstSubjectPredicatePair = new LinkedList<SubjectPredicatePair> ();
+		outputKey = new Text();
+		outputValue = new SubjectObjectPair();
+		typeList = new LinkedList<Long> ();
+		subjectPredicateList = new LinkedList<Pair<Long, Long>> ();
+		rdfTypePredicate = "";
 	}
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.mapreduce.Reducer#reduce(java.lang.Object, java.lang.Iterable, org.apache.hadoop.mapreduce.Reducer.Context)
 	 */
 	@Override
-	protected void reduce(Text key, Iterable<Text> values,
-			org.apache.hadoop.mapreduce.Reducer<Text, Text, Text, Text>.Context context)
+	protected void reduce(LongWritable key, Iterable<ByteLongLongWritable> values,
+			org.apache.hadoop.mapreduce.Reducer<LongWritable, ByteLongLongWritable, Text, SubjectObjectPair>.Context context)
 			throws IOException, InterruptedException {
-		String sKey = key.toString();
-		List<String> sType = new ArrayList<String>();
+		typeList.clear();
+		subjectPredicateList.clear();
 		
-		m_lstSubjectPredicatePair.clear();
-		Iterator<Text> iter = values.iterator();
-		
-		while (iter.hasNext()) 
-		{
-			String sValue = iter.next().toString();
-			String sSplits [] = sValue.split("\\s");
-			if (sSplits[0].startsWith("T#"))
-				sType.add( sSplits[0].substring(2) );
-			else 
-			{
-				SubjectPredicatePair spp = new SubjectPredicatePair();
-				spp.sSubject = sSplits[0].substring(2);
-				spp.sPredicate = sSplits[1];
-				m_lstSubjectPredicatePair.add(spp);
+		for (ByteLongLongWritable value : values) {
+			if (PredicateSplitterByObjectType.JOB1_TYPE_FLAG == value.getFlag()) {
+				typeList.add(value.getData1());
+			} else {
+				subjectPredicateList.add(new Pair<Long, Long>(value.getData1(), value.getData2()));
 			}
 		}
 		
-		if( sType.size() > 0 )
-		{
-			for( int i = 0; i < sType.size(); i++ )
-			{
-				String sTypeInfo = "";
-				if ( null != sType.get( i ) ) 
-				{
-					sTypeInfo = "_" + sType.get( i );
-					// Output to the type file
-					m_txtKey.set(m_sRDFTypeFilenameWithoutExtension + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + sType.get( i ) + '.' + Constants.POS_EXTENSION);
-					m_txtValue.set(sKey);
-					context.write(m_txtKey, m_txtValue);
-				}
-				Iterator<SubjectPredicatePair> iter1 = m_lstSubjectPredicatePair.iterator();
-				while (iter1.hasNext()) 
-				{
-					SubjectPredicatePair spp = iter1.next();
-					m_txtKey.set(spp.sPredicate + sTypeInfo + '.' + Constants.POS_EXTENSION);	// Output filename
-					m_txtValue.set(spp.sSubject + '\t' + sKey);	// Subject and Object
-					context.write(m_txtKey, m_txtValue);
-				}
+		if (typeList.size() > 0) {
+			for (Long type : typeList) {
+				// Output to the type file
+				outputKey.set(rdfTypePredicate + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + type + '.' + Constants.POS_EXTENSION);
+				outputValue.setSubject(key.get());
+				outputValue.setObject(0);	// Very important, the SOPOutputFormat will output any object which is not zero!
+				context.write(outputKey, outputValue);	// Output to the type file
+				// Output to the splitted predicate file
+				writePairsToSplittedPredicateFile(key.get(), "" + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + type, context);
 			}
+		} else {	// No type information
+			writePairsToSplittedPredicateFile(key.get(), "", context);
 		}
-		else
-		{
-			Iterator<SubjectPredicatePair> iter1 = m_lstSubjectPredicatePair.iterator();
-			while (iter1.hasNext()) 
-			{
-				SubjectPredicatePair spp = iter1.next();
-				m_txtKey.set(spp.sPredicate + '.' + Constants.POS_EXTENSION);	// Output filename
-				m_txtValue.set(spp.sSubject + '\t' + sKey);	// Subject and Object
-				context.write(m_txtKey, m_txtValue);
-			}			
+	}
+	
+	private void writePairsToSplittedPredicateFile(long object, String separatorAndTypeInfo,
+			org.apache.hadoop.mapreduce.Reducer<LongWritable, ByteLongLongWritable, Text, SubjectObjectPair>.Context context) throws IOException, InterruptedException {
+		String suffix = separatorAndTypeInfo + '.' + Constants.POS_EXTENSION;
+		for (Pair<Long, Long> pair : subjectPredicateList) {
+			outputKey.set(pair.getSecond().toString() + suffix);	// Output filename
+			outputValue.setSubject(pair.getFirst());	// Subject
+			outputValue.setObject(object);				// Object
+			context.write(outputKey, outputValue);		// Output to the splitted predicate file
 		}
 	}
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.mapreduce.Reducer#setup(org.apache.hadoop.mapreduce.Reducer.Context)
 	 */
 	@Override
-	protected void setup(org.apache.hadoop.mapreduce.Reducer<Text, Text, Text, Text>.Context context)
+	protected void setup(org.apache.hadoop.mapreduce.Reducer<LongWritable, ByteLongLongWritable, Text, SubjectObjectPair>.Context context)
 			throws IOException, InterruptedException {
-		m_sRDFTypeFilenameWithoutExtension = context.getConfiguration().get(Tags.RDF_TYPE_FILENAME);
-		m_sRDFTypeFilenameWithoutExtension = m_sRDFTypeFilenameWithoutExtension.substring(0,
-				m_sRDFTypeFilenameWithoutExtension.length() - Constants.PS_EXTENSION.length() - 1);
 		super.setup(context);
+		rdfTypePredicate = context.getConfiguration().get(Tags.RDF_TYPE_PREDICATE);
 	}
 
 }

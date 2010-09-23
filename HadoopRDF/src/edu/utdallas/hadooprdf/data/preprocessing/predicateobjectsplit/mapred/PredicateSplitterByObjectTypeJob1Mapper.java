@@ -3,12 +3,14 @@ package edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.mapred;
 import java.io.IOException;
 
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+import edu.utdallas.hadooprdf.data.SubjectObjectPair;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.commons.Tags;
+import edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.PredicateSplitterByObjectType;
+import edu.utdallas.hadooprdf.lib.mapred.io.ByteLongLongWritable;
 
 /**
  * The mapper class for PredicateSplitterByObjectType
@@ -16,42 +18,46 @@ import edu.utdallas.hadooprdf.data.commons.Tags;
  *
  */
 public class PredicateSplitterByObjectTypeJob1Mapper extends
-		Mapper<LongWritable, Text, Text, Text> {
-	private String m_sRDFTypeFilename;
-	private Text m_txtKey;
-	private Text m_txtValue;
+		Mapper<LongWritable, SubjectObjectPair, LongWritable, ByteLongLongWritable> {
+	private long rdfTypePredicate;
+	private LongWritable outputKey;
+	private ByteLongLongWritable outputValue;
+	private int extensionLength;
 	
 	public PredicateSplitterByObjectTypeJob1Mapper() {
-		m_sRDFTypeFilename = null;
-		m_txtKey = new Text();
-		m_txtValue = new Text();
+		rdfTypePredicate = 0;
+		outputKey = new LongWritable();
+		outputValue = new ByteLongLongWritable();
+		extensionLength = Constants.PS_EXTENSION.length() + 1;
 	}
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.mapreduce.Mapper#map(java.lang.Object, java.lang.Object, org.apache.hadoop.mapreduce.Mapper.Context)
 	 */
 	@Override
-	protected void map(LongWritable key, Text value,
-			org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, Text>.Context context)
+	protected void map(LongWritable key, SubjectObjectPair value,
+			org.apache.hadoop.mapreduce.Mapper<LongWritable, SubjectObjectPair, LongWritable, ByteLongLongWritable>.Context context)
 			throws IOException, InterruptedException {
-		String sInputFileName = ((FileSplit) context.getInputSplit()).getPath().getName();
-		String sSplits [] = value.toString().split("\\t");
-		if (sInputFileName.equals(m_sRDFTypeFilename)) {	// Input file is the rdf:type file
-			m_txtKey.set(sSplits[0]);	// Set the subject as the key
-			m_txtValue.set("T#" + sSplits[1]);
+		String inputFileName = ((FileSplit) context.getInputSplit()).getPath().getName();
+		final long predicate = Long.parseLong(inputFileName.substring(0, inputFileName.length() - extensionLength));
+		if (predicate == rdfTypePredicate) {	// Input file is the rdf:type file
+			outputKey.set(value.getSubject());	// Set the subject as the key
+			outputValue.setFlag(PredicateSplitterByObjectType.JOB1_TYPE_FLAG);
+			outputValue.setData1(value.getObject());
+		} else {	// Input file is any predicate other than rdf:type
+			outputKey.set(value.getObject());	// Set the object as the key
+			outputValue.setFlag(PredicateSplitterByObjectType.JOB1_TRIPLE_FLAG);
+			outputValue.setData1(value.getSubject());
+			outputValue.setData2(predicate);
 		}
-		else {	// Input file is any predicate other than rdf:type
-			m_txtKey.set(sSplits[1]);	// Set the object as the key
-			m_txtValue.set("S#" + sSplits[0] + '\t' + sInputFileName.substring(0, sInputFileName.length() - Constants.PS_EXTENSION.length() - 1));
-		}
-		context.write(m_txtKey, m_txtValue);
+		context.write(outputKey, outputValue);
 	}
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.mapreduce.Mapper#setup(org.apache.hadoop.mapreduce.Mapper.Context)
 	 */
 	@Override
-	protected void setup(org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, Text>.Context context)
+	protected void setup(org.apache.hadoop.mapreduce.Mapper<LongWritable, SubjectObjectPair, LongWritable, ByteLongLongWritable>.Context context)
 			throws IOException, InterruptedException {
-		m_sRDFTypeFilename = context.getConfiguration().get(Tags.RDF_TYPE_FILENAME);
+		rdfTypePredicate = Long.parseLong(context.getConfiguration().get(Tags.RDF_TYPE_PREDICATE));
 		super.setup(context);
 	}
 }

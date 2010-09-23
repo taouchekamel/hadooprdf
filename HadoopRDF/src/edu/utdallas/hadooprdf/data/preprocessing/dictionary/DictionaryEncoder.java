@@ -20,7 +20,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.SubjectObjectPair;
 import edu.utdallas.hadooprdf.data.commons.Tags;
-import edu.utdallas.hadooprdf.data.io.output.PSOutputFormat;
+import edu.utdallas.hadooprdf.data.io.output.SOPOutputFormat;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
@@ -169,7 +169,7 @@ public class DictionaryEncoder extends PreprocessorJobRunner {
 			job.setOutputValueClass(SubjectObjectPair.class);
 			job.setMapOutputKeyClass(Text.class);
 			job.setMapOutputValueClass(Text.class);
-			job.setOutputFormatClass(PSOutputFormat.class);
+			job.setOutputFormatClass(SOPOutputFormat.class);
 			FileOutputFormat.setOutputPath(job, outputDirectoryPath);
 			// Set the mapper and reducer classes
 			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.BinaryEncoderPredicateSplitterMapper.class);
