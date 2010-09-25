@@ -1,8 +1,10 @@
 package edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.mapred;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -23,7 +25,7 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 		Reducer<LongWritable, ByteLongLongWritable, Text, SubjectObjectPair> {
 	private Text outputKey;
 	private SubjectObjectPair outputValue;
-	private List<Long> typeList;
+	private Set<Long> typeList;
 	private List<Pair<Long, Long>> subjectPredicateList;
 	private String rdfTypePredicate;
 	private String fileNamePrefix;
@@ -31,7 +33,7 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 	public PredicateSplitterByObjectTypeJob1Reducer() {
 		outputKey = new Text();
 		outputValue = new SubjectObjectPair();
-		typeList = new LinkedList<Long> ();
+		typeList = new HashSet<Long> ();
 		subjectPredicateList = new LinkedList<Pair<Long, Long>> ();
 		rdfTypePredicate = "";
 		fileNamePrefix = "";
