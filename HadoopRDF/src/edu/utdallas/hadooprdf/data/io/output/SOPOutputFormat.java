@@ -17,7 +17,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import edu.utdallas.hadooprdf.data.SubjectObjectPair;
-import edu.utdallas.hadooprdf.data.commons.Constants;
 
 /**
  * An output format class for binary encoded subject object pairs
@@ -66,7 +65,7 @@ public class SOPOutputFormat extends FileOutputFormat<Text, SubjectObjectPair> {
 			DataOutputStream out = outMap.get(outputFile);
 			if (null == out) { // The stream is not there, it has to be created
 				Path file = new Path(job.getConfiguration().get(
-						"mapred.output.dir"), outputFile + '.' + Constants.PS_EXTENSION);
+						"mapred.output.dir"), outputFile);
 				FileSystem fs = file.getFileSystem(job.getConfiguration());
 				out = fs.create(file, true);
 				outMap.put(outputFile, out);

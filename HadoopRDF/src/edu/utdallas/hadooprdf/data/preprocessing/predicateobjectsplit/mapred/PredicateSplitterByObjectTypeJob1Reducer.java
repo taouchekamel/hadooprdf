@@ -1,7 +1,6 @@
 package edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.mapred;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,6 +26,7 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 	private List<Long> typeList;
 	private List<Pair<Long, Long>> subjectPredicateList;
 	private String rdfTypePredicate;
+	private String fileNamePrefix;
 
 	public PredicateSplitterByObjectTypeJob1Reducer() {
 		outputKey = new Text();
@@ -34,6 +34,7 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 		typeList = new LinkedList<Long> ();
 		subjectPredicateList = new LinkedList<Pair<Long, Long>> ();
 		rdfTypePredicate = "";
+		fileNamePrefix = "";
 	}
 	/* (non-Javadoc)
 	 * @see org.apache.hadoop.mapreduce.Reducer#reduce(java.lang.Object, java.lang.Iterable, org.apache.hadoop.mapreduce.Reducer.Context)
@@ -56,7 +57,13 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 		if (typeList.size() > 0) {
 			for (Long type : typeList) {
 				// Output to the type file
-				outputKey.set(rdfTypePredicate + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + type + '.' + Constants.POS_EXTENSION);
+				StringBuilder sb = new StringBuilder(fileNamePrefix);
+				sb.append(rdfTypePredicate);
+				sb.append(Constants.PREDICATE_OBJECT_TYPE_SEPARATOR);
+				sb.append(type);
+				sb.append('.');
+				sb.append(Constants.POS_EXTENSION);
+				outputKey.set(sb.toString());
 				outputValue.setSubject(key.get());
 				outputValue.setObject(0);	// Very important, the SOPOutputFormat will output any object which is not zero!
 				context.write(outputKey, outputValue);	// Output to the type file
@@ -72,7 +79,10 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 			org.apache.hadoop.mapreduce.Reducer<LongWritable, ByteLongLongWritable, Text, SubjectObjectPair>.Context context) throws IOException, InterruptedException {
 		String suffix = separatorAndTypeInfo + '.' + Constants.POS_EXTENSION;
 		for (Pair<Long, Long> pair : subjectPredicateList) {
-			outputKey.set(pair.getSecond().toString() + suffix);	// Output filename
+			StringBuffer sb = new StringBuffer(fileNamePrefix);
+			sb.append(pair.getSecond().toString());
+			sb.append(suffix);
+			outputKey.set(sb.toString());	// Output filename
 			outputValue.setSubject(pair.getFirst());	// Subject
 			outputValue.setObject(object);				// Object
 			context.write(outputKey, outputValue);		// Output to the splitted predicate file
@@ -86,6 +96,7 @@ public class PredicateSplitterByObjectTypeJob1Reducer extends
 			throws IOException, InterruptedException {
 		super.setup(context);
 		rdfTypePredicate = context.getConfiguration().get(Tags.RDF_TYPE_PREDICATE);
+		fileNamePrefix = "" + context.getTaskAttemptID().getTaskID().getId() + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR;
 	}
 
 }

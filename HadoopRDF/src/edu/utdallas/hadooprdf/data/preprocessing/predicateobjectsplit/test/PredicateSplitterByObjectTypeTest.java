@@ -12,6 +12,7 @@ import org.junit.Test;
 import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairsException;
 import edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.PredicateSplitterByObjectType;
 import edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.PredicateSplitterByObjectTypeException;
 
@@ -28,14 +29,14 @@ public class PredicateSplitterByObjectTypeTest {
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/hdfs-site.xml"));
 		hadoopConfiguration.addResource(new Path(sConfDirectoryPath + "/mapred-site.xml"));
 		// Create application configuration
-		config = edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/pankil/hadooprdf");
+		config = edu.utdallas.hadooprdf.conf.Configuration.createInstance(hadoopConfiguration, "/user/farhan/hadooprdf/");
 		config.setNumberOfTaskTrackersInCluster(5); // 5 for semantic web lab, 10 for SAIAL lab
 	}
 
 	@Test
 	public void testSplitPredicateByObjectType() {
 		try {
-			DataSet ds = new DataSet("/user/pankil/hadooprdf/DBPEDIA");
+			DataSet ds = new DataSet("/user/farhan/hadooprdf/LUBM1");
 			ds.setOriginalDataFilesExtension("owl");
 			PredicateSplitterByObjectType psbot = new PredicateSplitterByObjectType(ds);
 			psbot.splitPredicateByObjectType();
@@ -53,6 +54,10 @@ public class PredicateSplitterByObjectTypeTest {
 			fail(e.getMessage());
 		} catch (PredicateSplitterByObjectTypeException e) {
 			System.err.println("PrefixFinderException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
+			e.printStackTrace();
+			fail(e.getMessage());
+		} catch (PredicateIdPairsException e) {
+			System.err.println("PredicateIdPairsException occurred while testing PrefixFinder.findPrefixes\n" + e.getMessage());
 			e.printStackTrace();
 			fail(e.getMessage());
 		}

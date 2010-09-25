@@ -90,8 +90,7 @@ public class SOPRecordReader extends
 			if (pos < end) {
 				value.setObject(in.readLong());
 				pos += SIZE_OF_LONG_IN_BYTES;
-				if (pos < end)
-					return true;
+				return true;
  			}
 		}
 		key = null;

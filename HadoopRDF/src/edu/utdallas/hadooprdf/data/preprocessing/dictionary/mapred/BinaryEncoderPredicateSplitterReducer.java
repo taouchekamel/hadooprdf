@@ -10,6 +10,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import edu.utdallas.hadooprdf.data.SubjectObjectPair;
+import edu.utdallas.hadooprdf.data.commons.Constants;
 
 /**
  * @author Mohammad Farhan Husain
@@ -29,12 +30,13 @@ public class BinaryEncoderPredicateSplitterReducer extends
 		int index;
 		String value;
 		long subject, object;
+		Text outputKey = new Text(key.toString() +  '.' + Constants.PS_EXTENSION);
 		while (iter.hasNext()) {
 			value = iter.next().toString();
 			index = value.indexOf('\t');
 			subject = Long.parseLong(value.substring(0, index));
 			object = Long.parseLong(value.substring(index + 1));
-			context.write(key, new SubjectObjectPair(subject, object));
+			context.write(outputKey, new SubjectObjectPair(subject, object));
 		}
 	}
 

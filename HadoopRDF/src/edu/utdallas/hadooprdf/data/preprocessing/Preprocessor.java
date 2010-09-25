@@ -6,8 +6,11 @@ import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.commons.Constants.SerializationFormat;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
-import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.NamespaceProcessorPredicateSplitter;
-import edu.utdallas.hadooprdf.data.preprocessing.namespacingpredicatesplit.NamespaceProcessorPredicateSplitterException;
+import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairsException;
+import edu.utdallas.hadooprdf.data.preprocessing.dictionary.DictionaryCreator;
+import edu.utdallas.hadooprdf.data.preprocessing.dictionary.DictionaryCreatorException;
+import edu.utdallas.hadooprdf.data.preprocessing.dictionary.DictionaryEncoder;
+import edu.utdallas.hadooprdf.data.preprocessing.dictionary.DictionaryEncoderException;
 import edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.PredicateSplitterByObjectType;
 import edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.PredicateSplitterByObjectTypeException;
 import edu.utdallas.hadooprdf.data.preprocessing.serialization.ConversionToNTriplesException;
@@ -19,25 +22,27 @@ import edu.utdallas.hadooprdf.data.preprocessing.serialization.ConvertToNTriples
  *
  */
 public class Preprocessor {
-	private DataSet m_DataSet;
-	private SerializationFormat m_OriginalFormat;
+	private DataSet dataSet;
+	private SerializationFormat originalFormat;
 	/**
 	 * The class constructor
 	 * @param dataSet the data set to preprocess
 	 */
 	public Preprocessor(DataSet dataSet, SerializationFormat originalFormat) {
-		m_DataSet = dataSet;
-		m_OriginalFormat = originalFormat;
+		this.dataSet = dataSet;
+		this.originalFormat = originalFormat;
 	}
 	public void preprocess() throws PreprocessorException {
 		try {
-			if (SerializationFormat.NTRIPLES != m_OriginalFormat) {
-				ConvertToNTriples c = new ConvertToNTriples(m_OriginalFormat, m_DataSet);
+			if (SerializationFormat.NTRIPLES != originalFormat) {
+				ConvertToNTriples c = new ConvertToNTriples(originalFormat, dataSet);
 				c.doConversion();
 			}
-			NamespaceProcessorPredicateSplitter npps = new NamespaceProcessorPredicateSplitter(m_DataSet);
-			npps.processDataForNamespacePredicateSplit();
-			PredicateSplitterByObjectType posbot = new PredicateSplitterByObjectType(m_DataSet);
+			DictionaryCreator dc = new DictionaryCreator(dataSet);
+			dc.createDictionary();
+			DictionaryEncoder de = new DictionaryEncoder(dataSet);
+			de.dictionaryEncode();
+			PredicateSplitterByObjectType posbot = new PredicateSplitterByObjectType(dataSet);
 			posbot.splitPredicateByObjectType();
 		} catch (IOException e) {
 			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
@@ -47,9 +52,13 @@ public class Preprocessor {
 			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
 		} catch (ConfigurationNotInitializedException e) {
 			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
-		} catch (NamespaceProcessorPredicateSplitterException e) {
-			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
 		} catch (PredicateSplitterByObjectTypeException e) {
+			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
+		} catch (PredicateIdPairsException e) {
+			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
+		} catch (DictionaryCreatorException e) {
+			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
+		} catch (DictionaryEncoderException e) {
 			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
 		}
 	}

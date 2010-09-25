@@ -1,10 +1,17 @@
 package edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -35,10 +42,12 @@ import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 	public static final byte JOB1_TYPE_FLAG = 1;
 	public static final byte JOB1_TRIPLE_FLAG = 2;
+	private static final int BUFFER_SIZE = 1024 * 1024;
 	
 	private Path job1OutputDirectoryPath;
 	private Path job2OutputDirectoryPath;
 	private String rdfTypePredicate;
+	private PredicateIdPairs predicateIdPairs;
 	/**
 	 * The class constructor
 	 * @param dataSet the dataset to work on
@@ -51,8 +60,10 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 		inputDirectoryPath = dataSet.getPathToPSData();
 		job1OutputDirectoryPath = new Path(dataSet.getPathToTemp(), Constants.POS_EXTENSION + 1);
 		job2OutputDirectoryPath = new Path(dataSet.getPathToTemp(), Constants.POS_EXTENSION + 2);
+		outputDirectoryPath = dataSet.getPathToPOSData();
 		inputFilesExtension = Constants.PS_EXTENSION;
-		rdfTypePredicate = "" + new PredicateIdPairs(dataSet).getId(Constants.RDF_TYPE_URI_NTRIPLES_STRING);
+		predicateIdPairs = new PredicateIdPairs(dataSet);
+		rdfTypePredicate = "" + predicateIdPairs.getId(Constants.RDF_TYPE_URI_NTRIPLES_STRING);
 	}
 	/**
 	 * The method which actually splits PS files according to their object type
@@ -67,10 +78,56 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 				new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
 			// that the original one does not get cluttered with job specific key-value pairs
 			FileSystem fs = FileSystem.get(hadoopConfiguration);
-			runJob1(config, hadoopConfiguration, fs);
+			//runJob1(config, hadoopConfiguration, fs);
+			mergeFiles(fs);
 			//runJob2(config, hadoopConfiguration, fs);
 		} catch (IOException e) {
 			throw new PredicateSplitterByObjectTypeException("IOException occurred:\n" + e.getMessage());
+		}
+	}
+	
+	private void mergeFiles(FileSystem fs) throws IOException {
+		fs.delete(outputDirectoryPath, true);
+		byte [] buffer = new byte[BUFFER_SIZE];
+		for (Long predicateId : predicateIdPairs.getPredicateIds()) {
+			String predicateIdString = predicateId.toString();
+			final String regex = ".+" + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + predicateIdString
+				+ "(" + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + ".+)?\\." + Constants.POS_EXTENSION;
+			System.out.println("Regex: " + regex);
+			FileStatus [] fstatus = fs.listStatus(job1OutputDirectoryPath, new PathFilter() {
+				@Override
+				public boolean accept(Path path) {
+					return path.getName().matches(regex);
+				}
+			});
+			Map<String, List<FileStatus>> targetSourceMap = new HashMap<String, List<FileStatus>> ();
+			for (FileStatus f : fstatus) {
+				String fileName = f.getPath().getName();
+				System.out.println("Got: " + fileName);
+				int index = fileName.indexOf(Constants.PREDICATE_OBJECT_TYPE_SEPARATOR);
+				String targetName = fileName.substring(index + 1);
+				List<FileStatus> fileList;
+				if (null == (fileList = targetSourceMap.get(targetName))) {
+					fileList = new LinkedList<FileStatus> ();
+					targetSourceMap.put(targetName, fileList);
+				}
+				fileList.add(f);
+			}
+			for (String targetName : targetSourceMap.keySet()) {
+				System.out.println("Got target: " + targetName);
+				Path newFile = new Path(outputDirectoryPath, targetName);
+				DataOutputStream dos = fs.create(newFile, true);
+				for (FileStatus sourceFile : targetSourceMap.get(targetName)) {
+					System.out.println("\tGot source: " + sourceFile.getPath().getName());
+					DataInputStream dis = fs.open(sourceFile.getPath());
+					int bytesRead;
+					while (-1 != (bytesRead = dis.read(buffer))) {
+						dos.write(buffer, 0, bytesRead);
+					}
+					dis.close();
+				}
+				dos.close();
+			}
 		}
 	}
 	/**

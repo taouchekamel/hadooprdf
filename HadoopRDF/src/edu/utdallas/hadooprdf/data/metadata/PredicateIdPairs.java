@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -82,5 +83,13 @@ public class PredicateIdPairs {
 	 */
 	public String getPredicate(long id) {
 		return idToPredicateMap.get(id);
+	}
+	
+	public Set<Long> getPredicateIds() {
+		return idToPredicateMap.keySet();
+	}
+	
+	public Set<String> getPredicateStrings() {
+		return predicateToIdMap.keySet();
 	}
 }
