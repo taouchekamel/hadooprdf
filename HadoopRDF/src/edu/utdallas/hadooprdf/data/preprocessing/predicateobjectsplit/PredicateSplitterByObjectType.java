@@ -4,9 +4,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -28,10 +30,9 @@ import edu.utdallas.hadooprdf.data.io.output.SOPOutputFormat;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairs;
-import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairsException;
+import edu.utdallas.hadooprdf.data.metadata.StringIdPairsException;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
 import edu.utdallas.hadooprdf.lib.mapred.io.ByteLongLongWritable;
-import edu.utdallas.hadooprdf.lib.mapred.io.output.FilenameByKeyMultipleTextOutputFormat;
 import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 
 /**
@@ -45,21 +46,19 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 	private static final int BUFFER_SIZE = 1024 * 1024;
 	
 	private Path job1OutputDirectoryPath;
-	private Path job2OutputDirectoryPath;
 	private String rdfTypePredicate;
 	private PredicateIdPairs predicateIdPairs;
 	/**
 	 * The class constructor
 	 * @param dataSet the dataset to work on
 	 * @throws DataFileExtensionNotSetException
-	 * @throws PredicateIdPairsException 
+	 * @throws StringIdPairsException 
 	 */
 	public PredicateSplitterByObjectType(DataSet dataSet)
-			throws DataFileExtensionNotSetException, PredicateIdPairsException {
+			throws DataFileExtensionNotSetException, StringIdPairsException {
 		super(dataSet);
 		inputDirectoryPath = dataSet.getPathToPSData();
 		job1OutputDirectoryPath = new Path(dataSet.getPathToTemp(), Constants.POS_EXTENSION + 1);
-		job2OutputDirectoryPath = new Path(dataSet.getPathToTemp(), Constants.POS_EXTENSION + 2);
 		outputDirectoryPath = dataSet.getPathToPOSData();
 		inputFilesExtension = Constants.PS_EXTENSION;
 		predicateIdPairs = new PredicateIdPairs(dataSet);
@@ -78,11 +77,99 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 				new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
 			// that the original one does not get cluttered with job specific key-value pairs
 			FileSystem fs = FileSystem.get(hadoopConfiguration);
-			//runJob1(config, hadoopConfiguration, fs);
+			runJob1(config, hadoopConfiguration, fs);
 			mergeFiles(fs);
-			//runJob2(config, hadoopConfiguration, fs);
+			listTypes();
 		} catch (IOException e) {
 			throw new PredicateSplitterByObjectTypeException("IOException occurred:\n" + e.getMessage());
+		}
+	}
+	
+	private void listTypes() throws PredicateSplitterByObjectTypeException {
+		edu.utdallas.hadooprdf.conf.Configuration config;
+		try {
+			config = edu.utdallas.hadooprdf.conf.Configuration.getInstance();
+			org.apache.hadoop.conf.Configuration hadoopConfiguration =
+				new org.apache.hadoop.conf.Configuration(config.getHadoopConfiguration()); // Should create a clone so
+			// that the original one does not get cluttered with job specific key-value pairs
+			// Must set all the job parameters before creating the job
+			hadoopConfiguration.set(Tags.PATH_TO_DICTIONARY, dataSet.getPathToDictionary().toString());
+			FileSystem fs;
+			fs = FileSystem.get(hadoopConfiguration);
+			// Create the job
+			String sJobName = "Listing types for " + outputDirectoryPath.toString();
+			Job job = new Job(hadoopConfiguration, sJobName);
+			// Specify input parameters
+			job.setInputFormatClass(TextInputFormat.class);
+			Set<String> types = new HashSet<String> ();
+			int tailLength = Constants.POS_EXTENSION.length() + 1;
+			for (Long predicateId : predicateIdPairs.getPredicateIds()) {
+				String predicateIdString = predicateId.toString();
+				final String regex = predicateIdString + Constants.PREDICATE_OBJECT_TYPE_SEPARATOR + ".+\\." + Constants.POS_EXTENSION;
+				FileStatus [] fstatus = fs.listStatus(outputDirectoryPath, new PathFilter() {
+					@Override
+					public boolean accept(Path path) {
+						return path.getName().matches(regex);
+					}
+				});
+				for (FileStatus f : fstatus) {
+					String fileName = f.getPath().getName();
+					int index = fileName.indexOf(Constants.PREDICATE_OBJECT_TYPE_SEPARATOR);
+					String type = fileName.substring(index + 1, fileName.length() - tailLength);
+					types.add(type);
+				}
+			}
+			Path inputPath = new Path(dataSet.getPathToTemp(), "typeInput");
+			fs.delete(inputPath, true);
+			DataOutputStream dos = fs.create(new Path(inputPath, "types"), true);
+			for (String type : types) {
+				dos.writeBytes(type + '\n');
+			}
+			dos.close();
+			FileInputFormat.addInputPath(job, inputPath);
+			// Get input file names from dictionary directory
+			boolean bInputPathEmpty = true;
+			FileStatus [] fstatus = fs.listStatus(dataSet.getPathToDictionary());
+			for (int i = 0; i < fstatus.length; i++) {
+				if (!fstatus[i].isDir()) {
+					FileInputFormat.addInputPath(job, fstatus[i].getPath());
+					bInputPathEmpty = false;
+				}
+			}
+			if (bInputPathEmpty)
+				throw new PredicateSplitterByObjectTypeException("No dictionary file to use for listing types!");
+			// Specify output parameters
+			job.setOutputKeyClass(Text.class);
+			job.setOutputValueClass(Text.class);
+			job.setMapOutputKeyClass(Text.class);
+			job.setMapOutputValueClass(Text.class);
+			// Delete output directory
+			Path tmpOutputPath = new Path(dataSet.getPathToTemp(), "typesOutput");
+			fs.delete(tmpOutputPath, true);
+			FileOutputFormat.setOutputPath(job, tmpOutputPath);
+			// Set the mapper and reducer classes
+			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.lib.IdListerMapper.class);
+			job.setReducerClass(edu.utdallas.hadooprdf.data.preprocessing.lib.IdListerReducer.class);
+			// Set the number of reducers
+			job.setNumReduceTasks(1);
+			// Set the jar file
+			job.setJarByClass(this.getClass());
+			// Run the job
+			if (job.waitForCompletion(true)) {
+				fs.delete(inputPath, true);
+				fs.delete(dataSet.getPathToTypeList(), false);
+				fs.rename(new Path(tmpOutputPath, "part-r-00000"), dataSet.getPathToTypeList());
+				fs.delete(tmpOutputPath, true);
+			} else
+				throw new PredicateSplitterByObjectTypeException("Job1 of PredicateSplitterByObjectType failed");
+		} catch (IOException e) {
+			throw new PredicateSplitterByObjectTypeException("IOException occurred:\n" + e.getMessage());
+		} catch (InterruptedException e) {
+			throw new PredicateSplitterByObjectTypeException("InterruptedException occurred:\n" + e.getMessage());
+		} catch (ClassNotFoundException e) {
+			throw new PredicateSplitterByObjectTypeException("ClassNotFoundException occurred:\n" + e.getMessage());
+		} catch (ConfigurationNotInitializedException e) {
+			throw new PredicateSplitterByObjectTypeException("ConfigurationNotInitializedException occurred:\n" + e.getMessage());
 		}
 	}
 	
@@ -184,76 +271,6 @@ public class PredicateSplitterByObjectType extends PreprocessorJobRunner {
 				;//fs.delete(inputDirectoryPath, true);	// Delete input data i.e. PS data
 			else
 				throw new PredicateSplitterByObjectTypeException("Job1 of PredicateSplitterByObjectType failed");
-		} catch (IOException e) {
-			throw new PredicateSplitterByObjectTypeException("IOException occurred:\n" + e.getMessage());
-		} catch (InterruptedException e) {
-			throw new PredicateSplitterByObjectTypeException("InterruptedException occurred:\n" + e.getMessage());
-		} catch (ClassNotFoundException e) {
-			throw new PredicateSplitterByObjectTypeException("ClassNotFoundException occurred:\n" + e.getMessage());
-		}
-	}
-	/**
-	 * Runs job 2 of the process
-	 * @param config the HadoopRDF configuration
-	 * @param hadoopConfiguration the Hadoop configuration
-	 * @param fs the file system
-	 * @throws ConfigurationNotInitializedException
-	 * @throws PredicateSplitterByObjectTypeException
-	 */
-	private void runJob2(edu.utdallas.hadooprdf.conf.Configuration config,
-			org.apache.hadoop.conf.Configuration hadoopConfiguration,
-			FileSystem fs) throws ConfigurationNotInitializedException, PredicateSplitterByObjectTypeException {
-		try {
-			// Delete output directory
-			fs.delete(job2OutputDirectoryPath, true);
-			// Create the job
-			String sJobName = "PS file splitter by Object Types Job2 for " + inputDirectoryPath;
-			Job job = new Job(hadoopConfiguration, sJobName);
-			// Specify input parameters
-			job.setInputFormatClass(TextInputFormat.class);
-			boolean bInputPathEmpty = true;
-			// Get input file names
-			FileStatus [] fstatus = fs.listStatus(job1OutputDirectoryPath);
-			for (int i = 0; i < fstatus.length; i++) {
-				if (!fstatus[i].isDir()) {
-					FileInputFormat.addInputPath(job, fstatus[i].getPath());
-					bInputPathEmpty = false;
-				}
-			}
-			if (bInputPathEmpty)
-				throw new PredicateSplitterByObjectTypeException("No file to process in Job2 for PredicateSplitterByObjectType!");
-			// Specify output parameters
-			job.setOutputFormatClass(FilenameByKeyMultipleTextOutputFormat.class);
-			job.setOutputKeyClass(Text.class);
-			job.setOutputValueClass(Text.class);
-			job.setMapOutputKeyClass(Text.class);
-			job.setMapOutputValueClass(Text.class);
-			FileOutputFormat.setOutputPath(job, job2OutputDirectoryPath);
-			// Set the mapper and reducer classes
-			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.predicateobjectsplit.mapred.PredicateSplitterByObjectTypeJob2Mapper.class);
-			job.setReducerClass(edu.utdallas.hadooprdf.lib.mapred.IdentityReducer.class);
-			// Set the number of reducers
-			if (-1 != getNumberOfReducers())	// Use the number set by the client, if any
-				job.setNumReduceTasks(getNumberOfReducers());
-			else if (-1 != config.getNumberOfTaskTrackersInCluster())	// Use one reducer per TastTracker, if the number of TaskTrackers is available
-				job.setNumReduceTasks(config.getNumberOfTaskTrackersInCluster());
-			// Set the jar file
-			job.setJarByClass(this.getClass());
-			// Run the job
-			if (job.waitForCompletion(true)) {
-				// Delete output of job 1
-				fs.delete(job1OutputDirectoryPath, true);
-				// Create POS data directory
-				fs.mkdirs(dataSet.getPathToPOSData());
-				// Move data from this job's output directory to POS data directory
-				fstatus = fs.listStatus(job2OutputDirectoryPath, new PathFilterOnFilenameExtension(Constants.POS_EXTENSION));
-				for (int i = 0; i < fstatus.length; i++)
-					fs.rename(fstatus[i].getPath(), new Path(dataSet.getPathToPOSData(), fstatus[i].getPath().getName()));
-				// Delete output of this job
-				fs.delete(job2OutputDirectoryPath, true);
-			}
-			else
-				throw new PredicateSplitterByObjectTypeException("Job2 of PredicateSplitterByObjectType failed");
 		} catch (IOException e) {
 			throw new PredicateSplitterByObjectTypeException("IOException occurred:\n" + e.getMessage());
 		} catch (InterruptedException e) {

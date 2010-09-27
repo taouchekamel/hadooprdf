@@ -6,7 +6,7 @@ import edu.utdallas.hadooprdf.conf.ConfigurationNotInitializedException;
 import edu.utdallas.hadooprdf.data.commons.Constants.SerializationFormat;
 import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
-import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairsException;
+import edu.utdallas.hadooprdf.data.metadata.StringIdPairsException;
 import edu.utdallas.hadooprdf.data.preprocessing.dictionary.DictionaryCreator;
 import edu.utdallas.hadooprdf.data.preprocessing.dictionary.DictionaryCreatorException;
 import edu.utdallas.hadooprdf.data.preprocessing.dictionary.DictionaryEncoder;
@@ -54,7 +54,7 @@ public class Preprocessor {
 			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
 		} catch (PredicateSplitterByObjectTypeException e) {
 			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
-		} catch (PredicateIdPairsException e) {
+		} catch (StringIdPairsException e) {
 			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());
 		} catch (DictionaryCreatorException e) {
 			throw new PreprocessorException("Preprocessing failed because\n" + e.getMessage());

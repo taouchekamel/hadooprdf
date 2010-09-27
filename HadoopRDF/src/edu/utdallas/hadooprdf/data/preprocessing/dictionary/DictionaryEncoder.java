@@ -112,8 +112,8 @@ public class DictionaryEncoder extends PreprocessorJobRunner {
 			fs.delete(tmpOutputPath, true);
 			FileOutputFormat.setOutputPath(job, tmpOutputPath);
 			// Set the mapper and reducer classes
-			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.PredicateListerMapper.class);
-			job.setReducerClass(edu.utdallas.hadooprdf.data.preprocessing.dictionary.mapred.PredicateListerReducer.class);
+			job.setMapperClass(edu.utdallas.hadooprdf.data.preprocessing.lib.IdListerMapper.class);
+			job.setReducerClass(edu.utdallas.hadooprdf.data.preprocessing.lib.IdListerReducer.class);
 			// Set the number of reducers
 			job.setNumReduceTasks(1);
 			// Set the jar file

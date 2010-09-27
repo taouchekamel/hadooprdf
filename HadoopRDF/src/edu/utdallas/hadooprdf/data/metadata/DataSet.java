@@ -22,59 +22,63 @@ public class DataSet {
 	/**
 	 * Extension of original data files
 	 */
-	private String m_sOriginalDataFilesExtension;
+	private String originalDataFilesExtension;
 	/**
 	 * The root path of the data set
 	 */
-	private Path m_DataSetRoot;
+	private Path dataSetRoot;
 	/**
 	 * Path to the data directory
 	 */
-	private Path m_PathToDataDirectory;
+	private Path pathToDataDirectory;
 	/**
 	 * Path to the original data, which can be in any format
 	 */
-	private Path m_PathToOriginalData;
+	private Path pathToOriginalData;
 	/**
 	 * Path to data in NTriples format and later using namespaces
 	 */
-	private Path m_PathToNTriplesData;
+	private Path pathToNTriplesData;
 	/**
 	 * Path to encoded data
 	 */
-	private Path m_PathToEncodedData;
+	private Path pathToEncodedData;
 	/**
 	 * Path to PS data
 	 */
-	private Path m_PathToPSData;
+	private Path pathToPSData;
 	/**
 	 * Path to POS data
 	 */
-	private Path m_PathToPOSData;
+	private Path pathToPOSData;
 	/**
 	 * Path to metadata of the data set
 	 */
-	private Path m_PathToMetaData;
+	private Path pathToMetaData;
 	/**
 	 * Path to predicate list
 	 */
-	private Path m_PathToPredicateList;
+	private Path pathToPredicateList;
+	/**
+	 * Path to type list
+	 */
+	private Path pathToTypeList;
 	/**
 	 * Path to Dictionary
 	 */
-	private Path m_PathToDictionary;
+	private Path pathToDictionary;
 	/**
 	 * Path to temporary directory
 	 */
-	private Path m_PathToTemp;
+	private Path pathToTemp;
 	/**
 	 * The predicate collection of the data set
 	 */
-	private Collection<String> m_PredicateCollection;
+	private Collection<String> predicateCollection;
 	/**
 	 * The Hadoop Configuration
 	 */
-	private org.apache.hadoop.conf.Configuration m_HadoopConfiguration;
+	private org.apache.hadoop.conf.Configuration hadoopConfiguration;
 	/**
 	 * Class constructor
 	 * @param sDataSetRoot the root path of the data set as a String
@@ -101,21 +105,22 @@ public class DataSet {
 	 * @throws IOException 
 	 */
 	public DataSet(Path dataSetRoot, org.apache.hadoop.conf.Configuration hadoopConfiguration) throws IOException {
-		m_HadoopConfiguration = hadoopConfiguration;
-		m_sOriginalDataFilesExtension = null;
-		m_DataSetRoot = dataSetRoot;
-		m_PathToDataDirectory = new Path(m_DataSetRoot, "data");
-		m_PathToOriginalData = new Path(m_PathToDataDirectory, "Original");
-		m_PathToNTriplesData = new Path(m_PathToDataDirectory, "NTriples");
-		m_PathToEncodedData = new Path(m_PathToDataDirectory, "Encoded");
-		m_PathToPSData = new Path(m_PathToDataDirectory, "PS");
-		m_PathToPOSData = new Path(m_PathToDataDirectory, "POS");
-		m_PathToMetaData = new Path(m_DataSetRoot, "metadata");
-		Utility.createDirectory(hadoopConfiguration, m_PathToMetaData);
-		m_PathToPredicateList = new Path(m_PathToMetaData, "predicates");
-		m_PathToDictionary = new Path(m_PathToMetaData, "dictionary");
-		m_PathToTemp = new Path(m_DataSetRoot, "tmp");
-		m_PredicateCollection = createPredicateCollection(hadoopConfiguration);
+		this.hadoopConfiguration = hadoopConfiguration;
+		originalDataFilesExtension = null;
+		this.dataSetRoot = dataSetRoot;
+		pathToDataDirectory = new Path(dataSetRoot, "data");
+		pathToOriginalData = new Path(pathToDataDirectory, "Original");
+		pathToNTriplesData = new Path(pathToDataDirectory, "NTriples");
+		pathToEncodedData = new Path(pathToDataDirectory, "Encoded");
+		pathToPSData = new Path(pathToDataDirectory, "PS");
+		pathToPOSData = new Path(pathToDataDirectory, "POS");
+		pathToMetaData = new Path(dataSetRoot, "metadata");
+		Utility.createDirectory(hadoopConfiguration, pathToMetaData);
+		pathToPredicateList = new Path(pathToMetaData, "predicates");
+		pathToTypeList = new Path(pathToMetaData, "types");
+		pathToDictionary = new Path(pathToMetaData, "dictionary");
+		pathToTemp = new Path(dataSetRoot, "tmp");
+		predicateCollection = createPredicateCollection(hadoopConfiguration);
 	}
 	/**
 	 * creates the predicate collection
@@ -126,7 +131,7 @@ public class DataSet {
 	private Collection<String> createPredicateCollection(org.apache.hadoop.conf.Configuration hadoopConfiguration) throws IOException {
 		Collection<String> predicateCollection = new TreeSet<String> ();
 		FileSystem fs = FileSystem.get(hadoopConfiguration);
-		FileStatus [] files = fs.listStatus(m_PathToPOSData, new PathFilterOnFilenameExtension(Constants.POS_EXTENSION));
+		FileStatus [] files = fs.listStatus(pathToPOSData, new PathFilterOnFilenameExtension(Constants.POS_EXTENSION));
 		for (int i = 0; i < files.length; i++) {
 			String sFilename = files[i].getPath().getName();
 			int indexOfFirstNamespaceDelimiter = sFilename.indexOf(Constants.NAMESPACE_DELIMITER);
@@ -141,110 +146,122 @@ public class DataSet {
 		return predicateCollection;
 	}
 	/**
-	 * @return the m_DataSetRoot
+	 * @return the dataSetRoot
 	 */
 	public Path getDataSetRoot() {
-		return m_DataSetRoot;
+		return dataSetRoot;
 	}
 	/**
-	 * @return the m_PathToOriginalData
+	 * @return the pathToOriginalData
 	 * @throws IOException 
 	 */
 	public Path getPathToOriginalData() throws IOException {
-		Utility.createDirectoryIfNotExists(m_HadoopConfiguration, m_PathToOriginalData);
-		return m_PathToOriginalData;
+		Utility.createDirectoryIfNotExists(hadoopConfiguration, pathToOriginalData);
+		return pathToOriginalData;
 	}
 	/**
-	 * @return the m_PathToNTriplesData
+	 * @return the pathToNTriplesData
 	 */
 	public Path getPathToNTriplesData() {
-		return m_PathToNTriplesData;
+		return pathToNTriplesData;
 	}
 	/**
-	 * @return the m_PathToPSData
+	 * @return the pathToPSData
 	 */
 	public Path getPathToPSData() {
-		return m_PathToPSData;
+		return pathToPSData;
 	}
 	/**
-	 * @return the m_PathToPOSData
+	 * @return the pathToPOSData
 	 */
 	public Path getPathToPOSData() {
-		return m_PathToPOSData;
+		return pathToPOSData;
 	}
 	/**
-	 * @return the m_PathToMetaData
+	 * @return the pathToMetaData
 	 */
 	public Path getPathToMetaData() {
-		return m_PathToMetaData;
+		return pathToMetaData;
 	}
 	/**
-	 * @return the m_PathToTemp
+	 * @return the pathToTemp
 	 */
 	public Path getPathToTemp() {
-		return m_PathToTemp;
+		return pathToTemp;
 	}
 	/**
-	 * @return the m_PathToDictionary
+	 * @return the pathToDictionary
 	 */
 	public Path getPathToDictionary() {
-		return m_PathToDictionary;
+		return pathToDictionary;
 	}
 	/**
 	 * @param sDataFilesExtension the extension of the original data files
 	 */
 	public void setOriginalDataFilesExtension(String sDataFilesExtension) {
-		m_sOriginalDataFilesExtension = sDataFilesExtension;
+		originalDataFilesExtension = sDataFilesExtension;
 	}
 	/**
-	 * @return the m_sOriginalDataFilesExtension
+	 * @return the originalDataFilesExtension
 	 * @throws DataFileExtensionNotSetException 
 	 */
 	public String getOriginalDataFilesExtension() throws DataFileExtensionNotSetException {
-		if (null == m_sOriginalDataFilesExtension) throw new DataFileExtensionNotSetException("Extension of original data files is not set");
-		return m_sOriginalDataFilesExtension;
+		if (null == originalDataFilesExtension) throw new DataFileExtensionNotSetException("Extension of original data files is not set");
+		return originalDataFilesExtension;
 	}
 	/**
-	 * @return the m_PredicateCollection
+	 * @return the predicateCollection
 	 * @throws DataSetException 
 	 */
 	public Collection<String> getPredicateCollection() throws DataSetException {
 		try {
-			if (null == m_PredicateCollection && FileSystem.get(m_HadoopConfiguration).exists(m_PathToPOSData))
-				m_PredicateCollection = createPredicateCollection(m_HadoopConfiguration);
+			if (null == predicateCollection && FileSystem.get(hadoopConfiguration).exists(pathToPOSData))
+				predicateCollection = createPredicateCollection(hadoopConfiguration);
 		} catch (IOException e) {
 			throw new DataSetException("PredicateCollection could not be built because\n" + e.getMessage());
 		}
-		return m_PredicateCollection;
+		return predicateCollection;
 	}
 	/**
-	 * @return the m_PathToEncodedData
+	 * @return the pathToEncodedData
 	 */
 	public Path getPathToEncodedData() {
-		return m_PathToEncodedData;
+		return pathToEncodedData;
 	}
 	/**
-	 * @param mPathToEncodedData the m_PathToEncodedData to set
+	 * @param mPathToEncodedData the pathToEncodedData to set
 	 */
 	public void setPathToEncodedData(Path mPathToEncodedData) {
-		m_PathToEncodedData = mPathToEncodedData;
+		pathToEncodedData = mPathToEncodedData;
 	}
 	/**
-	 * @return the m_PathToPredicateList
+	 * @return the pathToPredicateList
 	 */
 	public Path getPathToPredicateList() {
-		return m_PathToPredicateList;
+		return pathToPredicateList;
 	}
 	/**
-	 * @param mPathToPredicateList the m_PathToPredicateList to set
+	 * @param mPathToPredicateList the pathToPredicateList to set
 	 */
 	public void setPathToPredicateList(Path mPathToPredicateList) {
-		m_PathToPredicateList = mPathToPredicateList;
+		pathToPredicateList = mPathToPredicateList;
 	}
 	/**
-	 * @return the m_HadoopConfiguration
+	 * @return the hadoopConfiguration
 	 */
 	public org.apache.hadoop.conf.Configuration getHadoopConfiguration() {
-		return m_HadoopConfiguration;
+		return hadoopConfiguration;
+	}
+	/**
+	 * @return the pathToTypeList
+	 */
+	public Path getPathToTypeList() {
+		return pathToTypeList;
+	}
+	/**
+	 * @param pathToTypeList the pathToTypeList to set
+	 */
+	public void setPathToTypeList(Path pathToTypeList) {
+		this.pathToTypeList = pathToTypeList;
 	}
 }

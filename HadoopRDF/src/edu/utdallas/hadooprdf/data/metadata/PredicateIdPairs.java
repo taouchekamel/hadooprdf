@@ -3,68 +3,22 @@
  */
 package edu.utdallas.hadooprdf.data.metadata;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
-
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 
 /**
  * A class containing two maps from/to predicate string to/from id
  * @author Mohammad Farhan Husain
  *
  */
-public class PredicateIdPairs {
-	/**
-	 * A map from id to predicate string
-	 */
-	private Map<Long, String> idToPredicateMap;
-	/**
-	 * A map from predicate string to id
-	 */
-	private Map<String, Long> predicateToIdMap;
+public class PredicateIdPairs extends StringIdPairs {
 	
 	/**
 	 * The class constructor
 	 * @param dataSet the data set object containing the path to predicate list
-	 * @throws PredicateIdPairsException
+	 * @throws StringIdPairsException
 	 */
-	public PredicateIdPairs(final DataSet dataSet) throws PredicateIdPairsException {
-		idToPredicateMap = new HashMap<Long, String> ();
-		predicateToIdMap = new HashMap<String, Long> ();
-		parsePredicateListFile(dataSet.getHadoopConfiguration(), dataSet.getPathToPredicateList());
-	}
-	
-	/**
-	 * Parse the predicate list file and populate the maps
-	 * @param hadoopConfiguration the hadoop configuration needed to access file system
-	 * @param predicateList the path to predicate list file
-	 * @throws PredicateIdPairsException
-	 */
-	private void parsePredicateListFile(org.apache.hadoop.conf.Configuration hadoopConfiguration, Path predicateList) throws PredicateIdPairsException {
-		try {
-			DataInputStream dis = FileSystem.get(hadoopConfiguration).open(predicateList);
-			BufferedReader br = new BufferedReader(new InputStreamReader(dis));
-			String line;
-			while (null != (line = br.readLine())) {
-				String [] splits = line.split("\\s");
-				Long id = Long.parseLong(splits[0]);
-				idToPredicateMap.put(id, splits[1]);
-				predicateToIdMap.put(splits[1], id);
-			}
-			br.close();
-			dis.close();
-		} catch (IOException e) {
-			throw new PredicateIdPairsException("IOException occurred while trying to parse predicate list file:\n" + e.getMessage());
-		} catch (NumberFormatException e) {
-			throw new PredicateIdPairsException("NumberFormatException occurred while trying to parse predicate list file:\n" + e.getMessage());
-		}
-
+	public PredicateIdPairs(final DataSet dataSet) throws StringIdPairsException {
+		super(dataSet.getHadoopConfiguration(), dataSet.getPathToPredicateList());
 	}
 	
 	/**
@@ -73,7 +27,7 @@ public class PredicateIdPairs {
 	 * @return the id or null if no id exists for the predicate
 	 */
 	public Long getId(String predicate) {
-		return predicateToIdMap.get(predicate);
+		return stringToIdMap.get(predicate);
 	}
 	
 	/**
@@ -82,14 +36,14 @@ public class PredicateIdPairs {
 	 * @return the predicate or null if no predicate exists for the id
 	 */
 	public String getPredicate(long id) {
-		return idToPredicateMap.get(id);
+		return idToStringMap.get(id);
 	}
 	
 	public Set<Long> getPredicateIds() {
-		return idToPredicateMap.keySet();
+		return idToStringMap.keySet();
 	}
 	
 	public Set<String> getPredicateStrings() {
-		return predicateToIdMap.keySet();
+		return stringToIdMap.keySet();
 	}
 }
