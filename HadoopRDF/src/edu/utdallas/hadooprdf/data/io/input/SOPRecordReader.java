@@ -17,6 +17,8 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
 import edu.utdallas.hadooprdf.data.SubjectObjectPair;
+import edu.utdallas.hadooprdf.data.commons.Constants;
+import edu.utdallas.hadooprdf.data.commons.Tags;
 
 /**
  * @author Mohammad Farhan Husain
@@ -31,7 +33,8 @@ public class SOPRecordReader extends
 	private DataInputStream in = null;
 	private LongWritable key = null;
 	private SubjectObjectPair value = null;
-
+	private boolean inputFromTypeFile = false;
+	
 	@Override
 	public synchronized void close() throws IOException {
 		if (null != in)
@@ -63,6 +66,14 @@ public class SOPRecordReader extends
 	public void initialize(InputSplit genericSplit, TaskAttemptContext context)
 			throws IOException, InterruptedException {
 		FileSplit split = (FileSplit) genericSplit;
+		final String typePredicateId = context.getConfiguration().get(Tags.RDF_TYPE_PREDICATE);
+		inputFromTypeFile = false;
+		if (null != typePredicateId) {
+			String fileName = split.getPath().getName();
+			final int index = fileName.indexOf(Constants.PREDICATE_OBJECT_TYPE_SEPARATOR);
+			if (-1 != index)
+				inputFromTypeFile = fileName.substring(0, index).startsWith(typePredicateId);
+		}
 		Configuration job = context.getConfiguration();
 		start = split.getStart();
 		end = start + split.getLength();
@@ -87,7 +98,11 @@ public class SOPRecordReader extends
 		if (pos < end) {
 			value.setSubject(in.readLong());
 			pos += SIZE_OF_LONG_IN_BYTES;
-			if (pos < end) {
+			if (inputFromTypeFile) {
+				value.setObject(0);
+				return true;
+			}
+			else if (pos < end) {
 				value.setObject(in.readLong());
 				pos += SIZE_OF_LONG_IN_BYTES;
 				return true;

@@ -34,7 +34,7 @@ public class SOPInputFormat extends FileInputFormat<LongWritable, SubjectObjectP
 	
 	@Override
 	public RecordReader<LongWritable, SubjectObjectPair> createRecordReader(
-			InputSplit arg0, TaskAttemptContext arg1) throws IOException,
+			InputSplit split, TaskAttemptContext context) throws IOException,
 			InterruptedException {
 		return new SOPRecordReader();
 	}
