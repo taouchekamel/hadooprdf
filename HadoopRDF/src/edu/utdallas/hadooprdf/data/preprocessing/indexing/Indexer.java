@@ -23,6 +23,9 @@ import edu.utdallas.hadooprdf.data.metadata.DataFileExtensionNotSetException;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
 import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairs;
 import edu.utdallas.hadooprdf.data.metadata.StringIdPairsException;
+import edu.utdallas.hadooprdf.data.metadata.summarystatistics.FileStatistics;
+import edu.utdallas.hadooprdf.data.metadata.summarystatistics.SummaryStatistics;
+import edu.utdallas.hadooprdf.data.metadata.summarystatistics.SummaryStatisticsException;
 import edu.utdallas.hadooprdf.data.preprocessing.lib.PreprocessorJobRunner;
 import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 
@@ -40,6 +43,10 @@ public class Indexer extends PreprocessorJobRunner {
 	 */
 	private String rdfTypePredicate;
 	/**
+	 * Path to summary statistics file
+	 */
+	private Path pathToSummaryStatisticsFile;
+	/**
 	 * Class constructor
 	 * @param dataSet the data set to work on
 	 * @throws DataFileExtensionNotSetException
@@ -51,6 +58,7 @@ public class Indexer extends PreprocessorJobRunner {
 		inputFilesExtension = Constants.POS_EXTENSION;
 		pathToSortedPOS = new Path(dataSet.getPathToTemp(), "sorted_pos");
 		rdfTypePredicate = "" + new PredicateIdPairs(dataSet).getId(Constants.RDF_TYPE_URI_NTRIPLES_STRING);
+		pathToSummaryStatisticsFile = dataSet.getPathToSummaryStatistics();
 	}
 	
 	public void index() throws ConfigurationNotInitializedException, IndexerException {
@@ -73,6 +81,7 @@ public class Indexer extends PreprocessorJobRunner {
 			org.apache.hadoop.conf.Configuration hadoopConfiguration,
 			FileSystem fs) throws IndexerException {
 		try {
+			SummaryStatistics ss = new SummaryStatistics(hadoopConfiguration, pathToSummaryStatisticsFile, true);
 			// Delete output directory
 			fs.delete(pathToSortedPOS, true);
 			boolean bInputPathEmpty = true;
@@ -80,29 +89,42 @@ public class Indexer extends PreprocessorJobRunner {
 			FileStatus [] fstatus = fs.listStatus(inputDirectoryPath, new PathFilterOnFilenameExtension(inputFilesExtension));
 			for (int i = 0; i < fstatus.length; i++) {
 				if (!fstatus[i].isDir()) {
-					sortPosFile(fs, fstatus[i].getPath());
+					ss.addFileStatistics(sortPosFile(fs, fstatus[i].getPath()));	// Sort the file and add the statistics
 					bInputPathEmpty = false;
 				}
 			}
 			if (bInputPathEmpty)
 				throw new IndexerException("No POS file to sort by subject!");
+			ss.persist();
 		} catch (IOException e) {
 			throw new IndexerException("IOException occurred:\n" + e.getMessage());
+		} catch (SummaryStatisticsException e) {
+			throw new IndexerException("SummaryStatisticsException occurred:\n" + e.getMessage());
 		}
 	}
 	
-	private void sortPosFile(FileSystem fs, Path f) throws IOException {
+	private FileStatistics sortPosFile(FileSystem fs, Path f) throws IOException {
 		boolean isTypeFile = false;
 		final int index = f.getName().indexOf(Constants.PREDICATE_OBJECT_TYPE_SEPARATOR);
 		if (-1 != index)
 			isTypeFile = f.getName().subSequence(0, index).equals(rdfTypePredicate);
 		DataInputStream dis = fs.open(f);
 		long subject;
+		long largestSubjectId = Long.MIN_VALUE;
+		long smallestSubjectId = Long.MAX_VALUE;
+		long numberOfRecords = 0;
 		if (isTypeFile) {
 			Set<Long> subjectSet = new TreeSet<Long> ();
 			try {
 				while (true) {
 					subject = dis.readLong();
+					// Update statistics
+					numberOfRecords++;
+					if (subject < smallestSubjectId)
+						smallestSubjectId = subject;
+					if (subject > largestSubjectId)
+						largestSubjectId = subject;
+					// Add subject to the set
 					subjectSet.add(subject);
 				}
 			} catch (EOFException e) {	// end of file reached
@@ -112,6 +134,7 @@ public class Indexer extends PreprocessorJobRunner {
 			for (Long l : subjectSet)
 				dos.writeLong(l);
 			dos.close();
+			return new FileStatistics(f.getName(), f.toString(), largestSubjectId, smallestSubjectId, numberOfRecords);
 		} else {
 			Map<Long, Set<Long>> subjectObjectMap = new TreeMap<Long, Set<Long>> ();
 			long object;
@@ -119,6 +142,13 @@ public class Indexer extends PreprocessorJobRunner {
 				while (true) {
 					subject = dis.readLong();
 					object = dis.readLong();
+					// Update statistics
+					numberOfRecords++;
+					if (subject < smallestSubjectId)
+						smallestSubjectId = subject;
+					if (subject > largestSubjectId)
+						largestSubjectId = subject;
+					// Add pair to the cache
 					Set<Long> objectSet = subjectObjectMap.get(subject);
 					if (null == objectSet) {
 						objectSet = new TreeSet<Long> ();
@@ -136,6 +166,7 @@ public class Indexer extends PreprocessorJobRunner {
 					dos.writeLong(obj);
 				}
 			dos.close();
+			return new FileStatistics(f.getName(), f.toString(), largestSubjectId, smallestSubjectId, numberOfRecords);
 		}
 	}
 
