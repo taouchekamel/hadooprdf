@@ -7,20 +7,18 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-
-import edu.utdallas.hadooprdf.data.SubjectObjectPair;
 
 /**
  * An input format class for binary encoded subject object pairs
  * @author Mohammad Farhan Husain
  *
  */
-public class SOPInputFormat extends FileInputFormat<LongWritable, SubjectObjectPair> {
+public class SOPInputFormat extends FileInputFormat<Writable, Writable> {
 	private static final Log LOG = LogFactory.getLog(SOPInputFormat.class);
 	/*
 	 * The mask to be used to check divisibility by subject object pair size
@@ -33,7 +31,7 @@ public class SOPInputFormat extends FileInputFormat<LongWritable, SubjectObjectP
 	}
 	
 	@Override
-	public RecordReader<LongWritable, SubjectObjectPair> createRecordReader(
+	public RecordReader<Writable, Writable> createRecordReader(
 			InputSplit split, TaskAttemptContext context) throws IOException,
 			InterruptedException {
 		return new SOPRecordReader();

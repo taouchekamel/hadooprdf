@@ -11,9 +11,13 @@ import java.util.TreeMap;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Reducer;
 
+import edu.utdallas.hadooprdf.data.IntermediateFileKey;
+import edu.utdallas.hadooprdf.data.IntermediateFileValue;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairs;
 import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 
@@ -22,13 +26,12 @@ import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
  * @author vaibhav
  *
  */
-public class GenericReducer extends Reducer<Text, Text, Text, Text>
+public class GenericReducer extends Reducer<IntermediateFileKey, IntermediateFileValue, Text, Text>
 {
 	/** The job plan object **/
 	private JobPlan jp = null;
 	
-	/** The prefix namespace tree based on a given DataSet **/
-	private PrefixNamespaceTree prefixTree = null;
+	private PredicateIdPairs predicateIdPairs = null;
 
 	@Override
 	protected void setup(Context context) throws IOException,
@@ -50,8 +53,9 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 			this.jp = (JobPlan)objstream.readObject();
 			objstream.close();
 			
+			predicateIdPairs = new PredicateIdPairs( ds );
 			//Get the prefix namespace tree based on the current DataSet
-			prefixTree = ds.getPrefixNamespaceTree();
+			//prefixTree = ds.getPrefixNamespaceTree();
 		}
 		catch( Exception e ) { throw new InterruptedException( e.getMessage() ); }
 	}
@@ -72,7 +76,8 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 		String prefixValue = ""; if( splitValue.length > 2 ) prefixValue = splitValue[1] + "#";
 		
 		//Get the namespace for the prefix if exists, like 0_0 => namespace = http://abc/
-		String namespaceValue = prefixTree.matchAndReplaceNamespace( prefixValue );
+		//String namespaceValue = prefixTree.matchAndReplaceNamespace( prefixValue );
+		String namespaceValue = "";
 		
 		//Output the value for the variable
 		if( splitValue.length > 2 ) context.write( new Text( namespaceValue + splitValue[2] ), new Text( "" ) );
@@ -86,9 +91,9 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 	 * @param context - the context
 	 */
 	@Override
-	public void reduce( Text key, Iterable<Text> value, Context context ) throws IOException, InterruptedException
+	public void reduce( IntermediateFileKey key, Iterable<IntermediateFileValue> value, Context context ) throws IOException, InterruptedException
 	{
-		//A count of values for a given key
+/*		//A count of values for a given key
 		int count = 0;
 		
 		//A union string containing all the values for a given key
@@ -98,10 +103,18 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 		Map<String,String> trPatternValues = new HashMap<String,String>();
 
 		//Iterate over all values for a particular key
-		Iterator<Text> iter = value.iterator();
+		Iterator<IntermediateFileValue> iter = value.iterator();
 		while ( iter.hasNext() ) 
 		{	
-			//A temporary string, val = X#0_0#string for the input X~1#0_0#string
+			IntermediateFileValue val = iter.next();
+			long[] arrValues = val.getValues();
+			for( int i = 0; i < arrValues.length; i++ )
+				if( arrValues[i] != -1 )
+					sValue += arrValues[i] + '\t';
+		}
+		System.out.println( "key = " + key.getValue() + " value = " + sValue );
+*/		context.write( new Text( "" + key.getValue() ), new Text( "" ) );
+/*			//A temporary string, val = X#0_0#string for the input X~1#0_0#string
 			String val = "";
 			
 			//Do this only if there are no more jobs
@@ -229,7 +242,7 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 						//Get the expected number of triple patterns for the joining variable
 						int countOfTps = jp.getVarTrPatternCount( jp.getJoiningVariablesList().get( 0 ) );
 
-						/** Set an initial value for every variable found in the SELECT clause **/
+						*//** Set an initial value for every variable found in the SELECT clause **//*
 						//An iterator over all SELECT clause variables
 						Iterator<String> iterVars = listSelectVars.iterator();
 						
@@ -556,5 +569,5 @@ public class GenericReducer extends Reducer<Text, Text, Text, Text>
 		}
 		else
 			context.write( key, new Text( sValue ) );		
-	}
+*/	}
 }

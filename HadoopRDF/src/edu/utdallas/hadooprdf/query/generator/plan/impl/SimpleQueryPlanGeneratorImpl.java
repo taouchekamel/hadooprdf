@@ -1,6 +1,8 @@
 package edu.utdallas.hadooprdf.query.generator.plan.impl;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,14 +16,23 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import com.hp.hpl.jena.graph.Node;
 
+import edu.utdallas.hadooprdf.data.IntermediateFileKey;
+import edu.utdallas.hadooprdf.data.IntermediateFileValue;
+import edu.utdallas.hadooprdf.data.commons.Constants;
+import edu.utdallas.hadooprdf.data.commons.Tags;
+import edu.utdallas.hadooprdf.data.io.input.SOPInputFormat;
+import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairs;
+import edu.utdallas.hadooprdf.data.metadata.StringIdPairsException;
+import edu.utdallas.hadooprdf.lib.util.JobParameters;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlanFactory;
 import edu.utdallas.hadooprdf.query.generator.plan.QueryPlan;
@@ -34,8 +45,6 @@ import edu.utdallas.hadooprdf.query.parser.NotBasicElementException;
 import edu.utdallas.hadooprdf.query.parser.QueryParser;
 import edu.utdallas.hadooprdf.query.parser.UnhandledElementException;
 import edu.utdallas.hadooprdf.query.parser.HadoopElement.HadoopTriple;
-import edu.utdallas.hadooprdf.data.metadata.DataSet;
-import edu.utdallas.hadooprdf.lib.util.JobParameters;
 
 /**
  * A specific implementation of the query plan generator based on the "elimination count" algorithm
@@ -59,18 +68,28 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	/** The DataSet to be used **/
 	private DataSet dataset = null;
 	
+	/** Predicate Id pairs **/
+	private PredicateIdPairs predIdPairs = null;
+	
 	/** A map between variables and the number of triple patterns they are found in **/
 	private Map<String,Integer> varTpCountMap = new HashMap<String,Integer>();
 	
-	/**Variable for testing **/
+	/** Variable for testing **/
 	private int countOfJobs = 0;
+	
+	/** The hadoop configuration object **/
+	private Configuration hadoopConfig = null;
 	
 	/**
 	 * Constructor
+	 * @throws StringIdPairsException 
+	 * @throws InterruptedException 
 	 */
-	public SimpleQueryPlanGeneratorImpl( DataSet dataset ) 
+	public SimpleQueryPlanGeneratorImpl( DataSet dataset ) throws StringIdPairsException, InterruptedException 
 	{ 
 		this.dataset = dataset;
+		predIdPairs = new PredicateIdPairs(dataset);
+		hadoopConfig = getConfiguration( JobParameters.configFileDir );
 	}
 
 	/**
@@ -93,11 +112,11 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		//Create a list of job plans
 		List<JobPlan> jpList = new ArrayList<JobPlan>();
 
-		//Create the Hadoop configuration based on the path where the various site files are
-		Configuration hadoopConfig = getConfiguration( JobParameters.configFileDir );
-
 		//Set the DataSet for the configuration
 		hadoopConfig.set( "dataset", dataset.getDataSetRoot().toString() );
+		
+		// Set the rdf:type file id
+		hadoopConfig.set( Tags.RDF_TYPE_PREDICATE, "" + predIdPairs.getId( Constants.RDF_TYPE_URI_NTRIPLES_STRING ) );
 		
 		//Get the total number of variables in the SELECT clause
 		int totalVarsSelectClause = QueryParser.getNumOfVarsInQuery();
@@ -119,12 +138,13 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		oldInputVarList = newInputVarList = constructVarList();
 		
 		//A list of literals to run the heuristic
-		List<String> inputLiteralList = new ArrayList<String>();
+		List<String> inputLiteralOrURIList = new ArrayList<String>();
 		
 		//Initialize the list of literals
-		inputLiteralList = constructLiteralsList();
+		inputLiteralOrURIList = constructLiteralsList();
 		
-		while( tpMap.size() > 0 || !newInputVarList.isEmpty() )
+		//while( tpMap.size() > 0 || !newInputVarList.isEmpty() )
+		while( tpMap.size() > 0 && ( !newInputVarList.isEmpty() || !inputLiteralOrURIList.isEmpty() ) )
 		{				
 			countOfJobs++;
 			
@@ -208,6 +228,7 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 					String pred = tp.getPredicateValue().toString();
 
 					//Add the filename to the Job object
+					//TODO: This will now change based on the long corresponding to a predicate
 					FileInputFormat.addInputPath( currJob, new Path( dataset.getPathToPOSData(), pred ) );
 
 					//Add the triple pattern to the job plan
@@ -262,6 +283,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				fs.delete( opPath, true );
 				FileOutputFormat.setOutputPath( currJob, opPath );
 
+				//Add the number of values that are expected in this job
+				//currJob.getConfiguration().set( "NumOfValues", "" + ( ( SimpleJobPlanImpl ) jp ).predTrPatternMap.size() + 1 );
+				
 				//Add the Hadoop Job to the JobPlan
 				jp.setHadoopJob( currJob );
 
@@ -384,6 +408,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 				fs.delete( opPath, true );
 				FileOutputFormat.setOutputPath( currJob, opPath );
 
+				//Add the number of values that are expected in this job
+				//currJob.getConfiguration().set( "NumOfValues", "" + ( ( SimpleJobPlanImpl ) jp ).predTrPatternMap.size() + 1 );
+
 				//Add the Hadoop Job to the JobPlan
 				jp.setHadoopJob( currJob );
 
@@ -408,6 +435,68 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		return qp;
 	}
 
+	/**
+	 * A method that returns the reducer id for the given literal value
+	 * @param value - the input literal value
+	 * @param numOfReducers - the number of reducers
+	 * @return the reducer id (implicitly the file) that will give us the long corresponding to this literal
+	 */
+	private int getDictionaryFileForLiteral( String value, int numOfReducers )
+	{
+		return ( new Text( value ).hashCode() & Integer.MAX_VALUE) % numOfReducers;
+	}
+	
+	/**
+	 * A method that returns a string representing the long value corresponding to a literal from the dictionary
+	 * @param configuration - the hadoop configuration
+	 * @param value - the input literal value
+	 * @return a string representing long corresponding to the literal from the dictionary
+	 * @throws IOException
+	 */
+	private String getLongValueForLiteral( Configuration configuration, String value ) throws IOException
+	{
+		//Long value for the literal
+		String longForLiteral = null;
+		
+		//Get the reducer id
+		int reducerId = getDictionaryFileForLiteral( value, 100 );
+		
+		//Get the filesystem from the configuration
+		FileSystem fs = FileSystem.get( configuration );
+		
+		//Get the reader for the corresponding dictionary file
+		BufferedReader inReader = new BufferedReader( new InputStreamReader( fs.open( new Path( dataset.getPathToDictionary(), "part-r-" + getReducerPartForFilename( reducerId ) ) ) ) );
+			
+		String str = null;
+		while( ( str = inReader.readLine() ) != null )
+		{
+			String[] splitStr = str.split( "\t" );
+			if( splitStr[0].equalsIgnoreCase( value ) )
+			{
+				longForLiteral = splitStr[2];
+				break;
+			}
+		}
+		inReader.close();
+		return longForLiteral;
+	}
+
+	/**
+	 * A method that converts the reducer id to the required form
+	 * @param reducerId - the reducer id as an integer
+	 * @return a converted string 0 => 00000
+	 */
+	private String getReducerPartForFilename( int reducerId )
+	{
+		String retReducerId = "";
+		String strReducerId = "" + reducerId;
+		for( int i = 1; i <= ( 5 - strReducerId.length() ); i++ )
+		{
+			retReducerId += "0";
+		}
+		return retReducerId + strReducerId;
+	}
+	
 	/**
 	 * A method that checks if we are left only a single triple pattern from the original SPARQL query
 	 * @return true iff one original triple pattern is left, false otherwise
@@ -581,47 +670,53 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 		return newInputVarList;
 	}
 	
+	/**
+	 * A method that constructs the initial list of input literals or URI's from the triple patterns that are part of the 
+	 * input SPARQL query
+	 * @return the initial list of input literals or URI's based on the triple patterns that are part of the SPARQL query
+	 */
 	private List<String> constructLiteralsList()
 	{
 		//The list of literals
-		List<String> inputLiteralsList = new ArrayList<String>(); 
-		
+		List<String> inputLiteralOrURIList = new ArrayList<String>(); 
+
 		//An arraylist of the parent triple pattern identifiers
 		List<Integer> parentTpIds = new ArrayList<Integer>();
-		
+
 		//Iterate over the triple patterns from the input SPARQL query
 		Iterator<Integer> iterTpMap = tpMap.keySet().iterator();
 		while( iterTpMap.hasNext() )
 		{
 			//Get the triple pattern identifier
 			Integer tpId = iterTpMap.next();
-			
+
 			//Get the corresponding triple pattern
 			TriplePattern tp = tpMap.get( tpId );
-			
+
 			//Get the parent triple pattern identifier
 			Integer parentTpId = tp.getParentTriplePatternId();
-			
+
 			//If the list contains the parent identifier, then continue else add the id to the list
 			if( parentTpIds.contains( parentTpId ) ) continue;
 			else parentTpIds.add( parentTpId );
-			
+
 			//The string of associated variables from the current triple pattern
 			String literals = "";
-			
+
 			//Check if the subject and/or object of each triple pattern are variables.
 			//If they are simply add them to the variables
 			Node sub = tp.getSubjectValue(), obj = tp.getObjectValue();
-			if( sub.isLiteral() ) literals += sub.toString() + "~";
-			if( obj.isLiteral() ) literals += obj.toString() + "~";
-			
+			if( sub.isLiteral() || sub.isURI() ) literals += sub.toString() + "~";
+			if( obj.isLiteral() || obj.isURI() ) literals += obj.toString() + "~";
+
 			//Add the variables string to the list of variables
-			inputLiteralsList.add( literals );
+			inputLiteralOrURIList.add( literals );
 		}
-		
+
 		//Return the list of variables
-		return inputLiteralsList;
+		return inputLiteralOrURIList;
 	}
+
 	
 	/**
 	 * A method that constructs the initial list of input variables from the triple patterns that are part of the 
@@ -772,7 +867,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							else varOrigTpBasedMap.put( strSub, varOrigTpBasedMap.get( strSub ) + count + "~" );
 						
 							//Add the object as a literal for the current triple pattern
-							tp.setLiteralValue( strObj );
+							if( obj.isLiteral() ) strObj = "\"" + strObj + "\"";
+							else if( obj.isURI() ) strObj = "<" + strObj + ">";
+							tp.setLiteralValue( getLongValueForLiteral( hadoopConfig, strObj ) );
 							
 							//Add an entry to the variable-triple pattern count hashmap
 							if( varTpCountMap.isEmpty() || varTpCountMap.get( strSub ) == null ) { varTpCountMap.put( strSub, new Integer( 1 ) ); }
@@ -787,7 +884,9 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 							else varOrigTpBasedMap.put( strObj, varOrigTpBasedMap.get( strObj ) + count + "~" );
 
 							//Add the subject as a literal value for the current triple pattern
-							tp.setLiteralValue( strSub );
+							if( sub.isLiteral() ) strSub = "\"" + strSub + "\"";
+							else if( sub.isURI() ) strSub = "<" + strSub + ">";
+							tp.setLiteralValue( getLongValueForLiteral( hadoopConfig, strSub ) );
 							
 							//Add an entry to the variable-triple pattern count hashmap
 							if( varTpCountMap.isEmpty() || varTpCountMap.get( strObj ) == null ) { varTpCountMap.put( strObj, new Integer( 1 ) ); }
@@ -885,17 +984,17 @@ public class SimpleQueryPlanGeneratorImpl implements QueryPlanGenerator
 	 * @param currJob - the current Hadoop Job
 	 */
 	private void setJobParameters( Job currJob )
-	{
+	{	
 		//Set the output key and value class
-		currJob.setOutputKeyClass( Text.class );
-		currJob.setOutputValueClass( Text.class );
+		currJob.setOutputKeyClass( Writable.class );
+		currJob.setOutputValueClass( Writable.class );
 
 		//Set the mapper output key and value class
-		currJob.setMapOutputKeyClass( Text.class );
-		currJob.setMapOutputValueClass( Text.class );
-
+		currJob.setMapOutputKeyClass( IntermediateFileKey.class );
+		currJob.setMapOutputValueClass( IntermediateFileValue.class );
+		
 		//Set the input and output format classes
-		currJob.setInputFormatClass( TextInputFormat.class );
+		currJob.setInputFormatClass( SOPInputFormat.class );
 		currJob.setOutputFormatClass( TextOutputFormat.class );
 
 		//Set the jar file to be used

@@ -21,7 +21,7 @@ public class QueryTester
 		" SELECT ?X " +
 		" WHERE " +
 		" { " +
-		" 	?X rdf:type ub:GraduateStudent . " +
+		//" 	?X rdf:type ub:GraduateStudent . " +
 		"	?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0> " +
 		" } ";
 */		
@@ -40,17 +40,17 @@ public class QueryTester
 		"	?X ub:undergraduateDegreeFrom ?Y." +
 		" }";
 */
-/*		//LUBM Query 3
+		//LUBM Query 3
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
 		" PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#> " +
 		" SELECT ?X " +
 		" WHERE " +
 		" { " +
-		" 	?X rdf:type ub:Publication . " +
+//		" 	?X rdf:type ub:Publication . " +
 		"	?X ub:publicationAuthor <http://www.Department0.University0.edu/AssistantProfessor0> " +
 		" } "; 
-*/		
+		
 /*		//LUBM Query 4
 		String queryString = 
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -183,7 +183,7 @@ public class QueryTester
 		"	?X rdf:type ub:UndergraduateStudent " +
 		" } "; 
 */
-	/*	//DBPEDIA SAMPLE
+/*		//DBPEDIA SAMPLE
 		String queryString =
 		" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -195,9 +195,9 @@ public class QueryTester
 		"	?X <http://dbpedia.org/property_birthPlace> ?P ."+
 		"	?X <http://dbpedia.org/property_deathPlace> ?P ."+
 		"	?X <http://purl.org/dc/elements/1.1/description> ?Q "+
-		" } ";*/ 
-
-		//DBPEDIA SAMPLE - having same birth and death place
+		" } ";
+*/
+/*		//DBPEDIA SAMPLE - having same birth and death place
 		String queryString =
 		" PREFIX foaf: <http://xmlns.com/foaf/0.1/> " +
 		" PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
@@ -207,7 +207,7 @@ public class QueryTester
 		"	?X <http://dbpedia.org/property_birthPlace> ?P ."+
 		"	?X <http://dbpedia.org/property_deathPlace> ?P ."+
 		" } "; 
-
+*/
 
 		//Create the Hadoop configuration to be used
 		//TODO: This should be moved to the QueryExecution ??
@@ -215,10 +215,11 @@ public class QueryTester
 		config.addResource( new Path( JobParameters.configFileDir + "/core-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/mapred-site.xml" ) );
 		config.addResource( new Path( JobParameters.configFileDir + "/hdfs-site.xml" ) );
-		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/test/hadooprdf" );
+		edu.utdallas.hadooprdf.conf.Configuration.createInstance( config, "/user/farhan/hadooprdf/" );
 
+		System.out.println( "at query execution object creation, time = " + System.currentTimeMillis() );
 		//Create a QueryExecution object
-		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/test/hadooprdf/data/DBPEDIA"), config ) );
+		QueryExecution qexec = QueryExecutionFactory.create( queryString, new DataSet( new Path("/user/farhan/hadooprdf/LUBM1/"), config ) );
 		
 		//Get the output file
 		BufferedReader resReader = qexec.execSelect();
@@ -231,5 +232,6 @@ public class QueryTester
 			System.out.println( resultStr );
 		}
 		System.out.println( "count of results = " + count );
+		System.out.println( "finished displaying results, time = " + System.currentTimeMillis() );
 	}
 }

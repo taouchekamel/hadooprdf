@@ -6,21 +6,24 @@ import java.util.StringTokenizer;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+import edu.utdallas.hadooprdf.data.IntermediateFileKey;
+import edu.utdallas.hadooprdf.data.IntermediateFileValue;
+import edu.utdallas.hadooprdf.data.SubjectObjectPair;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
-import edu.utdallas.hadooprdf.data.rdf.uri.prefix.PrefixNamespaceTree;
+import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairs;
 import edu.utdallas.hadooprdf.query.generator.job.JobPlan;
 import edu.utdallas.hadooprdf.query.generator.triplepattern.TriplePattern;
 
-public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
+public class GenericMapper extends Mapper<Writable, Writable, Writable, Writable>
 {
 	private JobPlan jp = null;
-	private PrefixNamespaceTree prefixTree = null;
+	private PredicateIdPairs predicateIdPairs = null;
 
 	@Override
 	protected void setup(Context context) throws IOException,
@@ -31,10 +34,11 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			org.apache.hadoop.conf.Configuration hadoopConfiguration = context.getConfiguration(); 
 			FileSystem fs = FileSystem.get(hadoopConfiguration);
 			DataSet ds = new DataSet( new Path( hadoopConfiguration.get( "dataset" ) ), hadoopConfiguration );
+			predicateIdPairs = new PredicateIdPairs( ds );
 			ObjectInputStream objstream = new ObjectInputStream( fs.open( new Path( ds.getPathToTemp(), "job.txt" ) ) );
 			this.jp = (JobPlan)objstream.readObject();
 			objstream.close();
-			prefixTree = ds.getPrefixNamespaceTree();
+			//prefixTree = ds.getPrefixNamespaceTree();
 		}
 		catch( Exception e ) { throw new InterruptedException(e.getMessage()); }//e.printStackTrace(); }
 	}
@@ -46,14 +50,8 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 	 * @param context - the context
 	 */
 	@Override
-	public void map( LongWritable key, Text value, Context context ) throws IOException, InterruptedException
+	public void map( Writable key, Writable value, Context context ) throws IOException, InterruptedException
 	{
-		//Tokenize the value
-		StringTokenizer st = new StringTokenizer( value.toString(), "\t" ); 
-
-		//Count of tokens
-		int countOfTokens = st.countTokens();
-		
 		//First check if the key is an input filename, if it is then do file processing based map
 		//Else this maybe a second job, do a prefix based map
 		String sPredicate = ((FileSplit) context.getInputSplit()).getPath().getName();
@@ -63,8 +61,11 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 
 		if( !sPredicate.equalsIgnoreCase( "job" + ( jp.getJobId() - 1 ) + "-op.txt" ) )
 		{
+			//Get the SubjectObjectPair
+			SubjectObjectPair subObjPair = ( ( SubjectObjectPair ) value );
+			
 			//Get the subject
-			String sSubject = st.nextToken();
+			long sSubject = subObjPair.getSubject();
 
 			//Get the joining variable value
 			String joiningVariableValue = null;
@@ -72,42 +73,78 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			
 			//If file is of a standard predicate such as rdf, rdfs etc, we need to output only the subject since this is all the file contains
 			//Else depending on the number of variables in the triple pattern we output subject-subject, subject-object, object-subject or object-object 
-			if( sPredicate.startsWith( prefixTree.matchAndReplacePrefix( Constants.RDF_TYPE_URI ) ) )
+			//if( sPredicate.startsWith( prefixTree.matchAndReplacePrefix( Constants.RDF_TYPE_URI ) ) )
+			if( sPredicate.startsWith( "" + predicateIdPairs.getId( Constants.RDF_TYPE_URI_NTRIPLES_STRING ) ) )
 			{
 				//context.write( new Text( sSubject ), new Text( tp.getFilenameBasedPrefix( sPredicate ) + sSubject ) );
-				context.write( new Text( joiningVariableValue + "#" + sSubject ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sSubject ) );
+				IntermediateFileKey intKey = new IntermediateFileKey();
+				intKey.setVar( ( joiningVariableValue + "#" ).hashCode() );
+				intKey.setValue( sSubject );
+				
+				IntermediateFileValue intValue = new IntermediateFileValue();
+				int var = ( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" ).hashCode();
+				intValue.setElement( var, sSubject );
+				System.out.println( "key = " + intKey.getValue() + " value = " + intValue.getValues()[0] );
+				context.write( intKey, intValue );
 			}
 			else
 			{
 				//If join is on subject and the number of variables in the triple pattern is 2 output ( subject, object )
 				if( tp.getJoiningVariable().equalsIgnoreCase( "s" ) )
 				{
+					IntermediateFileKey intKey = new IntermediateFileKey();
+					intKey.setVar( ( joiningVariableValue + "#" ).hashCode() );
+					intKey.setValue( sSubject );
+									
 					if( tp.getNumOfVariables() == 2 )
-						context.write( new Text( joiningVariableValue + "#" + sSubject ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sSubject + "\t" + tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" + st.nextToken() ) );
+					{
+						IntermediateFileValue intValue = new IntermediateFileValue();
+						int var = ( tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" ).hashCode();
+						long val = subObjPair.getObject();
+						intValue.setElement( var, val );
+
+						context.write( intKey, intValue );
+					}
 					else
 					{
-						String sObject = st.nextToken();
+						IntermediateFileValue intValue = new IntermediateFileValue();
+						int var = ( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" ).hashCode();
+						long val = subObjPair.getObject();
+						intValue.setElement( var, sSubject );
 
-						if( sObject.equalsIgnoreCase( tp.getLiteralValue() ) )
-							context.write( new Text( joiningVariableValue + "#" + sSubject ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sSubject ) );
+						if( Long.toString( val ).equalsIgnoreCase( tp.getLiteralValue() ) )
+							context.write( intKey, intValue );
 					}
 				}
 				else
 					if( tp.getJoiningVariable().equalsIgnoreCase( "o" ) )
 					{
+						IntermediateFileKey intKey = new IntermediateFileKey();
+						intKey.setVar( ( joiningVariableValue + "#" ).hashCode() );
+						intKey.setValue( subObjPair.getObject() );
+
 						if( tp.getNumOfVariables() == 2 )
-							context.write( new Text( joiningVariableValue + "#" + st.nextToken() ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sSubject + "\t" + tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" + sSubject ) );
+						{
+							IntermediateFileValue intValue = new IntermediateFileValue();
+							int var = ( tp.getSecondVariableValue().substring( 1 ) + "~" + tp.getParentTriplePatternId() + "#" ).hashCode();
+							long val = sSubject;
+							intValue.setElement( var, val );
+
+							context.write( intKey, intValue );
+						}
 						else
 						{
-							String sObject = st.nextToken();
+							IntermediateFileValue intValue = new IntermediateFileValue();
+							int var = ( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" ).hashCode();
+							intValue.setElement( var, sSubject );
 
-							if( sSubject.equalsIgnoreCase( tp.getLiteralValue() ) )
-								context.write( new Text( joiningVariableValue + "#" + sObject ), new Text( joiningVariableValue + "~" + tp.getParentTriplePatternId() + "#" + sObject ) );
+							if( Long.toString( sSubject ).equalsIgnoreCase( tp.getLiteralValue() ) )
+								context.write( intKey, intValue );
 						}
 					}
 					else
 					{
-						String sObject = st.nextToken();
+						String sObject = Long.toString( subObjPair.getObject() );
 						if( tp.getJoiningVariableValue().contains( "s" ) )
 						{
 							context.write( new Text( tp.getJoiningVariableValue().substring( 2 ) + "#" + sSubject + "~" + tp.getSecondVariableValue().substring( 2 ) + "#" + sObject ), 
@@ -123,9 +160,11 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 		}
 		else
 		{
+			IntermediateFileValue intFileRecord = ( ( IntermediateFileValue ) value );
+			int countOfTokens = intFileRecord.getArrayLength();
 			int count = 0;
 			String keyVal = "";
-			
+			StringTokenizer st = new StringTokenizer( ( ( Text ) value ).toString() );
 			if( jp.getJoiningVariablesList().size() == 1 )
 			{
 				while( st.hasMoreTokens() )
@@ -152,7 +191,6 @@ public class GenericMapper extends Mapper<LongWritable, Text, Text, Text>
 			}
 			else
 			{
-				st = null;
 				String[] splitVar = value.toString().split( "\t" );
 				keyVal = splitVar[0];
 				String firstJoinVarValue = "";

@@ -11,11 +11,14 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+import edu.utdallas.hadooprdf.data.IntermediateFileKey;
+import edu.utdallas.hadooprdf.data.IntermediateFileValue;
 import edu.utdallas.hadooprdf.data.SubjectObjectPair;
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.commons.Tags;
@@ -25,15 +28,18 @@ import edu.utdallas.hadooprdf.data.commons.Tags;
  * 
  */
 public class SOPRecordReader extends
-		RecordReader<LongWritable, SubjectObjectPair> {
+		RecordReader<Writable, Writable> {
 	private static final long SIZE_OF_LONG_IN_BYTES = Long.SIZE >> 3;
 	private long start;
 	private long pos;
 	private long end;
 	private DataInputStream in = null;
-	private LongWritable key = null;
-	private SubjectObjectPair value = null;
+	private Writable key = null;
+	private Writable value = null;
 	private boolean inputFromTypeFile = false;
+	
+	//@author vaibhav: variable to determine if a record is being read from an intermediate file
+	private boolean inputFromIntermediateFile = false;
 	
 	@Override
 	public synchronized void close() throws IOException {
@@ -42,13 +48,13 @@ public class SOPRecordReader extends
 	}
 
 	@Override
-	public LongWritable getCurrentKey() throws IOException,
+	public Writable getCurrentKey() throws IOException,
 			InterruptedException {
 		return key;
 	}
 
 	@Override
-	public SubjectObjectPair getCurrentValue() throws IOException,
+	public Writable getCurrentValue() throws IOException,
 			InterruptedException {
 		return value;
 	}
@@ -68,8 +74,17 @@ public class SOPRecordReader extends
 		FileSplit split = (FileSplit) genericSplit;
 		final String typePredicateId = context.getConfiguration().get(Tags.RDF_TYPE_PREDICATE);
 		inputFromTypeFile = false;
-		if (null != typePredicateId) {
+		
+		//@author vaibhav: set the variable to false
+		inputFromIntermediateFile = false;
+		
+		if( null != typePredicateId ) 
+		{
 			String fileName = split.getPath().getName();
+			
+			//@author vaibhav: set if filename starts with 'part'
+			inputFromIntermediateFile = fileName.startsWith( "job" );
+			
 			final int index = fileName.indexOf(Constants.PREDICATE_OBJECT_TYPE_SEPARATOR);
 			if (-1 != index)
 				inputFromTypeFile = fileName.substring(0, index).startsWith(typePredicateId);
@@ -88,25 +103,51 @@ public class SOPRecordReader extends
 
 	@Override
 	public boolean nextKeyValue() throws IOException, InterruptedException {
-		if (key == null) {
-			key = new LongWritable();
-		}
-		key.set(pos);
-		if (value == null) {
-			value = new SubjectObjectPair();
-		}
-		if (pos < end) {
-			value.setSubject(in.readLong());
-			pos += SIZE_OF_LONG_IN_BYTES;
-			if (inputFromTypeFile) {
-				value.setObject(0);
-				return true;
+		if (key == null) 
+		{
+			//@author vaibhav: if input is from intermediate file set key appropriately
+			if( inputFromIntermediateFile )
+			{
+				key = new IntermediateFileKey();
+				( ( IntermediateFileKey ) key ).setVar( in.readInt() );
+				( ( IntermediateFileKey ) key ).setValue( in.readLong() );
 			}
-			else if (pos < end) {
-				value.setObject(in.readLong());
+			else
+			{
+				key = new LongWritable();
+				( ( LongWritable ) key ).set(pos);
+			}
+		}
+		
+		if (value == null) 
+		{
+			//@author vaibhav: if input is from intermediate file create object of IntermediateFileRecord else SubjectObjectPair
+			if( inputFromIntermediateFile ) value = new IntermediateFileValue();
+			else value = new SubjectObjectPair();
+		}
+		if (pos < end) 
+		{
+			//@author vaibhav: if input is from intermediate file set variables in IntermediateFileRecord else in SubjectObjectPair
+			if( inputFromIntermediateFile )
+			{
+				int var = in.readInt();
+				long valuePart = in.readLong();
+				( ( IntermediateFileValue ) value ).setElement( var, valuePart );
+			}
+			else
+			{
+				( ( SubjectObjectPair ) value ).setSubject(in.readLong());
 				pos += SIZE_OF_LONG_IN_BYTES;
-				return true;
- 			}
+				if (inputFromTypeFile) {
+					( ( SubjectObjectPair ) value ).setObject(0);
+					return true;
+				}
+				else if (pos < end) {
+					( ( SubjectObjectPair ) value ).setObject(in.readLong());
+					pos += SIZE_OF_LONG_IN_BYTES;
+					return true;
+				}
+			}
 		}
 		key = null;
 		value = null;

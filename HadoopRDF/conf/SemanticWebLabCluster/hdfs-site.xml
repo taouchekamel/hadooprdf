@@ -9,13 +9,13 @@
 	</property>
 	<property>
 	  <name>dfs.http.address</name>
-	  <value>HadoopExp-desktop:50070</value>
+	  <value>10.110.96.145:50070</value>
 	  <description>
 	    The address and the base port where the dfs namenode web ui will listen on.
 	    If the port is 0 then the server will start on a free port.
 	  </description>
 	</property>
-<property>
+	<property>
 		<name>dfs.block.size</name>
 		<value>199168</value>
 	</property>

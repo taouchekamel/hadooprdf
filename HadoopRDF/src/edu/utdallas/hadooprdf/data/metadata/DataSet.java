@@ -72,6 +72,10 @@ public class DataSet {
 	 */
 	private Path pathToTemp;
 	/**
+	 * Path to summary statistics
+	 */
+	private Path pathToSummaryStatistics;
+	/**
 	 * The predicate collection of the data set
 	 */
 	private Collection<String> predicateCollection;
@@ -120,6 +124,7 @@ public class DataSet {
 		pathToTypeList = new Path(pathToMetaData, "types");
 		pathToDictionary = new Path(pathToMetaData, "dictionary");
 		pathToTemp = new Path(dataSetRoot, "tmp");
+		pathToSummaryStatistics = new Path(dataSetRoot, "summaryStatistics");
 		predicateCollection = createPredicateCollection(hadoopConfiguration);
 	}
 	/**
@@ -188,6 +193,12 @@ public class DataSet {
 	 */
 	public Path getPathToTemp() {
 		return pathToTemp;
+	}
+	/**
+	 * @return the pathToSummaryStatistics
+	 */
+	public Path getPathToSummaryStatistics() {
+		return pathToSummaryStatistics;
 	}
 	/**
 	 * @return the pathToDictionary

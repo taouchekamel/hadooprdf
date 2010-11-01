@@ -20,6 +20,9 @@ import org.semanticweb.owl.model.OWLOntologyManager;
 
 import edu.utdallas.hadooprdf.data.commons.Constants;
 import edu.utdallas.hadooprdf.data.metadata.DataSet;
+import edu.utdallas.hadooprdf.data.metadata.PredicateIdPairs;
+import edu.utdallas.hadooprdf.data.metadata.StringIdPairsException;
+import edu.utdallas.hadooprdf.data.metadata.TypeIdPairs;
 import edu.utdallas.hadooprdf.lib.util.PathFilterOnFilenameExtension;
 
 class FileListGenerator 
@@ -28,8 +31,10 @@ class FileListGenerator
 	private Reasoner mReasoner = new Reasoner(mManager);
 	private DataSet dataset = null;
 	public static boolean isInverse = false;
+	private PredicateIdPairs predicateIdPairs = null;
+	private TypeIdPairs typeIdPairs = null;
 
-	public FileListGenerator (edu.utdallas.hadooprdf.query.parser.Query query, DataSet dataset ) throws OWLOntologyCreationException 
+	public FileListGenerator (edu.utdallas.hadooprdf.query.parser.Query query, DataSet dataset ) throws OWLOntologyCreationException, StringIdPairsException 
 	{
 		this.dataset = dataset;
 		Set <String> keys = query.getNsPrefixKeySet();
@@ -42,6 +47,8 @@ class FileListGenerator
 			catch (OWLOntologyCreationException e) { throw e; }			
 		}	
 		mReasoner.getKB().realize();
+		predicateIdPairs = new PredicateIdPairs( dataset );
+		typeIdPairs = new TypeIdPairs( dataset );
 	}
 
 	public boolean isPredicateTransitive( String predicate )
@@ -71,24 +78,36 @@ class FileListGenerator
 
 			if ( uri.contains(".owl") ) 
 			{
+				String filename = "" + predicateIdPairs.getId( "<" + Constants.RDF_TYPE_URI + ">" ) + "_" + 
+				                  "" + typeIdPairs.getId( "<" + uri + ">" );
 				FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
 				for (int i = 0; i < fstatus.length; i++) 
 				{
 					if (!fstatus[i].isDir()) 
 					{
-						if( fstatus[i].getPath().getName().toString().equalsIgnoreCase( prefix + ".pos" ) )
+						//if( fstatus[i].getPath().getName().toString().equalsIgnoreCase( prefix + ".pos" ) )
+						if( fstatus[i].getPath().getName().toString().equalsIgnoreCase( filename + ".pos" ) )
 							files.add( fstatus[i].getPath().getName().toString() );
 					}
 				}
 			}
 			else
 			{
+				String[] splitUnderscore = prefix.split( "_" );
+				String filename = "";
+				for( int i = 0; i < splitUnderscore.length; i++ )
+				{
+					if( i == 0 ) filename += "" + predicateIdPairs.getId( "<" + splitUnderscore[i] + ">" );
+					else filename += "_" + typeIdPairs.getId( "<" + splitUnderscore[i] + ">" );
+				} 
+				if( filename.contains( "null" ) ) filename = filename.split( "_" )[0];
 				FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
 				for (int i = 0; i < fstatus.length; i++) 
 				{
 					if (!fstatus[i].isDir()) 
 					{
-						if( fstatus[i].getPath().getName().toString().contains( classAssociated ) )
+						//if( fstatus[i].getPath().getName().toString().contains( classAssociated ) )
+						if( fstatus[i].getPath().getName().toString().contains( filename ) )
 							files.add( fstatus[i].getPath().getName().toString() );
 					}
 				}			
@@ -111,12 +130,14 @@ class FileListGenerator
 						while( iterSubProp.hasNext() )
 						{
 							OWLObjectPropertyExpression prop = iterSubProp.next();
+							String filename = "" + predicateIdPairs.getId( "<" + prop.asOWLObjectProperty().getURI().toString() + ">" );
 							FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
 							for (int i = 0; i < fstatus.length; i++) 
 							{
 								if (!fstatus[i].isDir()) 
 								{
-									if( fstatus[i].getPath().getName().toString().contains( prop.toString() ) )
+									//if( fstatus[i].getPath().getName().toString().contains( prop.toString() ) )
+									if( fstatus[i].getPath().getName().toString().contains( filename ) )
 										files.add( fstatus[i].getPath().getName().toString() );
 									FileListGenerator.isInverse = true;
 								}
@@ -137,12 +158,14 @@ class FileListGenerator
 					while( iterSubProp.hasNext() )
 					{
 						OWLObjectPropertyExpression subProp = iterSubProp.next();
+						String filename = "" + predicateIdPairs.getId( "<" + subProp.asOWLObjectProperty().getURI().toString() + ">" ).toString();
 						FileStatus [] fstatus = fs.listStatus( dataset.getPathToPOSData(), new PathFilterOnFilenameExtension(Constants.POS_EXTENSION) );
 						for (int i = 0; i < fstatus.length; i++) 
 						{
 							if (!fstatus[i].isDir()) 
 							{
-								if( fstatus[i].getPath().getName().toString().contains( subProp.toString() ) )
+								//if( fstatus[i].getPath().getName().toString().contains( subProp.toString() ) )
+								if( fstatus[i].getPath().getName().toString().contains( filename ) )
 									files.add( fstatus[i].getPath().getName().toString() );
 							}
 						}													
@@ -156,8 +179,8 @@ class FileListGenerator
 			{
 				OWLClass sClass = iterAllClasses.next();
 				if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) || !mReasoner.isSubClassOf( sClass, mpredClass ) ) continue;
-				String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";	
-
+				//String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";
+				String fileName = "" + predicateIdPairs.getId( "<" + prefix.split( "_" )[0] + ">" ) + "_" + typeIdPairs.getId( "<" + sClass.getURI() + ">" ) + ".pos";
 				if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
 					files.add( fileName );
 			}
@@ -173,14 +196,15 @@ class FileListGenerator
 					{
 						OWLClass sClass = iterSubClasses.next().asOWLClass();
 						if( sClass.toString().equalsIgnoreCase( mpredClass.toString() ) ) continue;
-						String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";	
+						//String fileName = prefix.substring(0, prefix.lastIndexOf("#")) + "#" + sClass + ".pos";
+						String fileName = "" + predicateIdPairs.getId( "<" + prefix.split( "_" )[0] + ">" ) + "_" + typeIdPairs.getId( "<" + sClass.getURI() + ">" ) + ".pos";
 
 						if( fs.exists( new Path( dataset.getPathToPOSData(), fileName ) ) )
 							files.add( fileName );					
 					}
 				}
 			}
-			if( files.size() == 0 ) files.add( prefix + ".pos" );				
+			//if( files.size() == 0 ) files.add( prefix + ".pos" );				
 		}
 		catch( Exception e ) { e.printStackTrace(); }				
 		return files;

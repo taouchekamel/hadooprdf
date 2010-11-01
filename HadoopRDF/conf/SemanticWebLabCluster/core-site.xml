@@ -5,11 +5,15 @@
 <configuration>
 	<property>
 		<name>fs.default.name</name>
-		<value>hdfs://HadoopExp-desktop:54310</value>
+		<value>hdfs://10.110.96.145:54310</value>
 	</property>
 	<property>
 		<name>hadoop.tmp.dir</name>
 		<value>/hadoop/Hadoop/hadoop-0.20.1/HadoopDirs/HadoopTmp</value>
+	</property>
+	<property>
+		<name>dfs.permissions</name>
+		<value>false</value>
 	</property>
 </configuration>
 
